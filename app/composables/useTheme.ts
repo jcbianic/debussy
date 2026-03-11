@@ -1,6 +1,6 @@
 import { ref, computed, onMounted, watch } from 'vue'
-import type { ThemePreference } from '~/types/theme'
-import { lightTokens, darkTokens, defaultPreference, THEME_STORAGE_KEY } from '~/types/theme'
+import type { ThemePreference } from '~~/types/theme'
+import { lightTokens, darkTokens, defaultPreference, THEME_STORAGE_KEY } from '~~/types/theme'
 
 const mode = ref<ThemePreference['mode']>('system')
 const customColors = ref<ThemePreference['customColors']>({})

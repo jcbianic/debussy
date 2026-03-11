@@ -1,4 +1,4 @@
-import { lightTokens, darkTokens } from '~/types/theme'
+import { lightTokens, darkTokens } from '~~/types/theme'
 
 export default defineEventHandler((event) => {
   const query = getQuery(event) as { mode?: string }
