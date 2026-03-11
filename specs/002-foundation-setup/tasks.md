@@ -23,9 +23,9 @@ Each story is **independently tested** via `.feature` files (Gherkin scenarios w
 
 Foundation setup: project structure, config, SQLite, and test framework.
 
-- [ ] T001 Create base project structure with Nuxt 4 scaffold in pages/, components/, server/, types/, and tests/ directories
-- [ ] T002 Configure Vitest 3.2 with vitest.config.ts, test discovery, coverage reporting, and npm scripts (npm test, npm test:coverage)
-- [ ] T003 [P] Initialize SQLite schema with better-sqlite3: sessions table, workflows table, indices per data-model.md
+- [x] T001 Create base project structure with Nuxt 4 scaffold in pages/, components/, server/, types/, and tests/ directories
+- [x] T002 Configure Vitest 3.2 with vitest.config.ts, test discovery, coverage reporting, and npm scripts (npm test, npm test:coverage)
+- [x] T003 [P] Initialize SQLite schema with better-sqlite3: sessions table, workflows table, indices per data-model.md
 
 **Dependencies**: T001 → T002, T001 → T003
 **Critical Path**: T001 must complete before T002 and T003 can start
@@ -40,8 +40,8 @@ High-priority stories that define the core developer experience.
 
 Tests: TS-001 (dev server launches in <5s), TS-002 (HMR works), TS-003 (command from any subdirectory)
 
-- [ ] T004 [US-001] Configure npm scripts in package.json: `npm run dev` (nuxt dev), `npm run build` (nuxt build), `npm start` (nitro start) per dev-server.contract.md
-- [ ] T005 [P] [US-001] Set up Nuxt dev server hot module reloading (HMR) in nuxt.config.ts with reasonable defaults (>= <1s feedback per plan)
+- [x] T004 [US-001] Configure npm scripts in package.json: `npm run dev` (nuxt dev), `npm run build` (nuxt build), `npm start` (nitro start) per dev-server.contract.md
+- [x] T005 [P] [US-001] Set up Nuxt dev server hot module reloading (HMR) in nuxt.config.ts with reasonable defaults (>= <1s feedback per plan)
 - [ ] T006 [P] [US-001] Create health check endpoint (GET /api/health) to verify server readiness and test TS-001 scenario
 
 **Dependencies**: T004 → T005, T004 → T006
