@@ -142,7 +142,7 @@ Core data layer: sessions, workflows, and theme API endpoints.
 Documentation, testing, and final integration.
 
 - [x] T031 [P] [TS-001, TS-002, TS-003, TS-004, TS-005, TS-006, TS-007, TS-008, TS-009, TS-010, TS-011, TS-012, TS-013, TS-014, TS-015, TS-016, TS-017, TS-018] Write and run all 18 test scenarios (via npm test): ensure every .feature file passes locally with step definitions implemented in tests/step_definitions/ (or Vitest BDD runner equivalent per testing framework)
-- [ ] T032 Create README.md documenting: project purpose, setup (npm install), dev workflow (npm run dev), testing (npm test), build (npm run build), distribution (npm publish), theme customization, troubleshooting per SC-010
+- [x] T032 Create README.md documenting: project purpose, setup (npm install), dev workflow (npm run dev), testing (npm test), build (npm run build), distribution (npm publish), theme customization, troubleshooting per SC-010
 
 **Dependencies**: T004 → T031, T010 → T031, T021 → T031, T026 → T031, T030 → T031
 (All major features must be ready before final integration testing)
