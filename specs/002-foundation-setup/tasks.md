@@ -67,10 +67,10 @@ Tests: TS-004 (npm test passes), TS-005 (error messages are clear), TS-006 (test
 
 Tests: TS-007 (npx debussy runs), TS-008 (executable launches), TS-009 (version updates work)
 
-- [ ] T011 [US-003] Create bin/debussy.cjs executable entry point with Nitro standalone build command per distribution.contract.md
-- [ ] T012 [P] [US-003] Update package.json with metadata: name, version, description, repository, homepage, bin field pointing to bin/debussy.cjs, and prepublish script (npm run build)
-- [ ] T013 [P] [US-003] Create .npmignore file to exclude source, test, and build artifacts; include only dist/ and bin/ in npm package
-- [ ] T014 [US-003] Test local npm distribution: verify `npm pack` generates tarball, extract it, run bin/debussy.cjs from clean environment (simulates npx behavior)
+- [x] T011 [US-003] Create bin/debussy.cjs executable entry point with Nitro standalone build command per distribution.contract.md
+- [x] T012 [P] [US-003] Update package.json with metadata: name, version, description, repository, homepage, bin field pointing to bin/debussy.cjs, and prepublish script (npm run build)
+- [x] T013 [P] [US-003] Create .npmignore file to exclude source, test, and build artifacts; include only dist/ and bin/ in npm package
+- [x] T014 [US-003] Test local npm distribution: verify `npm pack` generates tarball, extract it, run bin/debussy.cjs from clean environment (simulates npx behavior)
 
 **Dependencies**: T001 → T011, T011 → T012, T012 → T013, T012 → T014
 **Parallel Opportunity**: T013 and T014 can run after T012
