@@ -53,10 +53,10 @@ Tests: TS-001 (dev server launches in <5s), TS-002 (HMR works), TS-003 (command 
 
 Tests: TS-004 (npm test passes), TS-005 (error messages are clear), TS-006 (test discovery works)
 
-- [ ] T007 [US-002] Write Vitest setup file with Vue component testing utilities, test globals, and coverage configuration per testing-quality.contract.md
-- [ ] T008 [P] [US-002] Create example unit test file (src/utils/example.test.ts) demonstrating test patterns: component rendering, mocking, assertions, async tests
-- [ ] T009 [P] [US-002] Create example integration test (server/api/health.test.ts) demonstrating API testing: route handling, response validation
-- [ ] T010 [US-002] Configure coverage thresholds in vitest.config.ts: lines >= 70%, branches >= 60%, functions >= 70% per SC-004
+- [x] T007 [US-002] Write Vitest setup file with Vue component testing utilities, test globals, and coverage configuration per testing-quality.contract.md
+- [x] T008 [P] [US-002] Create example unit test file (src/utils/example.test.ts) demonstrating test patterns: component rendering, mocking, assertions, async tests
+- [x] T009 [P] [US-002] Create example integration test (server/api/health.test.ts) demonstrating API testing: route handling, response validation
+- [x] T010 [US-002] Configure coverage thresholds in vitest.config.ts: lines >= 70%, branches >= 60%, functions >= 70% per SC-004
 
 **Dependencies**: T002 → T007, T007 → T008, T007 → T009, T007 → T010
 **Parallel Opportunity**: T008, T009, T010 can run in parallel after T007

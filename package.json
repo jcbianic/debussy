@@ -4,10 +4,21 @@
   "description": "Local-first web UI for orchestrating Claude Code sessions and IIKit workflows",
   "private": true,
   "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/libon-data/debussy"
+  },
+  "keywords": ["claude-code", "orchestration", "iikit", "local-first"],
   "bin": {
     "debussy": "./bin/debussy.cjs"
   },
+  "files": [
+    "bin/",
+    ".output/"
+  ],
   "scripts": {
+    "prepublishOnly": "npm run build",
     "dev": "nuxt dev",
     "build": "nuxt build",
     "start": "node .output/server/index.mjs",

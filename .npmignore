@@ -1,0 +1,31 @@
+# Source (not needed in npm package)
+pages/
+components/
+composables/
+layouts/
+server/
+types/
+tests/
+specs/
+poc/
+
+# Config
+nuxt.config.ts
+tsconfig.json
+vitest.config.ts
+app.vue
+
+# Dev artifacts
+.nuxt/
+.git/
+.gitignore
+.DS_Store
+.debussy/
+.tessl/
+.specify/
+.worktrees/
+.claude/
+coverage/
+*.log
+*.md
+!README.md
