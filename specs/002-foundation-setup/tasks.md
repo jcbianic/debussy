@@ -101,8 +101,8 @@ Tests: TS-010 (light/dark mode switches), TS-011 (custom colors apply), TS-012 (
 
 Tests: TS-013 (welcome page loads), TS-014 (CTAs navigate correctly), TS-015 (mobile layout works)
 
-- [ ] T021 [P] [US-005] Create welcome page (pages/index.vue) with: hero headline, three feature callouts (Sessions, Workflows, Artifacts), primary CTA ("New Session"), secondary CTA ("View Workflows"), responsive layout per welcome-page.contract.md
-- [ ] T022 [P] [US-005] Create session cards component (SessionCard.vue) showing session label, status, workflow count; re-used on welcome and session pages
+- [x] T021 [P] [US-005] Create welcome page (pages/index.vue) with: hero headline, three feature callouts (Sessions, Workflows, Artifacts), primary CTA ("New Session"), secondary CTA ("View Workflows"), responsive layout per welcome-page.contract.md
+- [x] T022 [P] [US-005] Create session cards component (SessionCard.vue) showing session label, status, workflow count; re-used on welcome and session pages
 
 **Dependencies**: T020 → T021 (theme provider must be ready), T021 → T022
 **Parallel Opportunity**: T022 can start after T021
