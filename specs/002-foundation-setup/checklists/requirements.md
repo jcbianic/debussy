@@ -78,6 +78,12 @@
 - [x] **Is the feature valuable on its own?**: Yes — provides a working, testable, publishable app even if no Claude subprocess integration is added later
   - ✅ Confirmed: Foundation establishes complete dev ecosystem before higher-level features
 
+## Documentation
+
+- [ ] **README covers key workflows**: Does README include setup, build, test, and publish instructions?
+  - Required: `npm install`, `npm run dev`, `npm test`, `npm run build`, `npm publish` steps documented
+  - SC-010 is the success criterion
+
 ## Constitutional Alignment
 
 - [x] **Specification-Driven Development (Principle I)**: Spec has user stories, FR-XXX, SC-XXX; plan documented
@@ -93,6 +99,14 @@
 - Next: Run `/iikit-04-testify` to generate .feature files and assertion hashes
 - Then: Run `/iikit-05-tasks` to generate task breakdown from plan
 - Finally: Run `/iikit-07-implement` to begin test-first implementation
+
+## Clarifications
+
+### Session 2026-03-11
+
+- Q: Should FR-302 core pages be full feature implementations or functional stubs in this foundation phase? -> A: Functional stubs — correct routes, layout, navigation, placeholder content only. Existing POC pages are preserved under `pages/poc/` (not deleted). Full feature pages are delivered by later intents. [FR-302, SC-007, SC-009]
+- Q: Should SC-010 (README) and SC-011 (developer guide) both have checklist coverage? -> A: SC-010 (README) added as a checklist item. SC-011 is aspirational and omitted from checklist. [SC-010]
+- Q: Are "Feature Readiness" checklist items genuinely unchecked? -> A: Already `[x]` with confirmations — no change needed. [FR-302]
 
 ## Sign-Off
 

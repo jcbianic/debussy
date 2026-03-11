@@ -176,10 +176,12 @@ A user navigates between the three core pages (sessions, workflows, artifacts) a
   - Current page is visually highlighted
   - Mobile-responsive navigation
 
-- **FR-302**: Integrate three core pages:
-  - Session viewer: displays active sessions, stream output, input area
-  - Workflow page: displays workflows, phase progress, run buttons, phase output
-  - Artifact viewer: displays file tree, content rendering for multiple artifact types
+- **FR-302**: Scaffold three core pages as functional stubs (not full implementations):
+  - Session viewer: route exists, correct layout/navigation, placeholder content
+  - Workflow page: route exists, correct layout/navigation, placeholder content
+  - Artifact viewer: route exists, correct layout/navigation, placeholder content
+  - Full interactive functionality (stream output, phase progress, file tree) delivered by later intents
+  - Existing POC pages preserved under `pages/poc/` for reference
 
 ### Key Entities
 
