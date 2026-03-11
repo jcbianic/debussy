@@ -113,10 +113,10 @@ Tests: TS-013 (welcome page loads), TS-014 (CTAs navigate correctly), TS-015 (mo
 
 Tests: TS-016 (nav links work), TS-017 (active page highlights), TS-018 (layout is consistent across pages)
 
-- [ ] T023 [P] [US-006] Create AppNavigation.vue component with: header with logo/title, sidebar with links (Sessions, Workflows, Artifacts), hamburger menu for mobile, active page highlighting via `$route.name` per navigation.contract.md
-- [ ] T024 [P] [US-006] Create stub pages: pages/sessions.vue, pages/workflows.vue, pages/artifacts.vue with placeholder content and shared layout
-- [ ] T025 [P] [US-006] Create default layout (layouts/default.vue) that wraps AppNavigation + page content; ensure navigation persists across page transitions
-- [ ] T026 [US-006] Update app.vue to use default layout and initialize navigation state (active page tracking)
+- [x] T023 [P] [US-006] Create AppNavigation.vue component with: header with logo/title, sidebar with links (Sessions, Workflows, Artifacts), hamburger menu for mobile, active page highlighting via `$route.name` per navigation.contract.md
+- [x] T024 [P] [US-006] Create stub pages: pages/sessions.vue, pages/workflows.vue, pages/artifacts.vue with placeholder content and shared layout
+- [x] T025 [P] [US-006] Create default layout (layouts/default.vue) that wraps AppNavigation + page content; ensure navigation persists across page transitions
+- [x] T026 [US-006] Update app.vue to use default layout and initialize navigation state (active page tracking)
 
 **Dependencies**: T020 → T023 (theme must be ready), T023 → T024, T023 → T025, T025 → T026
 **Parallel Opportunity**: T024, T025 can run in parallel after T023
