@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import Database from 'better-sqlite3'
 import * as dbModule from '~/server/utils/db'
-import { getSessions, getSession, createSession } from '~/server/utils/services'
+import { getSessions, getSessionById, createSession } from '~/server/utils/services'
 
 // Use in-memory database for tests
 let testDb: Database.Database
@@ -75,17 +75,17 @@ describe('Sessions API (FR-302, sessions-api.contract)', () => {
     })
   })
 
-  describe('getSession', () => {
+  describe('getSessionById', () => {
     it('returns session by id', () => {
       const created = createSession('Test')
-      const found = getSession(created.id)
+      const found = getSessionById(created.id)
       expect(found).not.toBeNull()
       expect(found!.id).toBe(created.id)
       expect(found!.label).toBe('Test')
     })
 
     it('returns null for unknown id', () => {
-      const result = getSession('nonexistent')
+      const result = getSessionById('nonexistent')
       expect(result).toBeNull()
     })
   })

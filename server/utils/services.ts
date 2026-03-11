@@ -54,7 +54,7 @@ export function getSessions(opts: { skip?: number; limit?: number; status?: stri
   }
 }
 
-export function getSession(id: string) {
+export function getSessionById(id: string) {
   const db = getDb()
   const row = db.prepare('SELECT * FROM sessions WHERE id = ?').get(id) as SessionRow | undefined
   return row ? formatSession(row) : null
@@ -69,7 +69,7 @@ export function createSession(label?: string) {
     'INSERT INTO sessions (id, created_at, updated_at, label, status, workflow_ids) VALUES (?, ?, ?, ?, ?, ?)'
   ).run(id, now, now, label || null, 'idle', '[]')
 
-  return getSession(id)!
+  return getSessionById(id)!
 }
 
 // Workflows

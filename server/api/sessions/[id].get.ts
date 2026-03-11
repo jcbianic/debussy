@@ -1,4 +1,4 @@
-import { getSession } from '../../utils/services'
+import { getSessionById } from '../../utils/services'
 
 export default defineEventHandler((event) => {
   const id = event.context.params?.id
@@ -7,7 +7,7 @@ export default defineEventHandler((event) => {
     throw createError({ statusCode: 400, statusMessage: 'Session ID required' })
   }
 
-  const session = getSession(id)
+  const session = getSessionById(id)
 
   if (!session) {
     throw createError({ statusCode: 404, statusMessage: 'Session not found' })
