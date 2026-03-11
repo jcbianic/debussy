@@ -127,10 +127,10 @@ Tests: TS-016 (nav links work), TS-017 (active page highlights), TS-018 (layout 
 
 Core data layer: sessions, workflows, and theme API endpoints.
 
-- [ ] T027 [P] Create Nitro API routes for sessions: GET /api/sessions (list), GET /api/sessions/:id (detail), with pagination, filtering, error handling per sessions-api.contract.md
-- [ ] T028 [P] Create Nitro API routes for workflows: GET /api/workflows/:sessionId (list workflows by session), with error handling per workflows-api.contract.md
-- [ ] T029 [P] Create Nitro API routes for theme: GET /api/theme (read current theme), POST /api/theme (update theme) with persistence to localStorage per theme.contract.md
-- [ ] T030 [P] Create database service layer (src/server/db/index.ts) with functions: getSession, getSessions, createSession, getWorkflows, createWorkflow; wrap SQLite operations with error handling
+- [x] T027 [P] Create Nitro API routes for sessions: GET /api/sessions (list), GET /api/sessions/:id (detail), with pagination, filtering, error handling per sessions-api.contract.md
+- [x] T028 [P] Create Nitro API routes for workflows: GET /api/workflows/:sessionId (list workflows by session), with error handling per workflows-api.contract.md
+- [x] T029 [P] Create Nitro API routes for theme: GET /api/theme (read current theme), POST /api/theme (update theme) with persistence to localStorage per theme.contract.md
+- [x] T030 [P] Create database service layer (src/server/db/index.ts) with functions: getSession, getSessions, createSession, getWorkflows, createWorkflow; wrap SQLite operations with error handling
 
 **Dependencies**: T003 → T027, T003 → T028, T003 → T029, T003 → T030, T030 → T027, T030 → T028, T030 → T029
 **Parallel Opportunity**: T027, T028, T029 can run in parallel after T030 is ready
