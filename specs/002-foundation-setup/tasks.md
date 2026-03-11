@@ -85,12 +85,12 @@ Visual polish and UX enhancements.
 
 Tests: TS-010 (light/dark mode switches), TS-011 (custom colors apply), TS-012 (no page reload on theme change)
 
-- [ ] T015 [P] [US-004] Define design tokens in src/types/theme.ts: color palette, typography scale, spacing units; export as TypeScript constants
-- [ ] T016 [P] [US-004] Create src/app.config.ts (Nuxt AppConfig) to expose theme tokens and Tailwind configuration
-- [ ] T017 [P] [US-004] Configure Tailwind CSS 4 in tailwind.config.ts to use design tokens from app.config; add light/dark mode selectors
-- [ ] T018 [US-004] Create useTheme() composable in src/composables/useTheme.ts: reactive theme switching, localStorage persistence, CSS variable application
-- [ ] T019 [P] [US-004] Create ThemeToggle.vue component with light/dark/system mode buttons; test theme change and persistence per theme.contract.md
-- [ ] T020 [P] [US-004] Update app.vue root layout to initialize theme on mount via useTheme(), wrap content with theme provider (data-theme attribute)
+- [x] T015 [P] [US-004] Define design tokens in src/types/theme.ts: color palette, typography scale, spacing units; export as TypeScript constants
+- [x] T016 [P] [US-004] Create src/app.config.ts (Nuxt AppConfig) to expose theme tokens and Tailwind configuration
+- [x] T017 [P] [US-004] Configure Tailwind CSS 4 in tailwind.config.ts to use design tokens from app.config; add light/dark mode selectors
+- [x] T018 [US-004] Create useTheme() composable in src/composables/useTheme.ts: reactive theme switching, localStorage persistence, CSS variable application
+- [x] T019 [P] [US-004] Create ThemeToggle.vue component with light/dark/system mode buttons; test theme change and persistence per theme.contract.md
+- [x] T020 [P] [US-004] Update app.vue root layout to initialize theme on mount via useTheme(), wrap content with theme provider (data-theme attribute)
 
 **Dependencies**: T015 → T016, T016 → T017, T016 → T018, T018 → T019, T018 → T020, T017 → T019, T017 → T020
 **Parallel Opportunity**: T015, T016 are sequential; T017, T018, T019, T020 have multiple parallel paths
