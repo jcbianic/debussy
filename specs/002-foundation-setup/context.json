@@ -1,0 +1,8 @@
+{
+  "testify": {
+    "assertion_hash": "a0df642e1e22747de76da87f99c8a75eb5ef2788f3e1bfc5c117041a7a44aefe",
+    "generated_at": "2026-03-11T15:55:02Z",
+    "features_dir": "specs/002-foundation-setup/tests/features",
+    "file_count": 6
+  }
+}
