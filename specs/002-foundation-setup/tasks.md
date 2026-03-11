@@ -42,7 +42,7 @@ Tests: TS-001 (dev server launches in <5s), TS-002 (HMR works), TS-003 (command 
 
 - [x] T004 [US-001] Configure npm scripts in package.json: `npm run dev` (nuxt dev), `npm run build` (nuxt build), `npm start` (nitro start) per dev-server.contract.md
 - [x] T005 [P] [US-001] Set up Nuxt dev server hot module reloading (HMR) in nuxt.config.ts with reasonable defaults (>= <1s feedback per plan)
-- [ ] T006 [P] [US-001] Create health check endpoint (GET /api/health) to verify server readiness and test TS-001 scenario
+- [x] T006 [P] [US-001] Create health check endpoint (GET /api/health) to verify server readiness and test TS-001 scenario
 
 **Dependencies**: T004 → T005, T004 → T006
 **Parallel Opportunity**: T005 and T006 can run in parallel after T004
