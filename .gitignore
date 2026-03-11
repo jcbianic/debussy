@@ -6,3 +6,4 @@ dist/
 .worktrees/
 .specify/dashboard.html
 .tessl/tiles/
+.claude/
