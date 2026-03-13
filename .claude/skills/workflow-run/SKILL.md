@@ -194,7 +194,10 @@ does NOT accumulate sub-agent output, does NOT run verify commands, does NOT
 generate summaries. It only reads state.json and principal status reports.
 Delegate everything else to the principal.
 
-Read `state.json` at the start of each iteration.
+At the start of each loop iteration, re-read `state.json` using the Read
+tool to determine current state. Do not rely on what you remember from earlier
+in the conversation. `state.json` is the only source of truth for routing
+decisions.
 
 ---
 
@@ -483,6 +486,10 @@ If result does NOT match expectation:
   → In your report set VERIFY: failed
 
 STEP 4 — GENERATE SUMMARIES + CARDS (only if Review: true)
+Summary and card generation is non-blocking. If a Haiku agent fails or times
+out, record the failure in SUMMARIES/CARDS but continue to STEP 5 with
+STATUS: completed. A failed summary does NOT fail the step.
+
 For each artifact where Has summary = true:
 
   a. Read the artifact content using Read tool.
@@ -497,6 +504,7 @@ For each artifact where Has summary = true:
        Write ONLY the summary. No preamble. Use markdown. Under 500 words.
        Focus on what a human reviewer needs to approve/reject/revise.
      Write output to: {workspace}/{artifact.path}.summary.md
+     On failure: set summary_failed = true, continue.
 
   c. Spawn a Haiku card-generation agent (can run in parallel with b):
      subagent_type: "general-purpose"
@@ -513,6 +521,7 @@ For each artifact where Has summary = true:
        }
        Maximum 8 cards. Write ONLY the JSON array. No markdown wrapper.
      Write output to: {workspace}/{artifact.path}.cards.json
+     On failure: set cards_failed = true, continue.
 
 STEP 5 — WRITE STATE.JSON
 Read {workspace}/state.json, update steps["{step.id}"], write back.
@@ -549,9 +558,9 @@ Output exactly this format (the maestro parses it):
 STATUS: completed
 ARTIFACTS: ok
 VERIFY: passed
-SUMMARIES: done
-CARDS: done
-NOTES: {one-line human-readable summary}
+SUMMARIES: done | skipped | failed (non-blocking)
+CARDS: done | skipped | failed (non-blocking)
+NOTES: {one phrase, ≤ 80 characters, no sentences}
 
 Or on failure:
 
@@ -560,7 +569,10 @@ ARTIFACTS: ok | missing=[path1, path2]
 VERIFY: passed | failed | skipped
 SUMMARIES: skipped
 CARDS: skipped
-NOTES: {one-line explanation of what failed}
+NOTES: {one phrase, ≤ 80 characters, describing what failed}
+
+NOTES constraint: 80 characters maximum. One phrase only. No full sentences.
+This keeps maestro context growth bounded across many steps.
 ```
 
 ---
