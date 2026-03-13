@@ -9,4 +9,7 @@ coverage/
 .worktrees/
 .specify/dashboard.html
 .tessl/tiles/
-.claude/
+.claude/*
+!.claude/skills/
+!.claude/workflows/
+.claude/skills/tessl__*
