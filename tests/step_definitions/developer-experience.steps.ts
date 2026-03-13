@@ -20,7 +20,7 @@ describe('@US-001 Developer Quick Start', () => {
     })
 
     it('health check endpoint responds with ok status', async () => {
-      const handler = (await import('~/server/api/health.get')).default
+      const handler = (await import('~~/server/api/health.get')).default
       const result = handler({} as any)
       expect(result.status).toBe('ok')
     })

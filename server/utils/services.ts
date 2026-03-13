@@ -26,26 +26,19 @@ export interface WorkflowRow {
 
 // Sessions
 
+type SqliteParam = string | number | bigint | Buffer | null
+
 export function getSessions(opts: { skip?: number; limit?: number; status?: string } = {}) {
   const db = getDb()
   const { skip = 0, limit = 20, status } = opts
   const clampedLimit = Math.min(limit, 100)
 
-  let query = 'SELECT * FROM sessions'
-  const params: any[] = []
+  const whereClause = status && status !== 'all' ? ' WHERE status = ?' : ''
+  const whereParams: SqliteParam[] = status && status !== 'all' ? [status] : []
 
-  if (status && status !== 'all') {
-    query += ' WHERE status = ?'
-    params.push(status)
-  }
+  const totalResult = db.prepare(`SELECT COUNT(*) as total FROM sessions${whereClause}`).get(...whereParams) as { total: number }
 
-  const countQuery = query.replace('SELECT *', 'SELECT COUNT(*) as total')
-  const totalResult = db.prepare(countQuery).get(...params) as { total: number }
-
-  query += ' ORDER BY created_at DESC LIMIT ? OFFSET ?'
-  params.push(clampedLimit, skip)
-
-  const sessions = db.prepare(query).all(...params) as SessionRow[]
+  const sessions = db.prepare(`SELECT * FROM sessions${whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?`).all(...whereParams, clampedLimit, skip) as SessionRow[]
 
   return {
     sessions: sessions.map(formatSession),

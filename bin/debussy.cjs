@@ -2,7 +2,7 @@
 
 'use strict'
 
-const { execSync } = require('child_process')
+const { fork } = require('child_process')
 const { existsSync } = require('fs')
 const { resolve, join } = require('path')
 
@@ -33,8 +33,20 @@ if (!existsSync(serverEntry)) {
   process.exit(1)
 }
 
+// Resolve port
+let port = '3000'
+const portIdx = args.indexOf('--port')
+if (portIdx !== -1) {
+  const portVal = args[portIdx + 1]
+  if (!portVal || isNaN(Number(portVal))) {
+    console.error('Error: --port requires a valid number')
+    process.exit(1)
+  }
+  port = portVal
+}
+
 // Start the Nitro server
-require('child_process').fork(serverEntry, [], {
-  env: { ...process.env, NITRO_PORT: args.includes('--port') ? args[args.indexOf('--port') + 1] : '3000' },
+fork(serverEntry, [], {
+  env: { ...process.env, NITRO_PORT: port },
   stdio: 'inherit',
 })

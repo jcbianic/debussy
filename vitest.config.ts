@@ -6,8 +6,9 @@ export default defineConfig({
   plugins: [vue()],
   resolve: {
     alias: {
-      '~': resolve(__dirname),
-      '@': resolve(__dirname),
+      '~': resolve(__dirname, 'app'),
+      '~~': resolve(__dirname),
+      '@': resolve(__dirname, 'app'),
     },
   },
   test: {
@@ -17,7 +18,7 @@ export default defineConfig({
     setupFiles: ['tests/setup.ts'],
     coverage: {
       provider: 'v8',
-      include: ['pages/**', 'components/**', 'composables/**', 'server/**', 'types/**'],
+      include: ['app/pages/**', 'app/components/**', 'app/composables/**', 'server/**', 'types/**'],
       thresholds: {
         lines: 70,
         branches: 60,

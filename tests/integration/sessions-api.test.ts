@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import Database from 'better-sqlite3'
-import * as dbModule from '~/server/utils/db'
-import { getSessions, getSessionById, createSession } from '~/server/utils/services'
+import * as dbModule from '~~/server/utils/db'
+import { getSessions, getSessionById, createSession } from '~~/server/utils/services'
 
 // Use in-memory database for tests
 let testDb: Database.Database

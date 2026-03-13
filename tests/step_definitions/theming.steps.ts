@@ -5,7 +5,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { defineComponent, nextTick } from 'vue'
-import { lightTokens, darkTokens, THEME_STORAGE_KEY } from '~/types/theme'
+import { lightTokens, darkTokens, THEME_STORAGE_KEY } from '~~/types/theme'
 import { useTheme } from '~/composables/useTheme'
 
 const ThemeWrapper = defineComponent({
@@ -54,7 +54,7 @@ describe('@US-004 Customizable Appearance', () => {
     })
 
     it('theme API validates hex color format', async () => {
-      const handler = (await import('~/server/api/theme.post')).default
+      const handler = (await import('~~/server/api/theme.post')).default
       await expect(
         handler({ _body: { customColors: { primary: 'invalid' } } } as any)
       ).rejects.toThrow()

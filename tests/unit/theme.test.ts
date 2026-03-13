@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import { defineComponent, nextTick } from 'vue'
-import { lightTokens, darkTokens, defaultPreference, THEME_STORAGE_KEY } from '~/types/theme'
+import { lightTokens, darkTokens, defaultPreference, THEME_STORAGE_KEY } from '~~/types/theme'
 import { useTheme } from '~/composables/useTheme'
 
 const ThemeTestWrapper = defineComponent({

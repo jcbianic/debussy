@@ -38,14 +38,14 @@ describe('@US-006 Unified Navigation', () => {
 
   describe('@TS-017 Layout remains consistent across page navigation', () => {
     it('default layout wraps content with AppNavigation', () => {
-      const layoutPath = resolve(ROOT, 'layouts/default.vue')
+      const layoutPath = resolve(ROOT, 'app/layouts/default.vue')
       expect(existsSync(layoutPath)).toBe(true)
     })
 
     it('all core pages exist as .vue files', () => {
-      expect(existsSync(resolve(ROOT, 'pages/sessions.vue'))).toBe(true)
-      expect(existsSync(resolve(ROOT, 'pages/workflows.vue'))).toBe(true)
-      expect(existsSync(resolve(ROOT, 'pages/artifacts.vue'))).toBe(true)
+      expect(existsSync(resolve(ROOT, 'app/pages/sessions.vue'))).toBe(true)
+      expect(existsSync(resolve(ROOT, 'app/pages/workflows.vue'))).toBe(true)
+      expect(existsSync(resolve(ROOT, 'app/pages/artifacts.vue'))).toBe(true)
     })
   })
 
