@@ -3,6 +3,9 @@ node_modules/
 .output/
 dist/
 .env
+.DS_Store
+*.log
+coverage/
 .worktrees/
 .specify/dashboard.html
 .tessl/tiles/

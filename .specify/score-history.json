@@ -1,4 +1,16 @@
 {
+  "002-foundation-setup": [
+    {
+      "timestamp": "2026-03-11T15:10:28Z",
+      "score": 65,
+      "coverage_pct": 91,
+      "critical": 0,
+      "high": 4,
+      "medium": 7,
+      "low": 2,
+      "total_findings": 13
+    }
+  ],
   "001-workflow-phase-status": [
     {
       "timestamp": "2026-03-11T11:27:00Z",
