@@ -1,4 +1,4 @@
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import type { ThemePreference } from '~~/types/theme'
 import { lightTokens, darkTokens, defaultPreference, THEME_STORAGE_KEY } from '~~/types/theme'
 
@@ -57,15 +57,23 @@ function loadFromStorage(): void {
 }
 
 export function useTheme() {
+  let mediaQuery: MediaQueryList | null = null
+  const mediaHandler = () => {
+    if (mode.value === 'system') applyTokens()
+  }
+
   onMounted(() => {
     loadFromStorage()
     applyTokens()
 
     if (typeof window !== 'undefined') {
-      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-        if (mode.value === 'system') applyTokens()
-      })
+      mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+      mediaQuery.addEventListener('change', mediaHandler)
     }
+  })
+
+  onUnmounted(() => {
+    mediaQuery?.removeEventListener('change', mediaHandler)
   })
 
   watch([mode, customColors], () => {
