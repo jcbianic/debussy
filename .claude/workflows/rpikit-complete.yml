@@ -1,0 +1,401 @@
+# rpikit-complete workflow
+#
+# Full rpikit development cycle with 3 human review gates:
+#   2-plan     → review: approve the implementation plan before writing tests
+#   5-review   → review: code quality before security check
+#   6-security → review: security sign-off before finishing
+#   7-finish   → review: final sign-off before commit/PR
+#
+# Usage:
+#   /workflow-run .claude/workflows/rpikit-complete.yml \
+#     --input task="Add pause/resume to writing sessions" \
+#     --input domain="backend/app/api/sessions" \
+#     --input test_cmd="cd backend && uv run pytest tests/sessions/ -q"
+#
+# Set auto_resume: true for a more hands-free experience between gates.
+
+name: rpikit-complete
+description: >-
+  Complete rpikit development workflow: research → plan (review) →
+  tests RED → implement → code review (review) → security (review) →
+  finish (review).
+version: 1
+workspace: .workflow-runs/{run_id}
+auto_resume: false
+
+inputs:
+  task:
+    description: >-
+      What to build. Be specific.
+      Example: "Add pause/resume to infinite writing sessions"
+    required: true
+
+  domain:
+    description: >-
+      Primary codebase area. File path or glob pattern.
+      Example: "backend/app/api/sessions" or "frontend/app/components/Sessions"
+    required: true
+
+  test_cmd:
+    description: >-
+      Command to run the domain test suite.
+      Example: "cd backend && uv run pytest tests/sessions/ -q"
+    required: true
+
+  context_extra:
+    description: >-
+      Additional context files or paths (space-separated, optional).
+      Example: "backend/app/api/projects/ docs/architecture.md"
+    required: false
+    default: ""
+
+steps:
+  # ─── Step 1: Research ────────────────────────────────────────────────────
+  - id: 1-research
+    name: "Research codebase"
+    agent: rpikit:file-finder
+    prompt: |
+      Research the codebase to understand everything needed to implement the following task:
+
+      TASK: {task}
+      PRIMARY AREA: {domain}
+
+      Your goal is to produce a thorough research document that will enable an
+      implementation plan to be written without needing further codebase exploration.
+
+      Explore:
+      1. The primary domain area: {domain}
+      2. Related domains that will be touched (auth, shared utilities, etc.)
+      3. Existing patterns to follow (services, repositories, schemas, tests)
+      4. Test structure and conventions for this domain
+      5. Any existing similar features to reference
+
+      For each relevant file, note:
+      - Its purpose and key functions/classes
+      - Patterns it establishes that new code should follow
+      - Line ranges for the most important sections
+
+      Write your findings to the artifact file listed below.
+
+    context:
+      - .claude/CLAUDE.md
+      - "{domain}"
+
+    artifacts:
+      - path: research.md
+        description: "Codebase research findings — relevant files, patterns, constraints"
+
+  # ─── Step 2: Plan ────────────────────────────────────────────────────────
+  - id: 2-plan
+    name: "Write implementation plan"
+    agent: general-purpose
+    model: sonnet
+    prompt: |
+      Write a detailed implementation plan for the following task.
+
+      TASK: {task}
+      PRIMARY AREA: {domain}
+      TEST COMMAND: {test_cmd}
+
+      Research findings: @{artifacts.1-research.research.md}
+
+      Follow the rpikit planning methodology:
+
+      1. CLASSIFY STAKES: Low / Medium / High with rationale.
+
+      2. DEFINE SUCCESS CRITERIA: Specific, measurable acceptance criteria.
+
+      3. BREAK DOWN STEPS: Each step must have:
+         - Description of what to do
+         - Target files with line references where known
+         - Test cases to write BEFORE implementation (TDD RED steps)
+         - Implementation action (TDD GREEN steps)
+         - Verify: how to confirm the step is complete
+
+      4. STRUCTURE: Group related steps into phases. Test steps ALWAYS precede
+         their implementation steps. Follow this pattern:
+           Phase N: [Name]
+             Step N.1: Write failing tests (RED)  ← test cases listed here
+             Step N.2: Implement (GREEN)           ← references Step N.1 tests
+             Step N.3: Verify                      ← run test_cmd
+
+      5. RISKS: Identify breaking changes, performance implications, edge cases.
+
+      6. ROLLBACK: Document how to undo these changes if needed.
+
+      The plan must be detailed enough that another agent can implement it
+      without asking any clarifying questions.
+
+    context:
+      - "{domain}"
+
+    artifacts:
+      - path: plan.md
+        description: "Full implementation plan with phased steps, test cases, and verification"
+        review_summary_prompt: |
+          Summarize this implementation plan for a human reviewer. Structure as:
+
+          ## Task
+          One sentence: what is being built.
+
+          ## Scope
+          - What is included
+          - What is explicitly excluded
+
+          ## Stakes
+          Level and the key risk factors.
+
+          ## Implementation Phases
+          List each phase with a 1-line description. Count the steps.
+
+          ## Key Decisions
+          3-5 bullet points: the most important design choices made.
+
+          ## Questions for Reviewer
+          What should the reviewer pay attention to or push back on?
+
+    review: true
+    review_prompt: |
+      Review the implementation plan before tests are written.
+
+      Key questions:
+      - Is the scope right-sized? Not too large, not too small?
+      - Are the acceptance criteria measurable?
+      - Does the step structure follow TDD (test before implementation)?
+      - Are risks identified and mitigated?
+      - Anything missing, wrong, or over-engineered?
+
+      Approve to proceed to writing tests. Request revision to adjust the plan.
+      Reject to go back to the drawing board.
+
+  # ─── Step 3: Tests (RED) ────────────────────────────────────────────────
+  - id: 3-tests-red
+    name: "Write failing tests (RED)"
+    agent: test-writer
+    model: haiku
+    prompt: |
+      Write failing tests for the task below. This is the RED phase of TDD.
+      Tests must fail because the implementation does not exist yet.
+
+      TASK: {task}
+      TEST COMMAND: {test_cmd}
+
+      Implementation plan: @{artifacts.2-plan.plan.md}
+
+      Instructions:
+      1. Write ALL test cases specified in the plan for each step.
+      2. Follow existing test conventions in the codebase exactly.
+         - Integration tests go in tests/{domain}/integration/
+         - Unit tests go in tests/{domain}/unit/
+         - E2E tests go in tests/{domain}/e2e/ and need @pytest.mark.e2e @pytest.mark.slow
+      3. Use real database fixtures (no mocks of DB layer).
+      4. Do NOT write any production code — only tests.
+      5. Tests must be syntactically valid Python but functionally failing.
+
+      After writing tests, produce a test notes artifact listing:
+      - Each test file created with path
+      - Number of test cases per file
+      - What each test covers
+
+    context:
+      - "{domain}"
+
+    artifacts:
+      - path: test-notes.md
+        description: "List of test files written with test case inventory"
+
+    verify:
+      command: "{test_cmd} 2>&1 | tail -20"
+      expect: "failed"
+
+  # ─── Step 4: Implement (GREEN) ──────────────────────────────────────────
+  - id: 4-implement
+    name: "Implement to pass tests (GREEN)"
+    agent: general-purpose
+    model: sonnet
+    prompt: |
+      Implement the code to make all failing tests pass. This is the GREEN phase of TDD.
+
+      TASK: {task}
+      TEST COMMAND: {test_cmd}
+
+      Implementation plan: @{artifacts.2-plan.plan.md}
+      Test notes: @{artifacts.3-tests-red.test-notes.md}
+
+      Instructions:
+      1. Execute the plan steps IN ORDER. Do not skip or reorder steps.
+      2. Write MINIMAL code to pass each test — no extra features or abstractions.
+      3. After each phase, run the tests to confirm progress.
+      4. Follow existing code patterns exactly (names, style, error handling).
+      5. If a plan step reveals an unforeseen issue, document it in implementation-notes.md
+         but do NOT deviate from the plan without noting the deviation.
+      6. Do NOT modify tests (unless a test asserts genuinely wrong behavior).
+
+      After all tests pass, write an implementation notes artifact summarizing:
+      - What was implemented
+      - Any deviations from the plan and why
+      - Files modified with brief description of changes
+
+    context:
+      - "{domain}"
+
+    artifacts:
+      - path: implementation-notes.md
+        description: "What was implemented, files changed, deviations from plan"
+
+    verify:
+      command: "{test_cmd} 2>&1 | tail -20"
+      expect: "passed"
+
+  # ─── Step 5: Code Review ────────────────────────────────────────────────
+  - id: 5-code-review
+    name: "Code review"
+    agent: rpikit:code-reviewer
+    prompt: |
+      Review the implementation changes for the following task.
+
+      TASK: {task}
+
+      Plan: @{artifacts.2-plan.plan.md}
+      Implementation notes: @{artifacts.4-implement.implementation-notes.md}
+
+      Review all modified files against the plan and existing patterns.
+      Produce a code review report with Conventional Comments format.
+
+    artifacts:
+      - path: code-review.md
+        description: "Code review findings with verdict (APPROVE / REQUEST CHANGES)"
+        review_summary_prompt: |
+          Summarize this code review for the human reviewer:
+
+          ## Verdict
+          State the verdict clearly: APPROVE or REQUEST CHANGES.
+
+          ## Issues Found
+          List issues grouped by severity:
+          - **Blocking**: Must fix before proceeding
+          - **Non-blocking**: Should fix but not required
+          - **Nitpick**: Optional improvements
+
+          ## What Looks Good
+          2-3 specific things that were done well.
+
+          ## Recommendation
+          One sentence: approve as-is, approve after fixes, or request changes?
+
+    review: true
+    review_prompt: |
+      Review the code review findings.
+
+      - Does the reviewer's verdict match your read of the changes?
+      - Are the blocking issues genuinely blocking?
+      - Should any non-blocking issues be escalated?
+
+      Approve to proceed to security review.
+      Request Revision to have the implementation agent address findings first.
+
+  # ─── Step 6: Security Review ────────────────────────────────────────────
+  - id: 6-security-review
+    name: "Security review"
+    agent: rpikit:security-reviewer
+    prompt: |
+      Perform a security review of the implementation changes.
+
+      TASK: {task}
+
+      Plan: @{artifacts.2-plan.plan.md}
+      Implementation notes: @{artifacts.4-implement.implementation-notes.md}
+
+      Review for: injection vulnerabilities, authentication/authorization issues,
+      data exposure, input validation gaps, and insecure patterns.
+
+    artifacts:
+      - path: security-review.md
+        description: "Security review findings with verdict (PASS / FAIL)"
+        review_summary_prompt: |
+          Summarize the security review for the human reviewer:
+
+          ## Verdict
+          PASS or FAIL — state it clearly.
+
+          ## Vulnerabilities Found
+          List each issue with:
+          - Severity: Critical / High / Medium / Low
+          - What it is and where
+          - How to fix it
+
+          ## Safe Patterns Confirmed
+          What security-sensitive areas were reviewed and found clean.
+
+          ## Recommendation
+          One sentence: safe to ship, needs fixes, or has critical issues?
+
+    review: true
+    review_prompt: |
+      Review the security findings before finishing.
+
+      - Do you agree with the verdict?
+      - Are critical/high findings addressed or acceptable for this context?
+      - Any concerns the reviewer missed?
+
+      Approve to proceed to finish. Request Revision if security issues must be fixed first.
+
+  # ─── Step 7: Finish ─────────────────────────────────────────────────────
+  - id: 7-finish
+    name: "Final verification and finish"
+    agent: general-purpose
+    model: sonnet
+    prompt: |
+      The implementation is complete and has passed code and security review.
+      Perform final verification and prepare a finish report.
+
+      TASK: {task}
+      TEST COMMAND: {test_cmd}
+
+      1. Run the full test suite: {test_cmd}
+      2. Run backend verification (if applicable):
+         cd backend && uv run ruff format --check . && uv run ruff check .
+      3. Summarize everything that was built.
+
+      Write a finish report covering:
+      - What was built (one clear paragraph)
+      - All files modified or created (with brief description)
+      - Test coverage: how many tests, what they cover
+      - Any known limitations or follow-up work
+      - Suggested commit message (conventional format)
+      - Suggested PR title and body
+
+      DO NOT commit or push — that is for the human reviewer to decide.
+
+    artifacts:
+      - path: finish-report.md
+        description: "Final summary with suggested commit message and PR body"
+        review_summary_prompt: |
+          Summarize the finish report for the human reviewer:
+
+          ## What Was Built
+          One paragraph summary.
+
+          ## Files Changed
+          Bullet list: file → what changed.
+
+          ## Tests
+          Pass/fail status and count.
+
+          ## Suggested Commit
+          The conventional commit message from the report.
+
+          ## Ready to Ship?
+          Any known issues or caveats before committing.
+
+    review: true
+    review_prompt: |
+      Final review before committing.
+
+      - Does the implementation match what was asked for?
+      - Are all tests passing?
+      - Is the suggested commit message accurate?
+
+      Approve to complete the workflow. You can then:
+        git add <files> && git commit -m "<suggested message>"
+        or use /commit for an interactive commit workflow.

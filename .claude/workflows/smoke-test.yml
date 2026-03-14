@@ -1,0 +1,62 @@
+# smoke-test workflow
+#
+# Minimal 2-step workflow to verify skill mechanics end-to-end:
+#   - Principal dispatch and artifact production
+#   - Haiku summary generation
+#   - Review gate + trigger-file block
+#   - Human decision via review UI
+#   - Resume and second step dispatch
+#   - Workflow complete
+#
+# Usage:
+#   /workflow-run .claude/workflows/smoke-test.yml --input topic="jazz piano"
+
+name: smoke-test
+description: >-
+  Minimal 2-step smoke test for workflow-run skill mechanics.
+  Not for real development work.
+version: 1
+workspace: .workflow-runs/{run_id}
+
+inputs:
+  topic:
+    description: Any subject for the note (e.g. "jazz piano")
+    required: true
+
+steps:
+  # ─── Step 1: Write a note (with review gate) ─────────────────────────────
+  - id: 1-write
+    name: "Write a note"
+    agent: general-purpose
+    model: haiku
+    prompt: |
+      Write a short note (one paragraph, 3-5 sentences) about: {topic}
+
+      Be factual and concise. Save the note to the artifact path listed below.
+
+    artifacts:
+      - path: note.md
+        description: "A short note about the topic"
+        review_summary_prompt: |
+          Summarize this note in one sentence. State the topic and
+          whether the content is accurate and coherent.
+
+    review: true
+    review_prompt: |
+      Does this note make sense? Is it coherent?
+      Approve to continue to the final step.
+      Request revision if you want a different angle.
+
+  # ─── Step 2: Write completion marker ─────────────────────────────────────
+  - id: 2-done
+    name: "Write completion marker"
+    agent: general-purpose
+    model: haiku
+    prompt: |
+      Write the following content exactly to the artifact path below:
+
+      Smoke test complete. Topic: {topic}
+
+    artifacts:
+      - path: done.txt
+        description: "Completion marker confirming the workflow finished"
