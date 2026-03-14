@@ -89,7 +89,11 @@ Before using any prompt, context path, or artifact path, substitute:
 - `{key}` → value from the inputs dict
 - `{workspace}` → resolved workspace directory path
 - `{run_id}` → current run ID
-- `@{artifacts.step_id.filename}` → absolute path to a previously-produced artifact
+- `@{artifacts.step_id.filename}` → absolute path to a previously-produced artifact,
+  resolved from `state.steps[step_id].artifacts[filename].path` in the current
+  `state.json`. If the referenced step or artifact is not yet present in state
+  (i.e. the step hasn't run yet), print an error and abort the workflow — a step
+  cannot reference an artifact from a step that hasn't completed.
 
 ---
 

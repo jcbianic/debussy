@@ -74,7 +74,11 @@ class ReviewHandler(http.server.BaseHTTPRequestHandler):
         self.wfile.write(data)
 
     def _serve_artifact(self, name):
-        path = WORKSPACE / name
+        path = (WORKSPACE / name).resolve()
+        if not path.is_relative_to(WORKSPACE.resolve()):
+            self.send_response(403)
+            self.end_headers()
+            return
         if path.exists() and path.is_file():
             data = path.read_bytes()
             self.send_response(200)
@@ -87,7 +91,11 @@ class ReviewHandler(http.server.BaseHTTPRequestHandler):
             self.end_headers()
 
     def _serve_summary(self, name):
-        path = WORKSPACE / f"{name}.summary.md"
+        path = (WORKSPACE / f"{name}.summary.md").resolve()
+        if not path.is_relative_to(WORKSPACE.resolve()):
+            self.send_response(403)
+            self.end_headers()
+            return
         if path.exists() and path.is_file():
             data = path.read_bytes()
             self.send_response(200)
@@ -110,7 +118,8 @@ class ReviewHandler(http.server.BaseHTTPRequestHandler):
         comments = body.get("comments", "")
         timestamp = body.get("timestamp", datetime.now(timezone.utc).isoformat())
 
-        if step_id not in state["steps"]:
+        VALID_DECISIONS = {"approved", "rejected", "revision_requested"}
+        if step_id not in state["steps"] or decision not in VALID_DECISIONS:
             self.send_response(400)
             self.end_headers()
             return
