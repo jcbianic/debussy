@@ -1,9 +1,15 @@
 ---
+name: debussy
 description: >-
   Run multi-step AI workflows defined in YAML files with human review gates.
   Use when user says "run workflow", "start workflow", "resume workflow", or
   references a .claude/workflows/*.yml file. Commands: /workflow-run <file>
   [--input k=v] | --resume [run_id] | --status | --list
+compatibility: Requires Python 3, jq, and bash on PATH.
+license: MIT
+metadata:
+  author: jcbianic
+  version: "0.0.0"
 ---
 
 # Workflow Run Skill
@@ -113,6 +119,7 @@ Before using any prompt, context path, or artifact path, substitute:
       "completed_at": null,
       "artifacts": {},
       "review": null,
+      "review_history": [],
       "verify": null
     }
   }
@@ -264,7 +271,12 @@ If step status is `rejected` or `revision_requested`:
 
 ### G. Dispatch Principal
 
-**Update state.json**: set step `status: "running"`, `started_at: {ISO timestamp}`.
+**Update state.json**:
+- If `state.steps[id].review` has a non-null `decision` (from a previous review cycle),
+  push it to `review_history` first:
+  `review_history.push({...existing review, "iteration": review_history.length + 1})`
+  then set `review: null`.
+- Set step `status: "running"`, `started_at: {ISO timestamp}`.
 
 **Pre-load context files** (if step has `context` list):
 For each path (with variables substituted), read content using Read tool.
@@ -524,10 +536,13 @@ For each artifact where Has summary = true:
      On failure: set cards_failed = true, continue.
 
 STEP 5 — WRITE STATE.JSON
-Read {workspace}/state.json, update steps["{step.id}"], write back.
+Read {workspace}/state.json. Preserve the existing `name`, `started_at`, and
+`review_history` fields from the current step — do NOT overwrite them.
+Update only the fields listed below, then write back.
 
 If status is "completed" (all checks passed):
-  steps[step.id] = {
+  Merge into steps[step.id]:
+  {
     "status": "completed",
     "completed_at": "{ISO timestamp}",
     "artifacts": {

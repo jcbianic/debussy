@@ -58,6 +58,7 @@ class ReviewHandler(http.server.BaseHTTPRequestHandler):
         html = HTML_FILE.read_text(encoding="utf-8")
         state_json = json.dumps(json.loads(STATE_FILE.read_text()), indent=2)
         html = html.replace("__STATE_JSON__", state_json)
+        html = html.replace("__AUTO_RESUME__", "false")
         body = html.encode("utf-8")
         self.send_response(200)
         self.send_header("Content-Type", "text/html; charset=utf-8")
