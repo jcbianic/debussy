@@ -307,6 +307,8 @@
     .cs-unacted   { background:#f3f4f6;color:#6b7280 }
     .cs-hint { font-size: 0.78rem; color: #6b7280; line-height: 1.5; padding: 0.4rem 0.6rem; background: #f9fafb; border-radius: 5px; border: 1px solid #e5e7eb; }
     .cs-hint strong { color: #374151; }
+    .cs-hint-block { background: #fff7ed; border-color: #fed7aa; color: #9a3412; }
+    .cs-hint-block strong { color: #7c2d12; }
 
     /* ── Review history (previous iterations) ── */
     .hr-section { margin-bottom: 1rem; }
@@ -736,19 +738,23 @@
   }
 
   // ── Card summary ─────────────────────────────────────────────────────
-  function buildCardSummaryHTML(stepId) {
-    const counts = { confirm: 0, discuss: 0, challenge: 0, reject: 0 };
-    let totalCards = 0;
+  function getCardCounts(stepId) {
+    const counts = { confirm: 0, discuss: 0, challenge: 0, reject: 0, total: 0 };
     Object.entries(STATE.steps[stepId]?.artifacts || {}).forEach(([name]) => {
       const key = `${stepId}::${name}`;
       const cards = CARDS_CACHE[key];
-      if (cards) totalCards += cards.length;
+      if (cards) counts.total += cards.length;
       Object.values(CARD_DECISIONS[key] || {}).forEach(a => { if (a in counts) counts[a]++; });
     });
-    if (!totalCards) return '';
+    return counts;
+  }
+
+  function buildCardSummaryHTML(stepId) {
+    const counts = getCardCounts(stepId);
+    if (!counts.total) return '';
     const acted = counts.confirm + counts.discuss + counts.challenge + counts.reject;
     const challenged = counts.challenge + counts.reject;
-    const unacted = totalCards - acted;
+    const unacted = counts.total - acted;
     let html = '<div class="cs-row">';
     if (counts.confirm)   html += `<span class="cs-chip cs-confirm">${counts.confirm} confirmed</span>`;
     if (counts.discuss)   html += `<span class="cs-chip cs-discuss">${counts.discuss} discuss</span>`;
@@ -757,7 +763,7 @@
     if (unacted > 0)      html += `<span class="cs-chip cs-unacted">${unacted} unreviewed</span>`;
     html += '</div>';
     if (challenged) {
-      html += `<div class="cs-hint"><strong>Request Revision</strong> sends ${challenged} challenge${challenged > 1 ? 's' : ''} back as re-run instructions &nbsp;·&nbsp; <strong>Approve</strong> discards them and proceeds to the next step</div>`;
+      html += `<div class="cs-hint cs-hint-block"><strong>Approve is blocked</strong> — resolve ${challenged} challenge${challenged > 1 ? 's' : ''} first: use <strong>Request Revision</strong> to send them back, or change your card decisions</div>`;
     } else if (acted) {
       html += `<div class="cs-hint">Card decisions noted. Approve to proceed.</div>`;
     }
@@ -767,6 +773,11 @@
   function updateCardSummary(stepId) {
     const el = document.getElementById(`cs-${sn(stepId)}`);
     if (el) el.innerHTML = buildCardSummaryHTML(stepId);
+    // Disable Approve when there are challenged/rejected cards
+    const counts = getCardCounts(stepId);
+    const challenged = counts.challenge + counts.reject;
+    const btnOk = document.getElementById(`btn-ok-${sn(stepId)}`);
+    if (btnOk && counts.total > 0) btnOk.disabled = challenged > 0;
   }
 
   // ── Review history ────────────────────────────────────────────────────

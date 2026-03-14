@@ -325,14 +325,9 @@ When all steps are terminal:
 
 Update state.json: `status: "completed"`, `updated_at: {ISO timestamp}`.
 
-Stop the review server:
-
-```bash
-if [ -f {workspace}/review-server.pid ]; then
-  kill $(cat {workspace}/review-server.pid) 2>/dev/null
-  rm -f {workspace}/review-server.pid {workspace}/review-server.port
-fi
-```
+Leave the review server running — the user may still want to browse completed
+artifacts in the dashboard. The server will stop naturally when the OS reclaims
+it or the user closes it.
 
 Print:
 
@@ -341,8 +336,9 @@ Print:
 ║  WORKFLOW COMPLETE: {workflow.name}                  ║
 ╚══════════════════════════════════════════════════════╝
 
-Run ID:  {run_id}
-Steps:   {n completed+approved} / {n total}
+Run ID:    {run_id}
+Steps:     {n completed+approved} / {n total}
+Dashboard: http://127.0.0.1:{port}/review
 
 Artifacts in: {workspace}/
 {list each step with status icon and key artifact names}
