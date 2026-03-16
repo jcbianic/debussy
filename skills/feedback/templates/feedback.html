@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Feedback Review</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #0f1117;
+    color: #e2e8f0;
+    min-height: 100vh;
+    padding: 2rem 1rem 4rem;
+  }
+
+  /* ── Header ───────────────────────────────────────── */
+  .header {
+    max-width: 900px;
+    margin: 0 auto 2.5rem;
+    border-bottom: 1px solid #2d3748;
+    padding-bottom: 1.5rem;
+  }
+  .header h1 { font-size: 1.5rem; font-weight: 700; color: #f7fafc; margin-bottom: 0.25rem; }
+  .header .subtitle { color: #718096; font-size: 0.88rem; margin-bottom: 1rem; }
+
+  .progress-bar-wrap {
+    background: #2d3748; border-radius: 999px; height: 6px;
+    overflow: hidden; margin-bottom: 0.75rem;
+  }
+  .progress-bar {
+    height: 100%; background: linear-gradient(90deg, #667eea, #764ba2);
+    border-radius: 999px; transition: width 0.3s ease;
+  }
+
+  .stats { display: flex; flex-wrap: wrap; gap: 1rem 1.5rem; font-size: 0.82rem; color: #718096; }
+  .stats span { display: flex; align-items: center; gap: 0.35rem; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+
+  /* ── Controls ─────────────────────────────────────── */
+  .controls {
+    max-width: 900px; margin: 0 auto 1.5rem;
+    display: flex; gap: 0.75rem; align-items: center;
+  }
+  .controls button {
+    background: #1a1f2e; border: 1px solid #2d3748; border-radius: 6px;
+    color: #a0aec0; font-size: 0.78rem; padding: 0.35rem 0.85rem;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .controls button:hover { background: #2d3748; color: #e2e8f0; }
+  .controls button.active { background: #667eea; color: white; border-color: #667eea; }
+  .controls .spacer { flex: 1; }
+  .controls .counter { font-size: 0.78rem; color: #4a5568; }
+
+  /* ── Groups ───────────────────────────────────────── */
+  .group { max-width: 900px; margin: 0 auto 2rem; }
+  .group-header {
+    display: flex; align-items: center; gap: 0.5rem;
+    cursor: pointer; margin-bottom: 0.75rem; padding-left: 0.25rem;
+  }
+  .group-title {
+    font-size: 0.72rem; font-weight: 600; letter-spacing: 0.1em;
+    text-transform: uppercase; color: #667eea;
+  }
+  .group-chevron {
+    font-size: 0.65rem; color: #4a5568; transition: transform 0.2s;
+  }
+  .group-chevron.collapsed { transform: rotate(-90deg); }
+  .group-count { font-size: 0.68rem; color: #4a5568; }
+  .group-items { overflow: hidden; }
+  .group-items.collapsed { display: none; }
+
+  /* ── Cards ────────────────────────────────────────── */
+  .item-card {
+    background: #1a1f2e; border: 1px solid #2d3748; border-radius: 10px;
+    padding: 1rem 1.25rem; margin-bottom: 0.6rem; transition: border-color 0.15s;
+  }
+  .item-top { display: flex; align-items: flex-start; gap: 1rem; }
+  .item-ref {
+    font-size: 0.75rem; color: #4a5568; min-width: 2rem; padding-top: 2px;
+    font-variant-numeric: tabular-nums; font-family: 'SF Mono', 'Fira Code', monospace;
+  }
+  .item-body { flex: 1; min-width: 0; }
+  .item-title { font-size: 0.95rem; font-weight: 600; color: #e2e8f0; margin-bottom: 0.2rem; }
+  .item-meta { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.35rem; }
+  .tag {
+    font-size: 0.7rem; font-weight: 600; padding: 0.15rem 0.5rem;
+    border-radius: 4px; letter-spacing: 0.03em;
+  }
+  .item-desc { font-size: 0.82rem; color: #718096; line-height: 1.55; }
+
+  .item-context {
+    margin-top: 0.5rem; padding: 0.5rem 0.75rem;
+    background: #0f1117; border-left: 2px solid #4a5568;
+    border-radius: 0 4px 4px 0; font-size: 0.8rem; color: #a0aec0; line-height: 1.5;
+  }
+  .item-context strong { color: #718096; font-weight: 600; }
+
+  .item-details-toggle {
+    background: none; border: none; color: #667eea; font-size: 0.78rem;
+    cursor: pointer; padding: 0.25rem 0; margin-top: 0.35rem;
+  }
+  .item-details-toggle:hover { text-decoration: underline; }
+  .item-details {
+    margin-top: 0.5rem; padding: 0.75rem;
+    background: #0f1117; border: 1px solid #2d3748; border-radius: 6px;
+    font-size: 0.82rem; color: #a0aec0; line-height: 1.6;
+    white-space: pre-wrap; display: none;
+  }
+  .item-details.visible { display: block; }
+
+  /* ── Actions ──────────────────────────────────────── */
+  .item-actions { display: flex; gap: 0.4rem; flex-shrink: 0; }
+  .btn {
+    border: none; border-radius: 6px; font-size: 0.78rem; font-weight: 600;
+    cursor: pointer; padding: 0.35rem 0.75rem; transition: all 0.15s;
+    letter-spacing: 0.02em;
+  }
+
+  /* ── Comment ──────────────────────────────────────── */
+  .comment-area { margin-top: 0.75rem; margin-left: 2.5rem; display: none; }
+  .comment-area.visible { display: block; }
+  .comment-area textarea {
+    width: 100%; background: #0f1117; border: 1px solid #4a5568; border-radius: 6px;
+    color: #e2e8f0; font-size: 0.82rem; padding: 0.5rem 0.75rem;
+    resize: vertical; min-height: 60px; font-family: inherit; line-height: 1.5;
+  }
+  .comment-area textarea:focus { outline: none; border-color: #667eea; }
+  .comment-area textarea::placeholder { color: #4a5568; }
+
+  /* ── Submit Section ───────────────────────────────── */
+  .submit-section {
+    max-width: 900px; margin: 2rem auto 0;
+    border-top: 1px solid #2d3748; padding-top: 1.5rem;
+    display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;
+  }
+  .submit-btn {
+    background: linear-gradient(135deg, #667eea, #764ba2); color: white;
+    border: none; border-radius: 8px; padding: 0.65rem 1.5rem;
+    font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: opacity 0.15s;
+  }
+  .submit-btn:hover { opacity: 0.9; }
+  .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .export-btn {
+    background: #2d3748; color: #a0aec0; border: none; border-radius: 6px;
+    padding: 0.5rem 1rem; font-size: 0.82rem; cursor: pointer;
+  }
+  .export-btn:hover { background: #4a5568; }
+
+  .export-output {
+    width: 100%; margin-top: 1rem; background: #1a1f2e;
+    border: 1px solid #2d3748; border-radius: 8px;
+    padding: 1rem 1.25rem; font-size: 0.8rem;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    white-space: pre-wrap; color: #a0aec0; display: none;
+    max-height: 400px; overflow-y: auto;
+  }
+
+  /* ── Toast ────────────────────────────────────────── */
+  .toast {
+    position: fixed; bottom: 2rem; right: 2rem;
+    background: #1a1f2e; border: 1px solid #2d3748; border-radius: 8px;
+    padding: 0.75rem 1.25rem; font-size: 0.85rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    transform: translateY(100px); opacity: 0; transition: all 0.3s ease;
+    z-index: 1000;
+  }
+  .toast.visible { transform: translateY(0); opacity: 1; }
+  .toast.success { border-color: #48bb78; color: #68d391; }
+  .toast.error { border-color: #fc8181; color: #fc8181; }
+  .toast.info { border-color: #667eea; color: #a0aec0; }
+
+  /* ── Submitted banner ──────────────────────────────── */
+  .submitted-banner {
+    max-width: 900px; margin: 0 auto 1.5rem;
+    background: #1a2e1a; border: 1px solid #276749; border-radius: 10px;
+    padding: 1rem 1.25rem; display: none; align-items: center; gap: 1rem;
+  }
+  .submitted-banner.visible { display: flex; }
+  .submitted-banner .banner-icon { font-size: 1.3rem; flex-shrink: 0; }
+  .submitted-banner .banner-text { flex: 1; }
+  .submitted-banner .banner-text strong { color: #68d391; font-size: 0.9rem; }
+  .submitted-banner .banner-text p { color: #718096; font-size: 0.8rem; margin-top: 0.15rem; }
+  .submitted-banner .banner-close {
+    background: none; border: none; color: #4a5568; font-size: 1.1rem;
+    cursor: pointer; padding: 0.25rem; flex-shrink: 0;
+  }
+  .submitted-banner .banner-close:hover { color: #a0aec0; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1 id="pageTitle">Feedback Review</h1>
+  <p class="subtitle" id="pageSubtitle"></p>
+  <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar" style="width:0%"></div></div>
+  <div class="stats" id="statsBar"></div>
+</div>
+
+<div class="controls">
+  <button id="btnFocus" onclick="toggleFocus()">Focus mode</button>
+  <button id="btnCollapseAll" onclick="toggleCollapseAll()">Collapse all</button>
+  <span class="spacer"></span>
+  <span class="counter" id="navCounter"></span>
+  <button id="btnPrev" onclick="navGroup(-1)" style="display:none">Prev</button>
+  <button id="btnNext" onclick="navGroup(1)" style="display:none">Next</button>
+</div>
+
+<div id="itemList"></div>
+
+<div class="submit-section">
+  <button class="submit-btn" id="submitBtn" onclick="submitFeedback()">Send Feedback</button>
+  <button class="export-btn" onclick="exportMarkdown()">Export as Markdown</button>
+  <button class="export-btn" id="copyBtn" onclick="copyExport()" style="display:none">Copy to clipboard</button>
+  <div class="export-output" id="exportOutput"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="submitted-banner" id="submittedBanner">
+  <span class="banner-icon">&#10003;</span>
+  <div class="banner-text">
+    <strong>Feedback sent</strong>
+    <p>Your decisions have been recorded. The agent will pick them up automatically.</p>
+  </div>
+  <button class="banner-close" onclick="document.getElementById('submittedBanner').classList.remove('visible')">&times;</button>
+</div>
+
+<script>
+// ── Data ───────────────────────────────────────────────
+const REQUEST = __REQUEST_JSON__;
+
+// ── State ──────────────────────────────────────────────
+const decisions = {};   // itemId → actionId | null
+const comments = {};    // itemId → string
+let focusMode = false;
+let focusIndex = 0;
+let allCollapsed = false;
+const collapsedGroups = new Set();
+
+// ── Color System ───────────────────────────────────────
+const ACTION_COLORS = {
+  green:  { base: '#1c3a2a', text: '#68d391', border: '#276749', active: '#48bb78', dot: '#48bb78' },
+  yellow: { base: '#3d3400', text: '#f6e05e', border: '#744210', active: '#ecc94b', dot: '#ecc94b' },
+  red:    { base: '#3d1515', text: '#fc8181', border: '#742a2a', active: '#fc8181', dot: '#fc8181' },
+  blue:   { base: '#1a2433', text: '#63b3ed', border: '#2a4365', active: '#4299e1', dot: '#4299e1' },
+  purple: { base: '#1a0a2e', text: '#9f7aea', border: '#553c9a', active: '#805ad5', dot: '#805ad5' },
+  cyan:   { base: '#00302d', text: '#4fd1c5', border: '#285e61', active: '#38b2ac', dot: '#38b2ac' },
+  orange: { base: '#2a1500', text: '#f6ad55', border: '#744210', active: '#ed8936', dot: '#ed8936' },
+};
+const TAG_STYLES = {
+  green:  { bg: '#0a2a0a', color: '#68d391' },
+  yellow: { bg: '#2d2d00', color: '#f6e05e' },
+  red:    { bg: '#3d1515', color: '#fc8181' },
+  blue:   { bg: '#002030', color: '#63b3ed' },
+  purple: { bg: '#1a0a2e', color: '#9f7aea' },
+  cyan:   { bg: '#00302d', color: '#4fd1c5' },
+  orange: { bg: '#2a1500', color: '#f6ad55' },
+  gray:   { bg: '#2d3748', color: '#a0aec0' },
+};
+const ICONS = { check: '\u2713', chat: '?', x: '\u2715', star: '\u2605', flag: '\u2691' };
+const PENDING_COLOR = '#4a5568';
+
+// ── Init ───────────────────────────────────────────────
+document.getElementById('pageTitle').textContent = REQUEST.title || 'Feedback Review';
+if (REQUEST.subtitle) {
+  document.getElementById('pageSubtitle').textContent = REQUEST.subtitle;
+}
+
+const commentMode = REQUEST.comment_mode || 'action';
+const actions = REQUEST.actions || [];
+const groups = REQUEST.groups || [];
+const allItems = groups.flatMap(g => g.items);
+
+// Build stats bar from actions
+buildStatsBar();
+render();
+
+// ── Render ─────────────────────────────────────────────
+function render() {
+  const container = document.getElementById('itemList');
+  container.innerHTML = '';
+
+  groups.forEach((group, gi) => {
+    if (focusMode && gi !== focusIndex) return;
+
+    const groupEl = document.createElement('div');
+    groupEl.className = 'group';
+    const isCollapsed = collapsedGroups.has(gi);
+    const itemCount = group.items.length;
+    const decided = group.items.filter(it => decisions[it.id]).length;
+
+    groupEl.innerHTML = `
+      <div class="group-header" onclick="toggleGroup(${gi})">
+        <span class="group-chevron ${isCollapsed ? 'collapsed' : ''}">\u25BC</span>
+        <span class="group-title">${esc(group.name)}</span>
+        <span class="group-count">${decided}/${itemCount}</span>
+      </div>
+    `;
+
+    const itemsWrap = document.createElement('div');
+    itemsWrap.className = `group-items ${isCollapsed ? 'collapsed' : ''}`;
+
+    group.items.forEach(item => {
+      const card = buildCard(item);
+      itemsWrap.appendChild(card);
+    });
+
+    groupEl.appendChild(itemsWrap);
+    container.appendChild(groupEl);
+  });
+
+  updateStats();
+  updateNav();
+}
+
+function buildCard(item) {
+  const decision = decisions[item.id] || null;
+  const action = decision ? actions.find(a => a.id === decision) : null;
+  const actionStyle = action ? action.style : null;
+
+  const card = document.createElement('div');
+  card.className = 'item-card';
+  card.id = `card-${item.id}`;
+
+  // Left border color based on decision
+  if (actionStyle && ACTION_COLORS[actionStyle]) {
+    card.style.borderLeft = `3px solid ${ACTION_COLORS[actionStyle].active}`;
+  }
+  if (actionStyle === 'red') card.style.opacity = '0.55';
+
+  // Tags
+  const tagsHtml = (item.tags || []).map(t => {
+    if (typeof t === 'string') {
+      const s = TAG_STYLES.gray;
+      return `<span class="tag" style="background:${s.bg};color:${s.color}">${esc(t)}</span>`;
+    }
+    const bg = t.bg || (TAG_STYLES[t.style] || TAG_STYLES.gray).bg;
+    const color = t.color || (TAG_STYLES[t.style] || TAG_STYLES.gray).color;
+    return `<span class="tag" style="background:${bg};color:${color}">${esc(t.label)}</span>`;
+  }).join('');
+
+  // Action buttons
+  const btnsHtml = actions.map(a => {
+    const c = ACTION_COLORS[a.style] || ACTION_COLORS.blue;
+    const isActive = decision === a.id;
+    const icon = a.icon ? (ICONS[a.icon] || '') + ' ' : '';
+    const bg = isActive ? c.active : c.base;
+    const fg = isActive ? '#1a202c' : c.text;
+    const bd = isActive ? c.active : c.border;
+    return `<button class="btn" style="background:${bg};color:${fg};border:1px solid ${bd}" `
+      + `onmouseover="this.style.background='${isActive ? c.active : c.border}'" `
+      + `onmouseout="this.style.background='${bg}'" `
+      + `onclick="setAction('${item.id}','${a.id}')">${icon}${esc(a.label)}</button>`;
+  }).join('');
+
+  // Context section
+  const contextHtml = item.context
+    ? `<div class="item-context"><strong>Context:</strong> ${esc(item.context)}</div>`
+    : '';
+
+  // Details toggle
+  const detailsHtml = item.details
+    ? `<button class="item-details-toggle" onclick="toggleDetails('${item.id}')">Show details</button>
+       <div class="item-details" id="details-${item.id}">${esc(item.details)}</div>`
+    : '';
+
+  // Comment area visibility — show for any selected action
+  const showComment = !!decision;
+  const placeholder = (action && action.comment_placeholder) || 'Add a comment\u2026';
+
+  card.innerHTML = `
+    <div class="item-top">
+      <span class="item-ref">${esc(item.ref || '')}</span>
+      <div class="item-body">
+        <div class="item-title">${esc(item.title)}</div>
+        ${tagsHtml ? `<div class="item-meta">${tagsHtml}</div>` : ''}
+        ${item.description ? `<div class="item-desc">${esc(item.description)}</div>` : ''}
+        ${contextHtml}
+        ${detailsHtml}
+      </div>
+      <div class="item-actions">${btnsHtml}</div>
+    </div>
+    <div class="comment-area ${showComment ? 'visible' : ''}" id="comment-${item.id}">
+      <textarea placeholder="${esc(placeholder)}"
+        oninput="saveComment('${item.id}', this.value)">${esc(comments[item.id] || '')}</textarea>
+    </div>
+  `;
+
+  return card;
+}
+
+// ── Interactions ───────────────────────────────────────
+function setAction(itemId, actionId) {
+  decisions[itemId] = decisions[itemId] === actionId ? null : actionId;
+  render();
+}
+
+function saveComment(itemId, value) {
+  comments[itemId] = value;
+}
+
+function toggleDetails(itemId) {
+  const el = document.getElementById(`details-${itemId}`);
+  const btn = el.previousElementSibling;
+  if (el.classList.contains('visible')) {
+    el.classList.remove('visible');
+    btn.textContent = 'Show details';
+  } else {
+    el.classList.add('visible');
+    btn.textContent = 'Hide details';
+  }
+}
+
+function toggleGroup(gi) {
+  if (collapsedGroups.has(gi)) {
+    collapsedGroups.delete(gi);
+  } else {
+    collapsedGroups.add(gi);
+  }
+  render();
+}
+
+function toggleCollapseAll() {
+  if (allCollapsed) {
+    collapsedGroups.clear();
+    allCollapsed = false;
+    document.getElementById('btnCollapseAll').textContent = 'Collapse all';
+  } else {
+    groups.forEach((_, i) => collapsedGroups.add(i));
+    allCollapsed = true;
+    document.getElementById('btnCollapseAll').textContent = 'Expand all';
+  }
+  render();
+}
+
+function toggleFocus() {
+  focusMode = !focusMode;
+  const btn = document.getElementById('btnFocus');
+  btn.classList.toggle('active', focusMode);
+  document.getElementById('btnPrev').style.display = focusMode ? 'inline-block' : 'none';
+  document.getElementById('btnNext').style.display = focusMode ? 'inline-block' : 'none';
+  if (focusMode) focusIndex = 0;
+  render();
+}
+
+function navGroup(dir) {
+  focusIndex = Math.max(0, Math.min(groups.length - 1, focusIndex + dir));
+  render();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function updateNav() {
+  const counter = document.getElementById('navCounter');
+  if (focusMode) {
+    counter.textContent = `${focusIndex + 1} / ${groups.length}`;
+  } else {
+    counter.textContent = '';
+  }
+  document.getElementById('btnPrev').disabled = focusIndex === 0;
+  document.getElementById('btnNext').disabled = focusIndex === groups.length - 1;
+}
+
+// ── Stats ──────────────────────────────────────────────
+function buildStatsBar() {
+  const bar = document.getElementById('statsBar');
+  actions.forEach(a => {
+    const c = ACTION_COLORS[a.style] || ACTION_COLORS.blue;
+    bar.innerHTML += `<span><span class="dot" style="background:${c.dot}"></span><span id="count-${a.id}">0</span> ${esc(a.label.toLowerCase())}</span>`;
+  });
+  bar.innerHTML += `<span><span class="dot" style="background:${PENDING_COLOR}"></span><span id="count-pending">0</span> pending</span>`;
+}
+
+function updateStats() {
+  const total = allItems.length;
+  let decided = 0;
+
+  actions.forEach(a => {
+    const count = allItems.filter(it => decisions[it.id] === a.id).length;
+    document.getElementById(`count-${a.id}`).textContent = count;
+    decided += count;
+  });
+
+  const pending = total - decided;
+  document.getElementById('count-pending').textContent = pending;
+  document.getElementById('progressBar').style.width = `${((total - pending) / total) * 100}%`;
+}
+
+// ── Submit ─────────────────────────────────────────────
+async function submitFeedback() {
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = 'Sending\u2026';
+
+  const itemDecisions = {};
+  allItems.forEach(it => {
+    itemDecisions[it.id] = {
+      action: decisions[it.id] || null,
+      comment: comments[it.id] || ''
+    };
+  });
+
+  const summary = {};
+  actions.forEach(a => {
+    summary[a.id] = allItems.filter(it => decisions[it.id] === a.id).length;
+  });
+  summary.pending = allItems.filter(it => !decisions[it.id]).length;
+  summary.total = allItems.length;
+
+  try {
+    const resp = await fetch('/api/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ decisions: itemDecisions, summary })
+    });
+
+    if (resp.ok) {
+      showToast('Feedback sent successfully!', 'success');
+      document.getElementById('submittedBanner').classList.add('visible');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      throw new Error(`Server responded ${resp.status}`);
+    }
+  } catch (err) {
+    showToast(`Failed to send: ${err.message}`, 'error');
+    btn.disabled = false;
+    btn.textContent = 'Send Feedback';
+  }
+}
+
+// ── Export ──────────────────────────────────────────────
+function exportMarkdown() {
+  const lines = [`# ${REQUEST.title || 'Feedback'}\n`];
+  if (REQUEST.subtitle) lines.push(`> ${REQUEST.subtitle}\n`);
+
+  // Summary line
+  const parts = actions.map(a => {
+    const count = allItems.filter(it => decisions[it.id] === a.id).length;
+    return `${count} ${a.label.toLowerCase()}`;
+  });
+  const pending = allItems.filter(it => !decisions[it.id]).length;
+  parts.push(`${pending} pending`);
+  lines.push(`**Summary:** ${parts.join(' \u00b7 ')}\n`);
+
+  groups.forEach(group => {
+    lines.push(`\n## ${group.name}`);
+    group.items.forEach(item => {
+      const d = decisions[item.id];
+      const action = d ? actions.find(a => a.id === d) : null;
+      const icon = action && action.icon ? (ICONS[action.icon] || '') : ' ';
+      const label = action ? action.label : 'pending';
+      lines.push(`${icon} **${item.ref || ''}** ${item.title} [${label}]`);
+      if (comments[item.id]) {
+        lines.push(`  > ${comments[item.id]}`);
+      }
+    });
+  });
+
+  const output = document.getElementById('exportOutput');
+  output.textContent = lines.join('\n');
+  output.style.display = 'block';
+  document.getElementById('copyBtn').style.display = 'inline-block';
+}
+
+function copyExport() {
+  navigator.clipboard.writeText(document.getElementById('exportOutput').textContent).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.textContent = 'Copy to clipboard'; }, 2000);
+  });
+}
+
+// ── Toast ──────────────────────────────────────────────
+function showToast(message, type) {
+  const toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.className = `toast ${type} visible`;
+  setTimeout(() => { toast.classList.remove('visible'); }, 3500);
+}
+
+// ── Util ───────────────────────────────────────────────
+function esc(str) {
+  if (!str) return '';
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+</script>
+</body>
+</html>

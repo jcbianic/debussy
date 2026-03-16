@@ -1,0 +1,13 @@
+{
+  "name": "debussy",
+  "version": "0.1.0",
+  "description": "Local-first web UI for orchestrating Claude Code sessions and IIKit workflows",
+  "author": {
+    "name": "jcbianic",
+    "url": "https://github.com/jcbianic/debussy"
+  },
+  "homepage": "https://github.com/jcbianic/debussy",
+  "repository": "https://github.com/jcbianic/debussy",
+  "license": "MIT",
+  "keywords": ["claude-code", "orchestration", "iikit", "local-first", "workflow"]
+}

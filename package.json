@@ -2,19 +2,19 @@
   "name": "debussy",
   "version": "0.1.0",
   "description": "Local-first web UI for orchestrating Claude Code sessions and IIKit workflows",
-  "private": true,
+  "private": false,
   "type": "module",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/libon-data/debussy"
+    "url": "https://github.com/jcbianic/debussy"
   },
-  "keywords": ["claude-code", "orchestration", "iikit", "local-first"],
-  "bin": {
-    "debussy": "./bin/debussy.cjs"
-  },
+  "keywords": ["claude-code", "orchestration", "iikit", "local-first", "workflow", "plugin"],
   "files": [
-    "bin/",
+    ".claude-plugin/",
+    "skills/",
+    "mcp/",
+    ".mcp.json",
     ".output/"
   ],
   "scripts": {
