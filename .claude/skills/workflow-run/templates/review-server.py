@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Workflow Review Server
+Workflow Review Server — read-only progress dashboard.
 Deployed by /workflow-run skill. Do not edit manually.
 
 Usage:
@@ -8,8 +8,8 @@ Usage:
 
   port: 0 or omitted = ephemeral, specific number = use that port
 
-On human decision, writes state.json then touches .resume-trigger to wake
-the maestro's blocking trigger-file loop.
+Serves the workflow pipeline and artifact viewer. Decisions are collected
+by the feedback skill (separate browser tab per review gate).
 """
 
 import http.server
@@ -17,7 +17,6 @@ import json
 import os
 import signal
 import sys
-from datetime import datetime, timezone
 from pathlib import Path
 
 STATE_FILE = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("state.json")
@@ -41,11 +40,8 @@ class ReviewHandler(http.server.BaseHTTPRequestHandler):
             self.end_headers()
 
     def do_POST(self):
-        if self.path == "/api/review":
-            self._handle_review_decision()
-        else:
-            self.send_response(404)
-            self.end_headers()
+        self.send_response(404)
+        self.end_headers()
 
     def do_OPTIONS(self):
         self.send_response(200)
@@ -73,7 +69,11 @@ class ReviewHandler(http.server.BaseHTTPRequestHandler):
         self.wfile.write(data)
 
     def _serve_artifact(self, name):
-        path = WORKSPACE / name
+        path = (WORKSPACE / name).resolve()
+        if not path.is_relative_to(WORKSPACE.resolve()):
+            self.send_response(403)
+            self.end_headers()
+            return
         if path.exists() and path.is_file():
             data = path.read_bytes()
             self.send_response(200)
@@ -86,7 +86,11 @@ class ReviewHandler(http.server.BaseHTTPRequestHandler):
             self.end_headers()
 
     def _serve_summary(self, name):
-        path = WORKSPACE / f"{name}.summary.md"
+        path = (WORKSPACE / f"{name}.summary.md").resolve()
+        if not path.is_relative_to(WORKSPACE.resolve()):
+            self.send_response(403)
+            self.end_headers()
+            return
         if path.exists() and path.is_file():
             data = path.read_bytes()
             self.send_response(200)
@@ -97,43 +101,6 @@ class ReviewHandler(http.server.BaseHTTPRequestHandler):
         else:
             self.send_response(404)
             self.end_headers()
-
-    def _handle_review_decision(self):
-        length = int(self.headers.get("Content-Length", 0))
-        body = json.loads(self.rfile.read(length))
-
-        # Read, update, write state atomically
-        state = json.loads(STATE_FILE.read_text())
-        step_id = body["step_id"]
-        decision = body["decision"]
-        comments = body.get("comments", "")
-        timestamp = body.get("timestamp", datetime.now(timezone.utc).isoformat())
-
-        if step_id not in state["steps"]:
-            self.send_response(400)
-            self.end_headers()
-            return
-
-        state["steps"][step_id]["status"] = decision
-        if state["steps"][step_id].get("review"):
-            state["steps"][step_id]["review"]["status"] = decision
-            state["steps"][step_id]["review"]["decision"] = decision
-            state["steps"][step_id]["review"]["comments"] = comments
-            state["steps"][step_id]["review"]["decided_at"] = timestamp
-        state["updated_at"] = timestamp
-
-        STATE_FILE.write_text(json.dumps(state, indent=2))
-
-        # Wake the maestro's blocking trigger-file loop
-        if decision in ("approved", "rejected", "revision_requested"):
-            (WORKSPACE / ".resume-trigger").touch()
-
-        response = json.dumps({"ok": True}).encode()
-        self.send_response(200)
-        self.send_header("Content-Type", "application/json")
-        self.send_header("Content-Length", str(len(response)))
-        self.end_headers()
-        self.wfile.write(response)
 
     def log_message(self, fmt, *args):
         pass  # Suppress access log noise

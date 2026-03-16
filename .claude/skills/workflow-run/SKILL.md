@@ -1,9 +1,15 @@
 ---
+name: debussy
 description: >-
   Run multi-step AI workflows defined in YAML files with human review gates.
   Use when user says "run workflow", "start workflow", "resume workflow", or
   references a .claude/workflows/*.yml file. Commands: /workflow-run <file>
   [--input k=v] | --resume [run_id] | --status | --list
+compatibility: Requires Python 3, jq, and bash on PATH.
+license: MIT
+metadata:
+  author: jcbianic
+  version: "0.0.0"
 ---
 
 # Workflow Run Skill
@@ -83,7 +89,11 @@ Before using any prompt, context path, or artifact path, substitute:
 - `{key}` → value from the inputs dict
 - `{workspace}` → resolved workspace directory path
 - `{run_id}` → current run ID
-- `@{artifacts.step_id.filename}` → absolute path to a previously-produced artifact
+- `@{artifacts.step_id.filename}` → absolute path to a previously-produced artifact,
+  resolved from `state.steps[step_id].artifacts[filename].path` in the current
+  `state.json`. If the referenced step or artifact is not yet present in state
+  (i.e. the step hasn't run yet), print an error and abort the workflow — a step
+  cannot reference an artifact from a step that hasn't completed.
 
 ---
 
@@ -113,6 +123,7 @@ Before using any prompt, context path, or artifact path, substitute:
       "completed_at": null,
       "artifacts": {},
       "review": null,
+      "review_history": [],
       "verify": null
     }
   }
@@ -142,13 +153,7 @@ Dashboard: http://127.0.0.1:{port}/review
 
 2. Read state.json. Workspace = parent directory of state.json.
 
-3. Clean up stale trigger if present:
-
-```bash
-rm -f {workspace}/.resume-trigger
-```
-
-1. **Ensure review server is running** (see Review Server Management).
+3. **Ensure review server is running** (see Review Server Management).
 
 2. Print current status (step names + statuses).
 
@@ -218,6 +223,11 @@ If step status is `completed`, `approved`, or `skipped`:
 - Update `state.json` `current_step` field
 - Loop back to A
 
+If step status is `aborted` or `rejected`:
+
+- Print: "Workflow was previously aborted at step '{step.name}'. To restart from this step, reset its status to `not_started` in state.json."
+- EXIT
+
 ---
 
 ### C. Check Condition
@@ -253,9 +263,9 @@ If step status is `pending_review`:
 
 ---
 
-### F. Handle Rejection / Revision
+### F. Handle Revision
 
-If step status is `rejected` or `revision_requested`:
+If step status is `revision_requested`:
 
 - Read `state.steps[id].review.comments`
 - Proceed to G with revision context
@@ -264,7 +274,12 @@ If step status is `rejected` or `revision_requested`:
 
 ### G. Dispatch Principal
 
-**Update state.json**: set step `status: "running"`, `started_at: {ISO timestamp}`.
+**Update state.json**:
+- If `state.steps[id].review` has a non-null `decision` (from a previous review cycle),
+  push it to `review_history` first:
+  `review_history.push({...existing review, "iteration": review_history.length + 1})`
+  then set `review: null`.
+- Set step `status: "running"`, `started_at: {ISO timestamp}`.
 
 **Pre-load context files** (if step has `context` list):
 For each path (with variables substituted), read content using Read tool.
@@ -313,14 +328,9 @@ When all steps are terminal:
 
 Update state.json: `status: "completed"`, `updated_at: {ISO timestamp}`.
 
-Stop the review server:
-
-```bash
-if [ -f {workspace}/review-server.pid ]; then
-  kill $(cat {workspace}/review-server.pid) 2>/dev/null
-  rm -f {workspace}/review-server.pid {workspace}/review-server.port
-fi
-```
+Leave the review server running — the user may still want to browse completed
+artifacts in the dashboard. The server will stop naturally when the OS reclaims
+it or the user closes it.
 
 Print:
 
@@ -329,8 +339,9 @@ Print:
 ║  WORKFLOW COMPLETE: {workflow.name}                  ║
 ╚══════════════════════════════════════════════════════╝
 
-Run ID:  {run_id}
-Steps:   {n completed+approved} / {n total}
+Run ID:    {run_id}
+Steps:     {n completed+approved} / {n total}
+Dashboard: http://127.0.0.1:{port}/review
 
 Artifacts in: {workspace}/
 {list each step with status icon and key artifact names}
@@ -353,33 +364,158 @@ Artifacts produced:
 {for each artifact: - {path}: {description}}
 
 Dashboard: http://127.0.0.1:{port}/review
-Waiting for your decision...
+Opening feedback UI...
 ```
 
-### 2. Block on Trigger File (zero token cost)
+### 2. Collect Cards
 
-Run with Bash tool, **timeout: 600000ms**:
+For each artifact in the step, attempt to read
+`{workspace}/{artifact.path}.cards.json`.
+
+Collect all cards grouped by artifact. If a cards file is missing or empty,
+skip that artifact silently.
+
+### 3. Build Feedback Request
+
+Create directory: `{workspace}/feedback-{step.id}/`
+
+Write `{workspace}/feedback-{step.id}/request.json`:
+
+```json
+{
+  "title": "Review: {step.name}",
+  "subtitle": "{step.review_prompt or 'Review the artifacts and decide.'}",
+  "actions": [
+    {"id": "approve", "label": "Approve",          "icon": "check", "style": "green"},
+    {"id": "revise",  "label": "Request Revision", "icon": "chat",  "style": "yellow",
+     "has_comment": true, "comment_placeholder": "What needs to be revised?"},
+    {"id": "reject",  "label": "Reject",           "icon": "x",     "style": "red",
+     "has_comment": true, "comment_placeholder": "Why is this rejected?"}
+  ],
+  "groups": [
+    {
+      "name": "{artifact.description or artifact.path}",
+      "items": [
+        {
+          "id": "{step.id}-{artifact.path}-{i}",
+          "ref": "{card.severity[0].toUpperCase()}",
+          "title": "{card.title}",
+          "description": "{card.abstract}",
+          "tags": [
+            {"label": "{card.severity}", "style": "{severity_style}"},
+            {"label": "{card.type}",     "style": "blue"}
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+Severity → style mapping: `critical`→`red`, `high`→`orange`, `medium`→`yellow`,
+`low`→`green`, `info`→`blue`.
+
+**Fallback** — if no cards exist for the step (all failed or no reviewable artifacts),
+use a single group with one item:
+
+```json
+{
+  "name": "Step Output",
+  "items": [{
+    "id": "{step.id}-approval",
+    "title": "Approve step: {step.name}",
+    "description": "No structured cards were produced. Review the artifacts in the dashboard and decide."
+  }]
+}
+```
+
+### 4. Deploy Feedback Server (zero token wait)
+
+1. Read `.claude/skills/feedback/templates/feedback-server.py` using Read tool.
+   Write verbatim to `{workspace}/feedback-{step.id}/feedback-server.py`.
+
+2. Read `.claude/skills/feedback/templates/feedback.html` using Read tool.
+   Write verbatim to `{workspace}/feedback-{step.id}/feedback.html`.
+
+3. Start server:
 
 ```bash
-while [ ! -f {workspace}/.resume-trigger ]; do sleep 2; done
-rm -f {workspace}/.resume-trigger
+cd "{workspace}/feedback-{step.id}" && python3 feedback-server.py request.json 0 >> server.log 2>&1 &
 ```
 
-If Bash times out before the trigger appears: loop back to step 2 and wait
-again. No new Claude tokens are consumed while the Bash loop runs.
+4. Wait for startup and read port:
 
-### 3. Read Decision
+```bash
+sleep 1 && cat "{workspace}/feedback-{step.id}/server.port" 2>/dev/null || echo "FAILED"
+```
 
-Read `{workspace}/state.json`.
-Get `steps[{step.id}].review.decision`.
+If FAILED, print server.log and EXIT.
 
-### 4. Route
+5. Open browser:
+
+```bash
+open "http://127.0.0.1:{port}" 2>/dev/null || xdg-open "http://127.0.0.1:{port}" 2>/dev/null || echo "Open feedback UI: http://127.0.0.1:{port}"
+```
+
+6. Block until `response.json` appears. Run with Bash tool, **timeout: 610000ms**:
+
+```bash
+RESPONSE="{workspace}/feedback-{step.id}/response.json"
+end=$((SECONDS + 600))
+while [ ! -f "$RESPONSE" ] && [ $SECONDS -lt $end ]; do sleep 2; done
+[ -f "$RESPONSE" ] && cat "$RESPONSE" || echo "__TIMEOUT__"
+```
+
+If output is `__TIMEOUT__`: loop back to step 6 and wait again. Do not EXIT.
+
+### 5. Derive Decision from Feedback
+
+Parse the response JSON. Apply priority: `reject` > `revise` > `approve`.
+
+1. If any item has `action: "reject"` → decision = `rejected`.
+   Aggregate comments: `"Rejected: {title}" — {comment}` per rejected item.
+
+2. Else if any item has `action: "revise"` → decision = `revision_requested`.
+   Aggregate comments: `"Revise: {title}" — {comment}` per revise item.
+
+3. Else → decision = `approved`.
+
+### 6. Write Decision to state.json
+
+Read `{workspace}/state.json`. Merge into the step:
+
+```json
+{
+  "steps": {
+    "{step.id}": {
+      "status": "{decision}",
+      "review": {
+        "status": "{decision}",
+        "decision": "{decision}",
+        "comments": "{aggregated comments}",
+        "decided_at": "{ISO timestamp}"
+      }
+    }
+  },
+  "updated_at": "{ISO timestamp}"
+}
+```
+
+### 7. Cleanup Feedback Server
+
+```bash
+if [ -f "{workspace}/feedback-{step.id}/server.pid" ]; then
+  kill $(cat "{workspace}/feedback-{step.id}/server.pid") 2>/dev/null
+fi
+```
+
+### 8. Route
 
 | Decision | Action |
 | --- | --- |
 | `approved` | Advance `current_step`, continue execution loop |
 | `revision_requested` | Re-dispatch principal (step G) with review comments |
-| `rejected` | Mark `status: "aborted"`, stop server, print summary, EXIT |
+| `rejected` | Mark `status: "aborted"`, stop review server, print summary, EXIT |
 
 ---
 
@@ -524,10 +660,13 @@ For each artifact where Has summary = true:
      On failure: set cards_failed = true, continue.
 
 STEP 5 — WRITE STATE.JSON
-Read {workspace}/state.json, update steps["{step.id}"], write back.
+Read {workspace}/state.json. Preserve the existing `name`, `started_at`, and
+`review_history` fields from the current step — do NOT overwrite them.
+Update only the fields listed below, then write back.
 
 If status is "completed" (all checks passed):
-  steps[step.id] = {
+  Merge into steps[step.id]:
+  {
     "status": "completed",
     "completed_at": "{ISO timestamp}",
     "artifacts": {
@@ -633,4 +772,5 @@ echo "Open in browser: http://127.0.0.1:{port}/review"
 | Review server fails to start | Print log, give manual URL |
 | state.json unreadable | Print path, ask user to inspect manually |
 | No in-progress run for `--resume` | List all runs, ask which to resume |
-| Bash trigger-wait times out (10 min) | Loop back to wait again — do not EXIT |
+| Feedback server fails to start | Print server.log, EXIT |
+| Feedback response times out (10 min) | Loop back to wait again — do not EXIT |
