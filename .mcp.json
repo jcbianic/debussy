@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "debussy": {
+      "command": "node",
+      "args": ["./mcp/server.cjs"],
+      "env": {
+        "DEBUSSY_PORT": "3333"
+      }
+    }
+  }
+}

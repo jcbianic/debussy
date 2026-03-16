@@ -1,8 +1,6 @@
 # Source (not needed in npm package)
-pages/
-components/
-composables/
-layouts/
+app/
+bin/
 server/
 types/
 tests/
@@ -13,7 +11,6 @@ poc/
 nuxt.config.ts
 tsconfig.json
 vitest.config.ts
-app.vue
 
 # Dev artifacts
 .nuxt/
@@ -24,6 +21,7 @@ app.vue
 .tessl/
 .specify/
 .worktrees/
+.workflow-runs/
 .claude/
 coverage/
 *.log

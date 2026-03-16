@@ -10,6 +10,7 @@ coverage/
 .specify/dashboard.html
 .tessl/tiles/
 .claude/*
+!.claude/settings.json
 !.claude/skills/
 !.claude/workflows/
 .claude/skills/tessl__*

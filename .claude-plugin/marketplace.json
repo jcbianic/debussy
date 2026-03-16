@@ -1,0 +1,25 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "Debussy",
+  "description": "Claude Code plugins for Debussy — local-first workflow orchestration and review UI",
+  "owner": {
+    "name": "jcbianic"
+  },
+  "plugins": [
+    {
+      "name": "debussy",
+      "description": "Local-first web UI for orchestrating Claude Code sessions and IIKit workflows. Provides /debussy:workflow-run and /debussy:feedback skills plus a Nitro web server via MCP.",
+      "version": "0.1.0",
+      "author": {
+        "name": "jcbianic"
+      },
+      "source": {
+        "source": "url",
+        "url": "https://github.com/jcbianic/debussy.git"
+      },
+      "homepage": "https://github.com/jcbianic/debussy",
+      "category": "development",
+      "tags": ["workflow", "iikit", "review", "orchestration"]
+    }
+  ]
+}

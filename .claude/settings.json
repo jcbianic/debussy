@@ -1,0 +1,8 @@
+{
+  "extraKnownMarketplaces": [
+    {
+      "name": "debussy",
+      "url": "https://raw.githubusercontent.com/jcbianic/debussy/main/.claude-plugin/marketplace.json"
+    }
+  ]
+}

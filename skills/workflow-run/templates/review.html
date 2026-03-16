@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Workflow Review</title>
+  <title>Workflow Dashboard</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -35,7 +35,6 @@
       border-radius: 12px; text-transform: uppercase; letter-spacing: 0.05em;
       white-space: nowrap; flex-shrink: 0;
     }
-    .chip-auto   { background: #8b5cf6; color: white; }
     .chip-done   { background: #22c55e; color: white; }
     .chip-active { background: #3b82f6; color: white; }
 
@@ -113,6 +112,17 @@
     .sb-failed                      { background:#fecaca;color:#991b1b }
     .sb-skipped                     { background:#f3f4f6;color:#9ca3af }
 
+    /* ── Pending review notice ── */
+    .pending-notice {
+      background: #fef9ec; border: 1px solid #f59e0b; border-radius: 10px;
+      padding: 1rem 1.25rem; margin-top: 1rem;
+      display: flex; align-items: flex-start; gap: 0.75rem;
+    }
+    .pending-notice .pn-icon { font-size: 1.25rem; flex-shrink: 0; }
+    .pending-notice .pn-body { flex: 1; }
+    .pending-notice .pn-title { font-weight: 700; color: #92400e; font-size: 0.9rem; margin-bottom: 0.2rem; }
+    .pending-notice .pn-desc  { font-size: 0.82rem; color: #78350f; }
+
     /* ── Artifact block ── */
     .ab {
       background: white; border: 1px solid #e5e7eb;
@@ -155,22 +165,15 @@
       font-size: 0.8rem; line-height: 1.55; color: #374151;
     }
 
-    /* ── Cards ── */
+    /* ── Cards (read-only display) ── */
     .cards-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
       gap: 0.875rem;
     }
     .card {
-      border: 1px solid #e5e7eb; border-radius: 10px;
-      overflow: hidden; transition: box-shadow 0.15s;
+      border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden;
     }
-    .card.acted     { opacity: 0.75; }
-    .card.a-confirm  { border-left: 3px solid #22c55e; }
-    .card.a-discuss  { border-left: 3px solid #3b82f6; }
-    .card.a-challenge{ border-left: 3px solid #f59e0b; }
-    .card.a-reject   { border-left: 3px solid #ef4444; }
-
     .c-hdr {
       display: flex; align-items: center; gap: 0.5rem;
       padding: 0.5rem 0.875rem; background: #f9fafb;
@@ -194,104 +197,30 @@
     .sev-info    { background:#3b82f6 }
     .c-sev-label { font-size:0.7rem;color:#6b7280 }
 
-    .c-action-taken {
-      font-size: 0.68rem; font-weight: 700; margin-left: auto;
-      padding: 2px 8px; border-radius: 6px;
-    }
-    .at-confirm  { background:#dcfce7;color:#166534 }
-    .at-discuss  { background:#dbeafe;color:#1e40af }
-    .at-challenge{ background:#fef3c7;color:#92400e }
-    .at-reject   { background:#fecaca;color:#991b1b }
-
     .c-body { padding: 0.7rem 0.875rem; }
     .c-title    { font-size: 0.88rem; font-weight: 600; color: #111827; margin-bottom: 0.3rem; }
     .c-abstract { font-size: 0.82rem; color: #4b5563; line-height: 1.55; }
 
-    .c-acts {
-      display: flex; gap: 0.3rem; padding: 0.55rem 0.875rem;
-      border-top: 1px solid #f3f4f6; background: #fafafa; flex-wrap: wrap;
-    }
-    .ca {
-      font-size: 0.75rem; font-weight: 600; padding: 3px 10px;
-      border-radius: 6px; border: 1px solid transparent;
-      cursor: pointer; transition: background 0.1s, transform 0.08s;
-    }
-    .ca:active { transform: scale(0.95); }
-    .ca-confirm  { background:#f0fdf4;border-color:#86efac;color:#166534 }
-    .ca-confirm.on,.ca-confirm:hover   { background:#22c55e;color:white;border-color:#22c55e }
-    .ca-discuss  { background:#eff6ff;border-color:#93c5fd;color:#1e40af }
-    .ca-discuss.on,.ca-discuss:hover   { background:#3b82f6;color:white;border-color:#3b82f6 }
-    .ca-challenge{ background:#fffbeb;border-color:#fcd34d;color:#92400e }
-    .ca-challenge.on,.ca-challenge:hover{ background:#f59e0b;color:white;border-color:#f59e0b }
-    .ca-reject   { background:#fff1f2;border-color:#fca5a5;color:#991b1b }
-    .ca-reject.on,.ca-reject:hover     { background:#ef4444;color:white;border-color:#ef4444 }
-
-    /* ── Review form ── */
-    .rfm {
-      background: white; border: 1px solid #e5e7eb;
-      border-radius: 10px; padding: 1.25rem; margin-top: 1rem;
-    }
-    .rfm.active { border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,.1); }
-    .rfm-title {
-      font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 0.06em; color: #6b7280; margin-bottom: 0.875rem;
-    }
-    .rprompt {
-      background: #eff6ff; border-left: 3px solid #3b82f6;
-      border-radius: 0 6px 6px 0; padding: 0.75rem 1rem;
-      margin-bottom: 0.875rem; font-size: 0.875rem; color: #1e40af;
-      white-space: pre-wrap;
-    }
-    textarea {
-      width: 100%; min-height: 72px; padding: 0.6rem 0.75rem;
-      border: 1px solid #d1d5db; border-radius: 6px;
-      font-family: inherit; font-size: 0.875rem; line-height: 1.5;
-      resize: vertical; color: #374151;
-      transition: border-color 0.15s, box-shadow 0.15s;
-    }
-    textarea:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,.1); }
-    textarea::placeholder { color: #9ca3af; }
-
-    .r-acts { display: flex; gap: 0.5rem; margin-top: 0.75rem; flex-wrap: wrap; align-items: center; }
-    .btn { padding: 0.5rem 1.25rem; border: none; border-radius: 6px; font-weight: 600; font-size: 0.875rem; cursor: pointer; transition: background 0.15s, transform 0.1s; }
-    .btn:active { transform: scale(0.97); }
-    .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
-    .btn-ok  { background:#22c55e;color:white } .btn-ok:hover:not(:disabled)  { background:#16a34a }
-    .btn-rev { background:#f59e0b;color:white } .btn-rev:hover:not(:disabled) { background:#d97706 }
-    .btn-rej { background:#ef4444;color:white } .btn-rej:hover:not(:disabled) { background:#dc2626 }
-
-    .auto-note {
-      margin-top: 0.75rem; background: #ede9fe; border: 1px solid #c4b5fd;
-      border-radius: 6px; padding: 0.6rem 0.875rem; font-size: 0.8rem; color: #5b21b6;
-    }
-
-    /* Post-decision */
-    .pdn {
-      background: #f0fdf4; border: 1px solid #86efac;
-      border-radius: 8px; padding: 1rem 1.25rem; margin-top: 0.875rem;
-    }
-    .pdn.revision { background: #fffbeb; border-color: #fcd34d; }
-    .pdn.rejected { background: #fff1f2; border-color: #fca5a5; }
-    .pdn h3 { font-size: 0.9rem; font-weight: 700; margin-bottom: 0.3rem; }
-    .pdn p  { font-size: 0.82rem; color: #4b5563; margin-top: 0.25rem; }
-    .pdn code {
-      display: inline-block; background: rgba(0,0,0,.07); padding: 3px 8px;
-      border-radius: 4px; font-family: monospace; font-size: 0.82rem; margin: 0.3rem 0;
-    }
-    .copy-cmd {
-      background: none; border: 1px solid #d1d5db; border-radius: 5px;
-      padding: 3px 10px; font-size: 0.78rem; color: #4b5563;
-      cursor: pointer; margin-left: 0.5rem; transition: background 0.12s;
-    }
-    .copy-cmd:hover { background: #f3f4f6; }
-
-    /* Review history */
+    /* ── Review history ── */
     .rv-hist {
       background: #f9fafb; border-radius: 6px;
       padding: 0.6rem 0.875rem; font-size: 0.85rem; color: #4b5563;
       margin-top: 0.875rem;
     }
     .rv-hist strong { color: #1f2937; }
+
+    .hr-section { margin-bottom: 1rem; }
+    .hr-title { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #9ca3af; margin-bottom: 0.5rem; }
+    .hr-entry { border-left: 3px solid #d1d5db; padding: 0.55rem 0.875rem; margin-bottom: 0.5rem; border-radius: 0 6px 6px 0; background: #f9fafb; }
+    .hr-revision { border-left-color: #f59e0b; background: #fffbeb; }
+    .hr-rejected { border-left-color: #ef4444; background: #fff1f2; }
+    .hr-hdr { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem; flex-wrap: wrap; }
+    .hr-iter { font-size: 0.78rem; font-weight: 700; color: #374151; }
+    .hr-dec { font-size: 0.68rem; font-weight: 700; padding: 1px 7px; border-radius: 8px; text-transform: uppercase; letter-spacing: 0.04em; }
+    .hrd-revision_requested { background:#fef3c7;color:#92400e }
+    .hrd-rejected           { background:#fecaca;color:#991b1b }
+    .hr-time { font-size: 0.72rem; color: #9ca3af; margin-left: auto; }
+    .hr-text { font-size: 0.82rem; color: #4b5563; white-space: pre-wrap; }
 
     /* Empty */
     .empty { text-align: center; padding: 2.5rem 1rem; color: #9ca3af; font-size: 0.9rem; }
@@ -316,7 +245,7 @@
 
 <div class="hdr">
   <div class="hdr-info">
-    <h1 id="wf-name">Workflow Review</h1>
+    <h1 id="wf-name">Workflow Dashboard</h1>
     <div class="run-id" id="wf-run-id"></div>
   </div>
   <span id="wf-chip" class="chip" style="display:none"></span>
@@ -334,23 +263,18 @@
 
 <script>
   let STATE = __STATE_JSON__;
-  const AUTO_RESUME = __AUTO_RESUME__;
 
   let STEP_IDS = Object.keys(STATE.steps);
   let SELECTED = null;
 
-  // { "stepId::name": { cardIdx: action } }
-  const CARD_DECISIONS = {};
+  // { "stepId::name": "cards"|"summary"|"full" }
+  const VIEW_PREF = {};
   // { "stepId::name": Array | null }
   const CARDS_CACHE = {};
   // { "stepId::name": string | null }
   const SUMMARY_CACHE = {};
   // { "stepId::name": string | null }
   const FULL_CACHE = {};
-  // { stepId: { decision, comments } }
-  const SUBMITTED = {};
-  // { "stepId::name": "cards"|"summary"|"full" }
-  const VIEW_PREF = {};
 
   // ── Helpers ──────────────────────────────────────────────────────────
   function esc(s) {
@@ -412,9 +336,7 @@
     document.getElementById('wf-name').textContent = STATE.workflow || 'Workflow';
     document.getElementById('wf-run-id').textContent = STATE.run_id || '';
     const chip = document.getElementById('wf-chip');
-    if (AUTO_RESUME && STATE.status !== 'completed') {
-      chip.textContent = 'AUTO-RESUME'; chip.className = 'chip chip-auto'; chip.style.display = '';
-    } else if (STATE.status === 'completed') {
+    if (STATE.status === 'completed') {
       chip.textContent = 'COMPLETE'; chip.className = 'chip chip-done'; chip.style.display = '';
     } else {
       chip.textContent = 'IN PROGRESS'; chip.className = 'chip chip-active'; chip.style.display = '';
@@ -475,7 +397,7 @@
       html += '<div class="empty">This step hasn\'t started yet.</div>';
     }
 
-    // Previous review
+    // Previous review decision
     if (step.review?.decision && !isPending) {
       const dec = step.review.decision.replace(/_/g,' ');
       html += `<div class="rv-hist">
@@ -485,11 +407,19 @@
       </div>`;
     }
 
-    // Post-decision notice
-    if (SUBMITTED[id]) html += buildDecisionNotice(id, SUBMITTED[id]);
+    // Review history (previous iterations)
+    if (isPending) html += buildReviewHistory(step);
 
-    // Review form
-    if (isPending && !SUBMITTED[id]) html += buildReviewForm(id, step);
+    // Pending review notice
+    if (isPending) {
+      html += `<div class="pending-notice">
+        <span class="pn-icon">⏳</span>
+        <div class="pn-body">
+          <div class="pn-title">Awaiting your review</div>
+          <div class="pn-desc">A feedback UI has been opened in your browser. Complete your review there to continue the workflow.</div>
+        </div>
+      </div>`;
+    }
 
     el.innerHTML = html;
   }
@@ -511,11 +441,10 @@
       `<button class="abt${def===t.k?' on':''}" onclick="showView('${esc(stepId)}','${esc(name)}','${t.k}')">${t.label}</button>`
     ).join('');
 
-    // Pre-render from cache if available
     function panelContent(view) {
       if (view === 'cards') {
         const c = CARDS_CACHE[key];
-        return c ? buildCardsGrid(stepId, name, c) : '<em style="color:#9ca3af;font-size:.875rem">Loading cards…</em>';
+        return c ? buildCardsGrid(c) : '<em style="color:#9ca3af;font-size:.875rem">Loading cards…</em>';
       }
       if (view === 'summary') {
         const s = SUMMARY_CACHE[key];
@@ -523,7 +452,6 @@
           ? (s ? `<div class="sum-view">${md(s)}</div>` : '<em style="color:#9ca3af">Summary unavailable.</em>')
           : '<em style="color:#9ca3af;font-size:.875rem">Loading summary…</em>';
       }
-      // full
       const f = FULL_CACHE[key];
       return f !== undefined
         ? (f ? `<div class="full-view">${esc(f)}</div>` : '<em style="color:#9ca3af">Failed to load.</em>')
@@ -596,7 +524,7 @@
     const el = document.getElementById(`vp-cards-${sn(stepId)}-${sn(name)}`);
     if (el && el.style.display !== 'none') {
       if (CARDS_CACHE[key]) {
-        el.innerHTML = buildCardsGrid(stepId, name, CARDS_CACHE[key]);
+        el.innerHTML = buildCardsGrid(CARDS_CACHE[key]);
       } else {
         showView(stepId, name, 'summary');
         loadSummaryInto(stepId, name);
@@ -619,174 +547,67 @@
     }
   }
 
-  // ── Cards grid ───────────────────────────────────────────────────────
-  function buildCardsGrid(stepId, name, cards) {
+  // ── Cards grid (read-only) ────────────────────────────────────────────
+  function buildCardsGrid(cards) {
     if (!cards?.length) return '<em style="color:#9ca3af">No cards.</em>';
-    const key = `${stepId}::${name}`;
-    const decisions = CARD_DECISIONS[key] || {};
-    const items = cards.map((card, i) => {
-      const action = decisions[i];
+    const items = cards.map(card => {
       const typeCls = `ct-${(card.type||'finding').toLowerCase().replace(/[^a-z]/g,'-')}`;
       const sevCls  = `sev-${(card.severity||'info').toLowerCase()}`;
-      const cardCls = ['card', action ? 'acted' : '', action ? `a-${action}` : ''].filter(Boolean).join(' ');
-      const atLabel = action ? `<span class="c-action-taken at-${action}">${action}</span>` : '';
-      const btns = ['confirm','discuss','challenge','reject'].map(a =>
-        `<button class="ca ca-${a}${action===a?' on':''}" onclick="cardAct('${esc(stepId)}','${esc(name)}',${i},'${a}')">${a}</button>`
-      ).join('');
-      return `<div class="${cardCls}" id="card-${sn(stepId)}-${sn(name)}-${i}">
+      return `<div class="card">
         <div class="c-hdr">
           <span class="c-type ${typeCls}">${esc(card.type||'finding')}</span>
           <span class="c-sev ${sevCls}"></span>
           <span class="c-sev-label">${esc(card.severity||'info')}</span>
-          ${atLabel}
         </div>
         <div class="c-body">
           <div class="c-title">${esc(card.title||'')}</div>
           <div class="c-abstract">${esc(card.abstract||'')}</div>
         </div>
-        <div class="c-acts">${btns}</div>
       </div>`;
     }).join('');
     return `<div class="cards-grid">${items}</div>`;
   }
 
-  function cardAct(stepId, name, cardIdx, action) {
-    const key = `${stepId}::${name}`;
-    if (!CARD_DECISIONS[key]) CARD_DECISIONS[key] = {};
-    // Toggle off if same action
-    if (CARD_DECISIONS[key][cardIdx] === action) delete CARD_DECISIONS[key][cardIdx];
-    else CARD_DECISIONS[key][cardIdx] = action;
-
-    const cur = CARD_DECISIONS[key][cardIdx];
-    const card = document.getElementById(`card-${sn(stepId)}-${sn(name)}-${cardIdx}`);
-    if (card) {
-      card.className = ['card', cur ? 'acted' : '', cur ? `a-${cur}` : ''].filter(Boolean).join(' ');
-      card.querySelectorAll('.ca').forEach(btn => {
-        const a = [...btn.classList].find(c => c.startsWith('ca-') && c.length > 3)?.slice(3);
-        btn.classList.toggle('on', a === cur);
-      });
-      const hdr = card.querySelector('.c-hdr');
-      hdr.querySelector('.c-action-taken')?.remove();
-      if (cur) {
-        const span = document.createElement('span');
-        span.className = `c-action-taken at-${cur}`;
-        span.textContent = cur;
-        hdr.appendChild(span);
-      }
-    }
-    syncCardDecisionsToComments(stepId);
+  // ── Review history ─────────────────────────────────────────────────────
+  function buildReviewHistory(step) {
+    const hist = step.review_history;
+    if (!hist?.length) return '';
+    const entries = hist.map((h, i) => {
+      const iterNum = h.iteration || (i + 1);
+      const dec = h.decision || '';
+      const decLabel = dec.replace(/_/g, ' ');
+      const entryCls = dec === 'revision_requested' ? 'hr-revision' : dec === 'rejected' ? 'hr-rejected' : '';
+      const comments = (h.comments || '').trim();
+      return `<div class="hr-entry ${entryCls}">
+        <div class="hr-hdr">
+          <span class="hr-iter">Round ${iterNum}</span>
+          <span class="hr-dec hrd-${dec}">${esc(decLabel)}</span>
+          ${h.decided_at ? `<span class="hr-time">${fmtTime(h.decided_at)}</span>` : ''}
+        </div>
+        ${comments ? `<div class="hr-text">${esc(comments)}</div>` : ''}
+      </div>`;
+    }).join('');
+    return `<div class="hr-section"><div class="hr-title">Previous feedback</div>${entries}</div>`;
   }
 
-  function syncCardDecisionsToComments(stepId) {
-    const ta = document.getElementById(`ta-${sn(stepId)}`);
-    if (!ta) return;
-    const lines = [];
-    Object.entries(STATE.steps[stepId]?.artifacts || {}).forEach(([name]) => {
-      const decs = CARD_DECISIONS[`${stepId}::${name}`] || {};
-      const cards = CARDS_CACHE[`${stepId}::${name}`] || [];
-      Object.entries(decs).forEach(([idx, action]) => {
-        const c = cards[idx];
-        if (c) lines.push(`- ${action.toUpperCase()}: "${c.title}"`);
-      });
-    });
-    if (!lines.length) return;
-    const marker = '--- Card decisions ---';
-    let val = ta.value;
-    const mi = val.indexOf(marker);
-    if (mi !== -1) val = val.substring(0, mi).trimEnd();
-    ta.value = (val ? val + '\n\n' : '') + marker + '\n' + lines.join('\n');
-  }
-
-  // ── Review form ──────────────────────────────────────────────────────
-  function buildReviewForm(stepId, step) {
-    const prompt = step.review?.review_prompt || 'Review the artifacts above and decide.';
-    const ssn = sn(stepId);
-    return `<div class="rfm active">
-      <div class="rfm-title">Human Review Gate</div>
-      <div class="rprompt">${esc(prompt)}</div>
-      <textarea id="ta-${ssn}" placeholder="Comments (required for Reject / Request Revision)…"></textarea>
-      <div class="r-acts">
-        <button class="btn btn-ok"  id="btn-ok-${ssn}"  onclick="submitReview('${esc(stepId)}','approved')">✓ Approve</button>
-        <button class="btn btn-rev" id="btn-rev-${ssn}" onclick="submitReview('${esc(stepId)}','revision_requested')">↩ Request Revision</button>
-        <button class="btn btn-rej" id="btn-rej-${ssn}" onclick="submitReview('${esc(stepId)}','rejected')">✗ Reject</button>
-      </div>
-      ${AUTO_RESUME ? '<div class="auto-note">Auto-resume is on — workflow continues automatically after your decision.</div>' : ''}
-    </div>`;
-  }
-
-  function buildDecisionNotice(stepId, sub) {
-    const {decision, comments} = sub;
-    const isRevision = decision === 'revision_requested';
-    const isRejected = decision === 'rejected';
-    const cls = isRevision ? 'revision' : isRejected ? 'rejected' : '';
-    const label = decision.replace(/_/g,' ');
-    const resumeCmd = `/workflow-run --resume ${STATE.run_id}`;
-    let inner = '';
-    if (decision === 'approved') {
-      inner = AUTO_RESUME
-        ? `<p>Workflow is resuming automatically. Output logged to <code>${esc(STATE.run_id)}/resume-output.log</code></p>`
-        : `<p>Run to continue: <code>${esc(resumeCmd)}</code>
-           <button class="copy-cmd" onclick="copyText('${esc(resumeCmd)}')">Copy</button></p>`;
-    } else if (isRevision) {
-      inner = AUTO_RESUME
-        ? `<p>Workflow will re-run this step automatically.</p>`
-        : `<p>Run to re-execute: <code>${esc(resumeCmd)}</code>
-           <button class="copy-cmd" onclick="copyText('${esc(resumeCmd)}')">Copy</button></p>`;
-    } else {
-      inner = `<p>Step rejected. Workflow stopped. Edit the plan and start a new run.</p>`;
-    }
-    return `<div class="pdn ${cls}">
-      <h3>${esc(label.charAt(0).toUpperCase() + label.slice(1))}</h3>
-      ${comments ? `<p style="margin-bottom:.3rem;color:#374151">"${esc(comments)}"</p>` : ''}
-      ${inner}
-    </div>`;
-  }
-
-  async function submitReview(stepId, decision) {
-    const ssn = sn(stepId);
-    const comments = document.getElementById(`ta-${ssn}`)?.value?.trim() || '';
-    if (['rejected','revision_requested'].includes(decision) && !comments) {
-      showToast('Add comments before rejecting / requesting revision.', 'err');
-      return;
-    }
-    ['ok','rev','rej'].forEach(k => {
-      const b = document.getElementById(`btn-${k}-${ssn}`); if (b) b.disabled = true;
-    });
-    try {
-      const r = await fetch('/api/review', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({step_id:stepId, decision, comments, timestamp:new Date().toISOString()}),
-      });
-      if (r.ok) {
-        SUBMITTED[stepId] = {decision, comments};
-        STATE.steps[stepId].status = decision;
-        if (STATE.steps[stepId].review) {
-          STATE.steps[stepId].review.status = decision;
-          STATE.steps[stepId].review.decision = decision;
-          STATE.steps[stepId].review.comments = comments;
-        }
-        renderPipeline();
-        renderDetail();
-        showToast(decision === 'approved' ? 'Approved!' : decision.replace(/_/g,' '), 'ok');
-      } else {
-        showToast('Submission failed. Try again.', 'err');
-        ['ok','rev','rej'].forEach(k => {
-          const b = document.getElementById(`btn-${k}-${ssn}`); if (b) b.disabled = false;
-        });
-      }
-    } catch {
-      showToast('Server unreachable.', 'err');
-    }
-  }
-
-  // ── Polling (always, every 3s) ───────────────────────────────────────
+  // ── Polling (every 3s) ───────────────────────────────────────────────
   setInterval(async () => {
     try {
       const r = await fetch('/api/state');
       if (!r.ok) return;
       const fresh = await r.json();
       if (JSON.stringify(fresh) !== JSON.stringify(STATE)) {
+        Object.keys(fresh.steps || {}).forEach(id => {
+          // Step cycling back to running means principal is re-executing — invalidate caches
+          if (fresh.steps[id].status === 'running' && STATE.steps[id]?.status !== 'running') {
+            Object.keys(STATE.steps[id]?.artifacts || {}).forEach(name => {
+              const key = `${id}::${name}`;
+              delete CARDS_CACHE[key];
+              delete SUMMARY_CACHE[key];
+              delete FULL_CACHE[key];
+            });
+          }
+        });
         const prevSelected = SELECTED;
         STATE = fresh;
         STEP_IDS = Object.keys(STATE.steps);
@@ -798,9 +619,6 @@
   }, 3000);
 
   // ── Utilities ────────────────────────────────────────────────────────
-  function copyText(text) {
-    navigator.clipboard?.writeText(text).then(() => showToast('Copied!', 'ok'));
-  }
   let toastTimer;
   function showToast(msg, type='info') {
     const el = document.getElementById('toast');
