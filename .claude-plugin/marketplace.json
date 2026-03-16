@@ -1,6 +1,6 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
-  "name": "Debussy",
+  "name": "debussy",
   "description": "Claude Code plugins for Debussy — local-first workflow orchestration and review UI",
   "owner": {
     "name": "jcbianic"
