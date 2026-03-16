@@ -2,7 +2,7 @@
   "mcpServers": {
     "debussy": {
       "command": "node",
-      "args": ["${CLAUDE_PLUGIN_ROOT}/mcp/server.cjs"],
+      "args": ["./mcp/server.cjs"],
       "env": {
         "DEBUSSY_PORT": "3333"
       }

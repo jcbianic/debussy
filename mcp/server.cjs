@@ -11,7 +11,8 @@
  * enabled. Communication is over stdio using JSON-RPC 2.0 (MCP protocol).
  */
 
-const { fork, exec } = require('child_process')
+const { fork, execFile } = require('child_process')
+const http = require('http')
 const { existsSync } = require('fs')
 const { resolve } = require('path')
 const readline = require('readline')
@@ -46,16 +47,35 @@ function startNitroServer() {
     stdio: ['ignore', 'ignore', 'inherit'],
   })
 
-  serverUrl = `http://localhost:${PORT}`
-  serverReady = true
+  process.stderr.write(`[debussy-mcp] Nitro process spawned, waiting for /api/health...\n`)
 
-  process.stderr.write(`[debussy-mcp] Nitro server started at ${serverUrl}\n`)
+  waitForReady(20)
 
   serverProcess.on('exit', (code) => {
     process.stderr.write(`[debussy-mcp] Nitro server exited (code ${code})\n`)
     serverProcess = null
     serverReady = false
+    serverUrl = null
   })
+}
+
+function waitForReady(retries) {
+  if (retries === 0) {
+    process.stderr.write('[debussy-mcp] Nitro server did not become ready after 10s\n')
+    return
+  }
+  const req = http.get(`http://localhost:${PORT}/api/health`, (res) => {
+    if (res.statusCode === 200) {
+      serverUrl = `http://localhost:${PORT}`
+      serverReady = true
+      process.stderr.write(`[debussy-mcp] Nitro ready at ${serverUrl}\n`)
+    } else {
+      setTimeout(() => waitForReady(retries - 1), 500)
+    }
+    res.resume()
+  })
+  req.on('error', () => setTimeout(() => waitForReady(retries - 1), 500))
+  req.end()
 }
 
 // ---------------------------------------------------------------------------
@@ -97,7 +117,7 @@ function handleToolCall(id, name) {
       process.platform === 'darwin' ? 'open' :
       process.platform === 'win32' ? 'start' :
       'xdg-open'
-    exec(`${opener} ${serverUrl}`)
+    execFile(opener, [serverUrl])
     sendResult(id, { content: [{ type: 'text', text: `Opened ${serverUrl}` }] })
     return
   }
@@ -168,10 +188,13 @@ rl.on('line', (line) => {
 
 startNitroServer()
 
-process.on('SIGTERM', () => {
+function shutdown() {
   if (serverProcess) serverProcess.kill()
   process.exit(0)
-})
+}
+
+process.on('SIGTERM', shutdown)
+process.on('SIGINT', shutdown)
 
 process.on('exit', () => {
   if (serverProcess) serverProcess.kill()
