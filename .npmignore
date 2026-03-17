@@ -1,29 +1,11 @@
-# Source (not needed in npm package)
-app/
-bin/
-server/
-types/
-tests/
-specs/
-poc/
-
-# Config
-nuxt.config.ts
-tsconfig.json
-vitest.config.ts
-
-# Dev artifacts
-.nuxt/
+# Dev artifacts and git
 .git/
 .gitignore
 .DS_Store
-.debussy/
-.tessl/
-.specify/
 .worktrees/
 .workflow-runs/
-.claude/
-coverage/
 *.log
+
+# Documentation (except README)
 *.md
 !README.md

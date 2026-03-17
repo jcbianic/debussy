@@ -1,8 +1,0 @@
-{
-  "testify": {
-    "assertion_hash": "342150185c49f94efdf417e810de498c8e6994e3fd8c170d5a585bed4eef955e",
-    "generated_at": "2026-03-10T22:36:57Z",
-    "features_dir": "specs/001-workflow-phase-status/tests/features",
-    "file_count": 5
-  }
-}

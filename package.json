@@ -1,47 +1,14 @@
 {
   "name": "debussy",
   "version": "0.1.0",
-  "description": "Local-first web UI for orchestrating Claude Code sessions and IIKit workflows",
-  "private": false,
-  "type": "module",
+  "description": "Claude Code plugin with feedback and workflow-run skills",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/jcbianic/debussy"
   },
-  "keywords": ["claude-code", "orchestration", "iikit", "local-first", "workflow", "plugin"],
   "files": [
     ".claude-plugin/",
-    "skills/",
-    "mcp/",
-    ".output/"
-  ],
-  "scripts": {
-    "prepublishOnly": "npm run build",
-    "dev": "nuxt dev",
-    "build": "nuxt build",
-    "start": "node .output/server/index.mjs",
-    "test": "vitest",
-    "test:run": "vitest run",
-    "test:coverage": "vitest run --coverage"
-  },
-  "dependencies": {
-    "@nuxt/ui": "^3.0.0",
-    "better-sqlite3": "^11.0.0",
-    "nuxt": "^4.0.0"
-  },
-  "devDependencies": {
-    "@types/better-sqlite3": "^7.6.0",
-    "@vitejs/plugin-vue": "^6.0.4",
-    "@vitest/coverage-v8": "^3.2.0",
-    "@vue/test-utils": "^2.4.0",
-    "happy-dom": "^15.0.0",
-    "vitest": "^3.2.0"
-  },
-  "resolutions": {
-    "chokidar": "^3.6.0"
-  },
-  "engines": {
-    "node": ">=18.0.0"
-  }
+    ".claude/skills/"
+  ]
 }
