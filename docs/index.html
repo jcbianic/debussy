@@ -225,55 +225,80 @@
     <div class="container">
         <header>
             <h1>Debussy</h1>
-            <p>A Claude Code plugin with powerful skills for orchestrating workflows and collecting structured feedback</p>
+            <p style="font-size: 1.5rem; font-style: italic; margin-bottom: 30px;">if you ever want to get formal with Claude</p>
+            <p>A Claude Code plugin that formalizes workflows, reviews, and parallel work.</p>
+            <p style="margin-top: 15px; opacity: 0.9; font-size: 1.1rem;">Three pain points, one plugin. Built for teams that need structure without losing speed.</p>
             <div class="cta-buttons">
-                <a href="#install" class="btn btn-primary">Get Started</a>
-                <a href="https://github.com/jcbianic/debussy" class="btn btn-secondary">View on GitHub</a>
+                <a href="#vision" class="btn btn-primary">Learn More</a>
+                <a href="#install" class="btn btn-secondary">Install</a>
             </div>
         </header>
 
-        <section class="skills-grid">
-            <div class="skill-card">
-                <h3>Feedback Skill</h3>
-                <p>Collect structured user feedback via an interactive browser UI. Present a list of items, let users approve, reject, or discuss each one, and get back structured responses.</p>
-                <ul class="skill-features">
-                    <li>Browser-based review interface</li>
-                    <li>Configurable actions and workflows</li>
-                    <li>No token consumption while reviewing</li>
-                    <li>Structured JSON responses</li>
-                </ul>
-                <a href="https://github.com/jcbianic/debussy/tree/main/.claude/skills/feedback" class="skill-link">View Documentation →</a>
+        <section id="vision" style="background: white; border-radius: 10px; padding: 50px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15); margin-bottom: 80px;">
+            <h2 style="color: #667eea; font-size: 2rem; margin-bottom: 40px; text-align: center;">The Three Pain Points</h2>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
+                <div style="padding: 30px; border-left: 4px solid #667eea;">
+                    <h3 style="color: #667eea; margin-bottom: 15px;">1. Review UX</h3>
+                    <p style="color: #666; line-height: 1.8;">Reading through checklists while typing responses is friction-heavy. You need a clean UI to review items one by one and produce structured answers with minimal effort.</p>
+                </div>
+
+                <div style="padding: 30px; border-left: 4px solid #667eea;">
+                    <h3 style="color: #667eea; margin-bottom: 15px;">2. Workflow Monitoring</h3>
+                    <p style="color: #666; line-height: 1.8;">Long workflows running unattended leave you in the dark. You need clear visibility into progress and your position within a multi-step process at any time.</p>
+                </div>
+
+                <div style="padding: 30px; border-left: 4px solid #667eea;">
+                    <h3 style="color: #667eea; margin-bottom: 15px;">3. Parallel Work</h3>
+                    <p style="color: #666; line-height: 1.8;">Juggling multiple subjects in one session creates conflicts. You need isolated lanes to work on different things simultaneously without making a mess.</p>
+                </div>
             </div>
 
-            <div class="skill-card">
-                <h3>Workflow-Run Skill</h3>
-                <p>Execute multi-step workflows with interactive review gates. Run steps, collect artifacts, present review UI, and block on user decisions.</p>
-                <ul class="skill-features">
-                    <li>Multi-step YAML workflows</li>
-                    <li>Artifact collection and review</li>
-                    <li>Interactive decision gates</li>
-                    <li>Real-time progress dashboard</li>
-                </ul>
-                <a href="https://github.com/jcbianic/debussy/tree/main/.claude/skills/workflow-run" class="skill-link">View Documentation →</a>
+            <p style="color: #666; text-align: center; margin-top: 40px; font-size: 1.1rem;">Debussy tackles these with a plugin ecosystem. Two skills to start. Many more coming.</p>
+        </section>
+
+        <section style="margin-bottom: 80px;">
+            <h2 style="color: white; font-size: 2rem; margin-bottom: 40px; text-align: center;">Getting Started</h2>
+
+            <div class="skills-grid">
+                <div class="skill-card">
+                    <h3>Feedback Skill</h3>
+                    <p>Collect structured user feedback via an interactive browser UI. Present a list of items, let users approve, reject, or discuss each one, and get back structured responses.</p>
+                    <ul class="skill-features">
+                        <li>Browser-based review interface</li>
+                        <li>Configurable actions and workflows</li>
+                        <li>No token consumption while reviewing</li>
+                        <li>Structured JSON responses</li>
+                    </ul>
+                    <code style="color: #667eea; font-family: monospace;">/feedback request.json</code>
+                </div>
+
+                <div class="skill-card">
+                    <h3>Workflow-Run Skill</h3>
+                    <p>Execute multi-step workflows with interactive review gates. Run steps, collect artifacts, present review UI, and block on user decisions.</p>
+                    <ul class="skill-features">
+                        <li>Multi-step YAML workflows</li>
+                        <li>Artifact collection and review</li>
+                        <li>Interactive decision gates</li>
+                        <li>Real-time progress dashboard</li>
+                    </ul>
+                    <code style="color: #667eea; font-family: monospace;">/workflow-run workflow.yml</code>
+                </div>
             </div>
         </section>
 
         <section class="install-section" id="install">
             <h2>Installation</h2>
-            <p style="text-align: center; color: #666; margin-bottom: 30px;">Install Debussy as a Claude Code plugin</p>
-            <div class="code-block">
-                <code>npx claude code --install-plugin jcbianic/debussy</code>
-            </div>
-            <p style="text-align: center; color: #666; margin-top: 20px;">Or clone and link locally:</p>
+            <p style="text-align: center; color: #666; margin-bottom: 30px;">Clone and link the plugin locally to your Claude Code setup</p>
             <div class="code-block">
                 <code>git clone https://github.com/jcbianic/debussy<br>cd debussy<br>npm link</code>
             </div>
+            <p style="text-align: center; color: #666; margin-top: 25px; line-height: 1.8;">The plugin installs two skills: <strong>feedback</strong> and <strong>workflow-run</strong><br>Use them with <code style="background: #f5f5f5; padding: 2px 6px; border-radius: 3px;">/feedback</code> and <code style="background: #f5f5f5; padding: 2px 6px; border-radius: 3px;">/workflow-run</code> commands</p>
         </section>
 
         <footer>
             <div class="footer-links">
-                <a href="https://github.com/jcbianic/debussy">GitHub</a>
-                <a href="https://github.com/jcbianic/debussy/issues">Issues</a>
+                <a href="https://github.com/jcbianic/debussy">Repository</a>
                 <a href="https://github.com/jcbianic/debussy/blob/main/README.md">README</a>
             </div>
             <p>&copy; 2026 Debussy. MIT License.</p>
