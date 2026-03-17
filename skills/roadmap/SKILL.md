@@ -70,7 +70,7 @@ git log --oneline -15
 ```
 
 ```bash
-gh issue list --label intent --json number,title,state,labels --limit 50 2>/dev/null || echo "no-gh"
+gh issue list --label intent --state all --json number,title,state,labels --limit 50 2>/dev/null || echo "no-gh"
 ```
 
 ---
@@ -300,26 +300,46 @@ first, then by priority (now before next before later).
 
 ## Step 7: Sync GitHub Issues
 
-For each intent in `specs/intents.md`:
+### 7-Init — Ensure labels exist
+
+Before any issue operations, ensure all required labels are present:
+
+```bash
+gh label create "intent" --color "0075ca" --description "Roadmap intent" 2>/dev/null || true
+gh label create "now"    --color "e4e669" --description "Current priority" 2>/dev/null || true
+gh label create "next"   --color "d4c5f9" --description "Next priority" 2>/dev/null || true
+gh label create "later"  --color "c5def5" --description "Future priority" 2>/dev/null || true
+```
+
+Then for each intent in `specs/intents.md`:
 
 ### 7A — Check for existing issue
 
+Search by title to avoid false positives from body/comment matches:
+
 ```bash
-gh issue list --label "intent" --search "Intent {NNN}" --json number,title,state --limit 5
+gh issue list --label "intent" --state all --search "Intent {NNN} in:title" --json number,title,state --limit 5
 ```
 
+If the result set contains an issue whose title starts with `"Intent {NNN}"`, that is the canonical match. Use its `number` for 7C. If the result is empty, proceed to 7B.
+
 ### 7B — Create if missing
+
+Before building the issue body, resolve each dependency NNN to a GitHub issue number using the
+issue map fetched in Step 2 (or the Sync Issues Mode preamble). Match each dependency NNN
+against `title` fields in the map to get the `number`, then format as `#{number}`.
 
 ```bash
 gh issue create \
   --title "Intent {NNN} — {Name}" \
   --label "intent" \
+  --label "{priority}" \
   --body "$(cat <<'BODY'
 ## {description}
 
 **Addresses:** {pain point}
 **Priority:** {now / next / later}
-**Depends on:** {NNN list as #issue-number links, or "none"}
+**Depends on:** {resolved #issue-number links, or "none"}
 
 ## Done When
 
@@ -331,19 +351,12 @@ BODY
 )"
 ```
 
-Also add a priority label if one exists in the repo (`now`, `next`, `later`).
-Use `gh label create` to create missing labels:
+### 7C — Keep issue body in sync
 
-```bash
-gh label create "intent" --color "0075ca" --description "Roadmap intent" 2>/dev/null || true
-gh label create "now"    --color "e4e669" --description "Current priority" 2>/dev/null || true
-gh label create "next"   --color "d4c5f9" --description "Next priority" 2>/dev/null || true
-gh label create "later"  --color "c5def5" --description "Future priority" 2>/dev/null || true
-```
-
-### 7C — Update if exists and stale
-
-If the issue exists and is open, update its body to match the current intent description:
+Issues are derived from `specs/intents.md` — the markdown file is the source of truth.
+If the issue exists (open or closed), unconditionally update its body to match the current
+intent description. This is intentional: manual edits to the issue body will be overwritten.
+To persist changes, edit `specs/intents.md` instead.
 
 ```bash
 gh issue edit {number} --body "..."
@@ -376,10 +389,16 @@ Run /roadmap --sync-issues to re-sync issues after editing specs/intents.md.
 
 ## Sync Issues Mode
 
-Skip Steps 2–6. Go directly to Step 7.
+Skip Steps 2–6.
 
-Read `specs/intents.md` (required — exit with error if missing).
-Sync all intents to GitHub Issues.
+1. Read `specs/intents.md` (required — if missing, print error and suggest running full `/roadmap` first, then EXIT).
+2. Fetch the existing issue map (needed for dependency `#number` links in 7B):
+
+```bash
+gh issue list --label intent --state all --json number,title,state,labels --limit 50 2>/dev/null || echo "no-gh"
+```
+
+3. Proceed to Step 7.
 
 ---
 
