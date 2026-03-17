@@ -21,13 +21,22 @@ monitoring.
 
 ## Why
 
-The Claude Code ecosystem lacks a unified web interface that combines
-session management, workflow orchestration, artifact review, and cost
-visibility. Session management tools are CLI/TUI-only. Workflow tools
-require manual terminal phase-switching. Artifact viewers are read-only.
-Cost tracking is a separate CLI tool with no integration. Debussy bridges
-this gap by layering workflow intelligence on top of a proven session
-management foundation.
+Three friction points in daily Claude Code use:
+
+1. **Review UX** — reading a 20-item checklist in a terminal while typing
+   responses is high friction. No way to review item-by-item, approve,
+   or flag with a click.
+2. **Workflow visibility** — long workflows (30–60 min) need unattended
+   running with a clear progress view when you return, not constant
+   babysitting.
+3. **Parallel lanes** — running multiple concurrent workstreams causes
+   filesystem conflicts and context-switching chaos without isolated lanes.
+
+The broader ecosystem is also fragmented: session tools are CLI/TUI-only,
+workflow tools require manual terminal phase-switching, artifact viewers
+are read-only, and cost tracking has no integration. Debussy bridges this
+gap by layering workflow intelligence and a review-first UI on top of a
+local web server.
 
 ## Domain
 

@@ -115,6 +115,7 @@ See `specs/intents.md` for the full list. The order matters:
 0. **000 — Project Bootstrap**: scaffold Nuxt 4 app, verify foundation
 1. **001 — IIKit Phase Model**: workflow data model and phase-aware UI
 2. **002 — Workflow Runner**: execute IIKit phases via subprocess
-3. **003 — Artifact Viewer**: browse IIKit-produced files
-4. **004 — Worktree Isolation**: isolate concurrent workflows via git worktrees
-5. **005 — Cost Monitoring**: token usage and cost tracking
+3. **003 — Review UI**: item-by-item interactive review with structured output
+4. **004 — Artifact Viewer**: browse and validate IIKit-produced files
+5. **005 — Worktree Isolation**: isolate concurrent workflows via git worktrees
+6. **006 — Cost Monitoring**: token usage and cost tracking

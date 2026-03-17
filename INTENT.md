@@ -14,21 +14,34 @@ orchestration, artifact review, worktree isolation, and cost monitoring.
 
 ## Why Debussy?
 
-The Claude Code ecosystem has 150+ tools, yet a fundamental gap remains: **no
-single tool provides a unified web interface that combines session management,
-workflow orchestration, artifact review, and cost visibility.**
+Three concrete friction points in daily Claude Code use:
 
-The current landscape is fragmented:
+**1. Review UX is broken.** When a workflow produces a 20-item checklist or
+validation report, you have to read through the entire list while simultaneously
+typing your response in a terminal. There's no UI to go item by item, no way to
+approve, flag, or skip with a click. Every review session is a context-switching
+nightmare.
+
+**2. Long workflows need unattended running + visibility.** A full IIKit cycle
+can take 30–60 minutes. You shouldn't have to babysit it — but you also can't
+leave it blind. You need to start a workflow, walk away, and come back to a clear
+picture of where it is, what it produced, and whether it's waiting on you.
+
+**3. Parallel work creates chaos.** Running two features simultaneously means
+either sequential serialization (slow) or branch conflicts and filesystem
+collisions (painful). There's no built-in concept of isolated lanes that let you
+context-switch cleanly between concurrent workstreams.
+
+---
+
+The Claude Code ecosystem has 150+ tools, yet none address these three problems
+together. The current landscape is fragmented:
 
 - **Session management** (recall, claude-history) is TUI/CLI-only — no web UI, no filtering, no tagging
 - **Workflow orchestration** (IIKit, Ralph, GSD) requires manual phase switching via the terminal
 - **Artifact review** (claude-code-viewer) is read-only — you can browse but not approve, edit, or validate
 - **Multi-session monitoring** (claude-squad) depends on tmux — powerful but not visual
 - **Cost tracking** (ccusage) is a separate CLI tool with no integration into the session workflow
-
-Existing web UIs (claudecodeui, claude-code-webui) solve session management
-well but none are workflow-aware. None understand IIKit phases, artifact
-validation, or structured development workflows.
 
 Debussy bridges this gap by combining session management with a workflow
 intelligence layer.
@@ -159,6 +172,7 @@ browser to `http://localhost:3333`.
 
 1. **Workflow definition format** — YAML? JSON? Markdown with frontmatter? Should be human-readable and version-controllable.
 2. **Permission model** — How to surface Claude Code's tool permission prompts in the browser UI.
+3. **Plugin vs. web app** — Debussy may need to become a Claude Code **plugin** (not just a standalone npm package). A plugin can bundle multiple skills (`/debussy:review`, `/debussy:run`, etc.), agents, hooks, and MCP servers under a single namespaced, versioned, distributable unit. The web UI would be a component launched by a skill or hook. This allows skills like `workflow-run` to be first-class Claude Code commands while the server component handles the review UX. See [Claude Code plugin docs](https://code.claude.com/docs/en/plugins.md) for the manifest format.
 
 ## Project Status
 
