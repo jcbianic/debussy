@@ -30,17 +30,17 @@
           <!-- Language Switcher -->
           <div class="flex gap-1">
             <button
-              v-for="locale in $i18n.locales"
-              :key="locale.code"
-              @click="switchLocale(locale.code)"
+              v-for="loc in locales"
+              :key="loc.code"
+              @click="switchLocale(loc.code)"
               :class="[
                 'px-2 py-1 rounded text-sm transition-colors',
-                $i18n.locale === locale.code
+                locale === loc.code
                   ? 'bg-gray-900 dark:bg-slate-100 text-white dark:text-black'
                   : 'hover:bg-gray-100 dark:hover:bg-slate-800'
               ]"
             >
-              {{ locale.code.toUpperCase() }}
+              {{ loc.code.toUpperCase() }}
             </button>
           </div>
         </div>
@@ -139,11 +139,8 @@
 </template>
 
 <script setup lang="ts">
-import { useColorMode } from '@nuxtjs/color-mode'
-import { useI18n } from 'vue-i18n'
-
 const colorMode = useColorMode()
-const { locale, setLocale } = useI18n()
+const { locale, locales, setLocale } = useI18n()
 
 const isDark = computed(() => colorMode.value === 'dark')
 
