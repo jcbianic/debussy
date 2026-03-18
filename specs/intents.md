@@ -4,20 +4,18 @@ Intents are ordered implementation milestones. Each builds on the previous.
 
 ---
 
-## 001 — Roadmap Skill Production Readiness
+## 001 — Roadmap Skill Iteration
 
-Dogfood the `/roadmap` planning skill on Debussy itself to drive it to production
-quality. Fix edge cases, validate the full loop (elicit → draft → write artifacts
-→ sync GitHub Issues), and use the skill as the canonical planning tool for this
-repo going forward.
+Do a few targeted iterations on the `/roadmap` skill: dogfood it on Debussy,
+fix known bugs found during the run, and validate that the full loop (elicit →
+draft → write artifacts → sync GitHub Issues) works without manual workarounds.
 
 **Addresses:** Review UX (the roadmap skill is itself a structured
 review/planning flow)
 **Priority:** now
 **Depends on:** none
-**Done when:** Running `/roadmap` on Debussy produces correct, synced artifacts
-with no manual workarounds. All known bugs fixed. Skill is self-hosted and used
-as the default planning tool for this repo.
+**Done when:** The skill runs end-to-end on Debussy with no manual workarounds.
+Known bugs found during dogfooding are fixed and committed.
 
 ---
 
