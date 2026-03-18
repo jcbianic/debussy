@@ -1,5 +1,5 @@
 ---
-name: debussy
+name: roadmap
 description: >-
   Shape a product roadmap: elicit vision, ecosystem, and intents from existing
   docs and targeted questions, write docs/vision.md, docs/landscape.md,
@@ -160,7 +160,7 @@ You can provide a rough list — I'll structure them.
 (Existing intents from specs/intents.md will be shown for reference if they exist.)
 ```
 
-If `specs/intents.md` already exists, prepend its contents to the question so the user can edit in-place.
+Read `specs/intents.md` if it exists and prepend its current contents to the question so the user can edit in-place.
 
 ---
 
@@ -188,7 +188,7 @@ Does this look right?
 ```
 
 If corrections are provided, apply them and re-draft. Show only the changed
-sections. Ask once more for confirmation. Do not loop more than twice.
+sections. Ask once more for confirmation. Do not loop more than twice. If corrections are still unresolved after two rounds, write the last draft as-is and note the open questions in a comment at the top of the relevant artifact file.
 
 ---
 
@@ -380,7 +380,7 @@ Artifacts written:
   specs/intents.md
 
 GitHub Issues:
-  {for each intent: #NNN Intent NNN — Name (created / updated / already existed)}
+  {for each intent: Intent NNN — Name → #<gh-issue-number> (created / updated / already existed)}
 
 Run /roadmap --sync-issues to re-sync issues after editing specs/intents.md.
 ```
@@ -405,12 +405,24 @@ gh issue list --label intent --state all --json number,title,state,labels --limi
 ## Update Intent Mode
 
 1. Read `specs/intents.md`. Find intent `{NNN}`.
-2. Print current intent content.
-3. Ask AskUserQuestion: "Here is intent {NNN}. What would you like to change?"
-4. Apply changes.
-5. Write updated `specs/intents.md`.
-6. Sync only intent {NNN} to its GitHub Issue (create if missing, update if exists).
-7. Print summary.
+2. Fetch the existing issue map (needed for dependency `#number` links in 7B):
+
+```bash
+gh issue list --label intent --state all --json number,title,state,labels --limit 50 2>/dev/null || echo "no-gh"
+```
+
+3. Print current intent content.
+4. Ask AskUserQuestion: "Here is intent {NNN}. What would you like to change?"
+5. Apply changes.
+6. Write updated `specs/intents.md`.
+7. Sync only intent {NNN} to its GitHub Issue (create if missing, update if exists).
+8. Print:
+
+```
+Intent {NNN} — {Name} updated.
+  specs/intents.md written.
+  GitHub Issue → #{gh-issue-number} (created / updated)
+```
 
 ---
 
