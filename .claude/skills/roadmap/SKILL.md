@@ -416,7 +416,13 @@ gh issue list --label intent --state all --json number,title,state,labels --limi
 5. Apply changes.
 6. Write updated `specs/intents.md`.
 7. Sync only intent {NNN} to its GitHub Issue (create if missing, update if exists).
-8. Print summary.
+8. Print:
+
+```
+Intent {NNN} — {Name} updated.
+  specs/intents.md written.
+  GitHub Issue → #{gh-issue-number} (created / updated)
+```
 
 ---
 
