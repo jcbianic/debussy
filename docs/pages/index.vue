@@ -1,13 +1,49 @@
 <template>
-  <div>
-    <!-- Header -->
-    <header class="border-b border-gray-200">
-      <div class="mx-auto max-w-2xl px-6 py-16 sm:px-8">
-        <h1 class="text-4xl font-bold">Debussy</h1>
-        <p class="mt-3 text-lg italic text-gray-600">if you ever want to get formal with Claude</p>
-        <p class="mt-6 text-base text-gray-700 leading-relaxed">
-          A Claude Code plugin that formalizes workflows, reviews, and parallel work.
-        </p>
+  <div class="min-h-screen transition-colors dark:bg-slate-950 dark:text-slate-100">
+    <!-- Header with Controls -->
+    <header class="border-b border-gray-200 dark:border-slate-800">
+      <div class="mx-auto max-w-2xl px-6 py-8 sm:px-8 flex justify-between items-start">
+        <div>
+          <h1 class="text-4xl font-bold">Debussy</h1>
+          <p class="mt-3 text-lg italic text-gray-600 dark:text-slate-400">{{ $t('tagline') }}</p>
+          <p class="mt-6 text-base text-gray-700 dark:text-slate-300 leading-relaxed">
+            {{ $t('description') }}
+          </p>
+        </div>
+
+        <!-- Controls -->
+        <div class="flex gap-2">
+          <!-- Color Mode Toggle -->
+          <button
+            @click="toggleColorMode"
+            class="p-2 rounded hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+            :title="isDark ? 'Light mode' : 'Dark mode'"
+          >
+            <svg v-if="isDark" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4.293 2.293a1 1 0 011.414 0l.707.707a1 1 0 11-1.414 1.414l-.707-.707a1 1 0 010-1.414zm2.828 2.829a1 1 0 11-1.415-1.414l.707-.707a1 1 0 011.415 1.414l-.707.707zm2.828 2.828a1 1 0 100-2h-1a1 1 0 100 2h1zm0 2.828a1 1 0 11-1.414-1.414l.707-.707a1 1 0 11 1.414 1.414l-.707.707zM4.464 4.465a1 1 0 011.414 0l.707.707a1 1 0 11-1.414 1.414l-.707-.707a1 1 0 010-1.414zm2.828-2.829a1 1 0 00-1.414 1.414l.707.707a1 1 0 001.414-1.414l-.707-.707zm4.243 12.122a6 6 0 11.707-11.314l.707.707a1 1 0 001.414-1.414l-.707-.707a8 8 0 10-.707 13.728l.707-.707a1 1 0 00-1.414-1.414l-.707.707z" clip-rule="evenodd"></path>
+            </svg>
+            <svg v-else class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+            </svg>
+          </button>
+
+          <!-- Language Switcher -->
+          <div class="flex gap-1">
+            <button
+              v-for="locale in $i18n.locales"
+              :key="locale.code"
+              @click="switchLocale(locale.code)"
+              :class="[
+                'px-2 py-1 rounded text-sm transition-colors',
+                $i18n.locale === locale.code
+                  ? 'bg-gray-900 dark:bg-slate-100 text-white dark:text-black'
+                  : 'hover:bg-gray-100 dark:hover:bg-slate-800'
+              ]"
+            >
+              {{ locale.code.toUpperCase() }}
+            </button>
+          </div>
+        </div>
       </div>
     </header>
 
@@ -15,53 +51,53 @@
     <main class="mx-auto max-w-2xl px-6 py-16 sm:px-8">
       <!-- Problems Section -->
       <section class="mb-20">
-        <h2 class="text-2xl font-bold mb-12">The Problem</h2>
+        <h2 class="text-2xl font-bold mb-12">{{ $t('problem') }}</h2>
 
         <div class="space-y-10">
           <div>
-            <h3 class="font-semibold text-base mb-3">1. Review UX</h3>
-            <p class="text-gray-700 leading-relaxed">
-              Reading through checklists while typing responses is friction-heavy. You need a clean UI to review items one by one and produce structured answers with minimal effort.
+            <h3 class="font-semibold text-base mb-3">{{ $t('problem1') }}</h3>
+            <p class="text-gray-700 dark:text-slate-400 leading-relaxed">
+              {{ $t('problem1_desc') }}
             </p>
           </div>
 
           <div>
-            <h3 class="font-semibold text-base mb-3">2. Workflow Monitoring</h3>
-            <p class="text-gray-700 leading-relaxed">
-              Long workflows running unattended leave you in the dark. You need clear visibility into progress and your position within a multi-step process at any time.
+            <h3 class="font-semibold text-base mb-3">{{ $t('problem2') }}</h3>
+            <p class="text-gray-700 dark:text-slate-400 leading-relaxed">
+              {{ $t('problem2_desc') }}
             </p>
           </div>
 
           <div>
-            <h3 class="font-semibold text-base mb-3">3. Parallel Work</h3>
-            <p class="text-gray-700 leading-relaxed">
-              Juggling multiple subjects in one session creates conflicts. You need isolated lanes to work on different things simultaneously without making a mess.
+            <h3 class="font-semibold text-base mb-3">{{ $t('problem3') }}</h3>
+            <p class="text-gray-700 dark:text-slate-400 leading-relaxed">
+              {{ $t('problem3_desc') }}
             </p>
           </div>
         </div>
       </section>
 
       <!-- Skills Section -->
-      <section class="mb-20 border-t border-gray-200 pt-16">
-        <h2 class="text-2xl font-bold mb-12">Skills</h2>
+      <section class="mb-20 border-t border-gray-200 dark:border-slate-800 pt-16">
+        <h2 class="text-2xl font-bold mb-12">{{ $t('skills') }}</h2>
 
         <div class="space-y-12">
           <div>
-            <h3 class="font-semibold text-base mb-3">Feedback</h3>
-            <p class="text-gray-700 leading-relaxed mb-4">
-              Collect structured user feedback via an interactive browser UI. Present items, let users approve, reject, or discuss each one, get back structured responses.
+            <h3 class="font-semibold text-base mb-3">{{ $t('feedback') }}</h3>
+            <p class="text-gray-700 dark:text-slate-400 leading-relaxed mb-4">
+              {{ $t('feedback_desc') }}
             </p>
-            <div class="bg-gray-50 px-4 py-3 rounded border border-gray-200 font-mono text-sm text-gray-800">
+            <div class="bg-gray-50 dark:bg-slate-900 px-4 py-3 rounded border border-gray-200 dark:border-slate-700 font-mono text-sm text-gray-800 dark:text-slate-200">
               /feedback request.json
             </div>
           </div>
 
           <div>
-            <h3 class="font-semibold text-base mb-3">Workflow-Run</h3>
-            <p class="text-gray-700 leading-relaxed mb-4">
-              Execute multi-step workflows with interactive review gates. Run steps, collect artifacts, present review UI, block on user decisions.
+            <h3 class="font-semibold text-base mb-3">{{ $t('workflow_run') }}</h3>
+            <p class="text-gray-700 dark:text-slate-400 leading-relaxed mb-4">
+              {{ $t('workflow_run_desc') }}
             </p>
-            <div class="bg-gray-50 px-4 py-3 rounded border border-gray-200 font-mono text-sm text-gray-800">
+            <div class="bg-gray-50 dark:bg-slate-900 px-4 py-3 rounded border border-gray-200 dark:border-slate-700 font-mono text-sm text-gray-800 dark:text-slate-200">
               /workflow-run workflow.yml
             </div>
           </div>
@@ -69,39 +105,53 @@
       </section>
 
       <!-- Install Section -->
-      <section class="border-t border-gray-200 pt-16">
-        <h2 class="text-2xl font-bold mb-8">Install</h2>
+      <section class="border-t border-gray-200 dark:border-slate-800 pt-16">
+        <h2 class="text-2xl font-bold mb-8">{{ $t('install') }}</h2>
 
-        <div class="bg-gray-50 px-6 py-4 rounded border border-gray-200 font-mono text-sm text-gray-800 overflow-x-auto mb-6">
+        <div class="bg-gray-50 dark:bg-slate-900 px-6 py-4 rounded border border-gray-200 dark:border-slate-700 font-mono text-sm text-gray-800 dark:text-slate-200 overflow-x-auto mb-6">
           <div>git clone https://github.com/jcbianic/debussy</div>
           <div>cd debussy</div>
           <div>npm link</div>
         </div>
 
-        <p class="text-gray-700 leading-relaxed">
-          The plugin installs two skills: <code class="bg-gray-100 px-2 py-1 rounded text-sm">feedback</code> and <code class="bg-gray-100 px-2 py-1 rounded text-sm">workflow-run</code>. Use them with the commands above.
+        <p class="text-gray-700 dark:text-slate-400 leading-relaxed">
+          The plugin installs two skills: <code class="bg-gray-100 dark:bg-slate-800 px-2 py-1 rounded text-sm">feedback</code> and <code class="bg-gray-100 dark:bg-slate-800 px-2 py-1 rounded text-sm">workflow-run</code>. Use them with the commands above.
         </p>
       </section>
     </main>
 
     <!-- Footer -->
-    <footer class="border-t border-gray-200">
+    <footer class="border-t border-gray-200 dark:border-slate-800">
       <div class="mx-auto max-w-2xl px-6 py-12 sm:px-8">
-        <p class="text-sm text-gray-600">
+        <p class="text-sm text-gray-600 dark:text-slate-400">
           <ULink to="https://github.com/jcbianic/debussy" target="_blank" class="underline hover:no-underline">
-            Repository
+            {{ $t('repository') }}
           </ULink>
           <span class="mx-2 text-gray-400">·</span>
           <ULink to="https://github.com/jcbianic/debussy/blob/main/README.md" target="_blank" class="underline hover:no-underline">
-            README
+            {{ $t('readme') }}
           </ULink>
         </p>
-        <p class="mt-6 text-xs text-gray-500">© 2026 Debussy. MIT License.</p>
+        <p class="mt-6 text-xs text-gray-500 dark:text-slate-600">{{ $t('copyright') }}</p>
       </div>
     </footer>
   </div>
 </template>
 
 <script setup lang="ts">
-// Empty for now
+import { useColorMode } from '@nuxtjs/color-mode'
+import { useI18n } from 'vue-i18n'
+
+const colorMode = useColorMode()
+const { locale, setLocale } = useI18n()
+
+const isDark = computed(() => colorMode.value === 'dark')
+
+const toggleColorMode = () => {
+  colorMode.preference = isDark.value ? 'light' : 'dark'
+}
+
+const switchLocale = (lang: string) => {
+  setLocale(lang)
+}
 </script>

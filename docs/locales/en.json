@@ -1,0 +1,21 @@
+{
+  "tagline": "if you ever want to get formal with Claude",
+  "description": "A Claude Code plugin that formalizes workflows, reviews, and parallel work.",
+  "problem": "The Problem",
+  "problem1": "1. Review UX",
+  "problem1_desc": "Reading through checklists while typing responses is friction-heavy. You need a clean UI to review items one by one and produce structured answers with minimal effort.",
+  "problem2": "2. Workflow Monitoring",
+  "problem2_desc": "Long workflows running unattended leave you in the dark. You need clear visibility into progress and your position within a multi-step process at any time.",
+  "problem3": "3. Parallel Work",
+  "problem3_desc": "Juggling multiple subjects in one session creates conflicts. You need isolated lanes to work on different things simultaneously without making a mess.",
+  "skills": "Skills",
+  "feedback": "Feedback",
+  "feedback_desc": "Collect structured user feedback via an interactive browser UI. Present items, let users approve, reject, or discuss each one, get back structured responses.",
+  "workflow_run": "Workflow-Run",
+  "workflow_run_desc": "Execute multi-step workflows with interactive review gates. Run steps, collect artifacts, present review UI, block on user decisions.",
+  "install": "Install",
+  "install_desc": "The plugin installs two skills: {feedback} and {workflow_run}. Use them with the commands above.",
+  "repository": "Repository",
+  "readme": "README",
+  "copyright": "© 2026 Debussy. MIT License."
+}

@@ -1,0 +1,21 @@
+{
+  "tagline": "si vous voulez devenir formel avec Claude",
+  "description": "Un plugin Claude Code qui formalise les workflows, les revues et le travail parallèle.",
+  "problem": "Le Problème",
+  "problem1": "1. Expérience de Révision",
+  "problem1_desc": "Lire des listes de vérification tout en tapant des réponses est trop lourd. Vous avez besoin d'une interface claire pour examiner les éléments un par un et produire des réponses structurées avec un effort minimal.",
+  "problem2": "2. Suivi des Workflows",
+  "problem2_desc": "Les workflows longs exécutés sans surveillance vous laissent dans l'obscurité. Vous avez besoin d'une visibilité claire sur la progression et votre position dans un processus multi-étapes à tout moment.",
+  "problem3": "3. Travail Parallèle",
+  "problem3_desc": "Jongler avec plusieurs sujets dans une même session crée des conflits. Vous avez besoin de voies isolées pour travailler sur différentes choses simultanément sans faire de désordre.",
+  "skills": "Compétences",
+  "feedback": "Feedback",
+  "feedback_desc": "Collectez des retours structurés d'utilisateurs via une interface navigateur interactive. Présentez des éléments, laissez les utilisateurs approuver, rejeter ou discuter chacun, récupérez les réponses structurées.",
+  "workflow_run": "Workflow-Run",
+  "workflow_run_desc": "Exécutez des workflows multi-étapes avec des portes de révision interactives. Exécutez des étapes, collectez les artefacts, présentez l'interface de révision, bloquez les décisions utilisateur.",
+  "install": "Installation",
+  "install_desc": "Le plugin installe deux compétences : {feedback} et {workflow_run}. Utilisez-les avec les commandes ci-dessus.",
+  "repository": "Dépôt",
+  "readme": "README",
+  "copyright": "© 2026 Debussy. Licence MIT."
+}
