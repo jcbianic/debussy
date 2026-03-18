@@ -1,7 +1,7 @@
 {
   "name": "debussy",
   "version": "0.1.0",
-  "description": "Claude Code plugin with feedback and workflow-run skills for orchestrating workflows and structured reviews",
+  "description": "Claude Code plugin with feedback, workflow-run, and roadmap skills for orchestrating workflows, structured reviews, and product planning",
   "author": {
     "name": "jcbianic",
     "url": "https://github.com/jcbianic/debussy"
