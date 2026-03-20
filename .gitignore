@@ -14,3 +14,5 @@ coverage/
 !.claude/skills/
 !.claude/workflows/
 .claude/skills/tessl__*
+__pycache__/
+.strategy-review/

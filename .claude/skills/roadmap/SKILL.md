@@ -13,13 +13,11 @@ metadata:
 
 # Roadmap Skill
 
-Shape a product's roadmap from scratch or evolve an existing one. The skill
-reads whatever context already exists in the repo, **actively researches** the
-product space, landscape, audience, and feature patterns, then synthesizes
-findings into four canonical artifact files and syncs them to GitHub Issues.
-
-Research comes first. The user validates and course-corrects — they are not the
-primary source of raw information.
+Shape a product's roadmap from scratch or evolve an existing one. When
+`docs/strategy/` artifacts exist (produced by `/debussy:strategy`), they are
+the **primary input** — the roadmap skill consumes them to produce intents with
+cross-references. When strategy artifacts are missing, the skill falls back to
+its own research.
 
 **CLI remains the primary experience.** This skill runs entirely in the terminal
 via Claude Code. The artifact files it produces are the source of truth; GitHub
@@ -57,12 +55,13 @@ Read each of the following files if they exist (use Read tool; skip silently if 
 
 | File | Purpose |
 |---|---|
+| `docs/strategy/**/*.md` | **Primary source** — strategy artifacts (vision, problems, audiences, landscape, competitors, allies, feature-space, product) |
 | `README.md` | Product name, one-liner, basic description |
 | `CLAUDE.md` | Project instructions, structure, next steps |
 | `INTENT.md` or `PREMISE.md` | Vision, pain points, architecture decisions |
-| `docs/vision.md` | Existing vision artifact |
-| `docs/landscape.md` | Existing landscape artifact |
-| `docs/product.md` | Existing product definition artifact |
+| `docs/vision.md` | Legacy vision artifact (fallback if no `docs/strategy/`) |
+| `docs/landscape.md` | Legacy landscape artifact (fallback) |
+| `docs/product.md` | Legacy product definition artifact (fallback) |
 | `specs/intents.md` | Existing intent list |
 | `.claude-plugin/plugin.json` | Name, version, description, keywords |
 | `package.json` | Name, description, keywords |
@@ -82,8 +81,10 @@ After gathering, build an internal summary:
 - **Product name** and one-liner
 - **Problem domain** the product operates in (e.g., "CLI plugin for AI coding assistants")
 - **Target user** segment (if known)
-- **Existing pain points** (from docs/vision.md if it exists)
-- **Known competitors** (from docs/landscape.md if it exists)
+- **Existing pain points** — from `docs/strategy/problems.md` (P{N} refs) or `docs/vision.md`
+- **Known competitors** — from `docs/strategy/competitors/*.md` or `docs/landscape.md`
+- **Audiences** — from `docs/strategy/audiences.md` (A{N} refs) if available
+- **Strategy readiness** — whether `docs/strategy/` has 3+ artifacts
 
 This summary drives the research queries in Step 4.
 
@@ -93,8 +94,17 @@ This summary drives the research queries in Step 4.
 
 Determine which artifact areas are **thin or missing** and which are **solid**:
 
+**Strategy readiness check**: If `docs/strategy/problems.md` and
+`docs/strategy/audiences.md` both exist, strategy artifacts are the primary
+source. Print: "Using strategy artifacts from docs/strategy/."
+
+If they don't exist, suggest:
+"Consider running `/debussy:strategy` first to build strategy artifacts.
+Proceeding with standalone research..."
+
 | Artifact | Solid if... | Thin if... |
 |---|---|---|
+| `docs/strategy/` (3+ files) | Strategy skill has run; use as primary input | Skip own research for covered areas |
 | `docs/product.md` | Contains target user, nature, distribution, non-goals | Missing or lacks key sections |
 | `docs/vision.md` | Contains pain points + north star + success criteria | Missing or has fewer than 2 pain points |
 | `docs/landscape.md` | Contains 3+ competitor entries with strengths and gaps | Missing or has only 1-2 vague entries |
@@ -107,8 +117,12 @@ Flag solid areas for validation research (lighter touch — verify, enrich, don'
 
 ## Step 4: Research
 
-Before asking the user anything, actively investigate the product space. Use
-WebSearch and WebFetch tools.
+**If strategy artifacts are solid** (3+ files in `docs/strategy/` covering
+problems, audiences, and landscape), skip this step — the strategy skill owns
+research. Print: "Strategy artifacts are solid. Skipping research."
+
+**Otherwise**, before asking the user anything, actively investigate the product
+space. Use WebSearch and WebFetch tools.
 
 **General approach**: formulate 2-4 search queries per research area, run them,
 read the most relevant results, and compile findings. Prefer concrete data
@@ -274,7 +288,13 @@ Create `docs/` directory if needed:
 mkdir -p docs specs
 ```
 
-Write the four files using the Write tool:
+Write the artifact files using the Write tool.
+
+**If `docs/strategy/` exists with 3+ artifacts**, skip writing `docs/vision.md`,
+`docs/landscape.md`, and `docs/product.md` — the strategy skill manages those.
+Only write `specs/intents.md`.
+
+**Otherwise**, write all four files:
 
 ### docs/product.md
 
@@ -363,7 +383,8 @@ Intents are ordered implementation milestones. Each builds on the previous.
 
 {description}
 
-**Addresses:** {pain point name}
+**Addresses:** P{N}: {problem name}
+**Target audience:** A{N}: {audience name}
 **Priority:** {now / next / later}
 **Depends on:** {NNN list or "none"}
 **Done when:** {observable outcome}
@@ -423,7 +444,8 @@ gh issue create \
   --body "$(cat <<'BODY'
 ## {description}
 
-**Addresses:** {pain point}
+**Addresses:** P{N}: {problem name}
+**Target audience:** A{N}: {audience name}
 **Priority:** {now / next / later}
 **Depends on:** {resolved #issue-number links, or "none"}
 

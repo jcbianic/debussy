@@ -1,0 +1,19 @@
+{
+  "sections": {
+    "table-stakes": {
+      "status": "approved"
+    },
+    "differentiators": {
+      "status": "approved"
+    },
+    "gaps": {
+      "status": "approved"
+    },
+    "our-position": {
+      "status": "approved"
+    },
+    "anti-patterns": {
+      "status": "approved"
+    }
+  }
+}
