@@ -1,7 +1,7 @@
 {
   "name": "debussy",
   "version": "0.1.0",
-  "description": "Claude Code plugin with feedback, workflow-run, and roadmap skills for orchestrating workflows, structured reviews, and product planning",
+  "description": "Claude Code plugin with feedback, workflow-run, roadmap, and strategy skills for orchestrating workflows, structured reviews, product discovery, and planning",
   "author": {
     "name": "jcbianic",
     "url": "https://github.com/jcbianic/debussy"
@@ -9,5 +9,5 @@
   "homepage": "https://github.com/jcbianic/debussy",
   "repository": "https://github.com/jcbianic/debussy",
   "license": "MIT",
-  "keywords": ["claude-code", "orchestration", "iikit", "local-first", "workflow", "roadmap", "planning"]
+  "keywords": ["claude-code", "orchestration", "iikit", "local-first", "workflow", "roadmap", "strategy", "planning"]
 }

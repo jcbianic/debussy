@@ -1,0 +1,16 @@
+{
+  "sections": {
+    "why-were-building-this": {
+      "status": "discuss",
+      "notes": "ok maybe dial it down on the ambition. there isn't that much friction in using Claude. The core idea is to complement the experience that is already very good. but to stitch together complex workflow with more automation and orchestration while making human review first-class citizen. Let's not make any overstated critics over the plugin ecosystem or anything. Debussy is still in a experimental phase, meaning it's currently supporting experimentation and exploration to solve the above problems."
+    },
+    "north-star": {
+      "status": "discuss",
+      "notes": "that's hard to measure, do i'm not entirely sure it's a good north start. One of the goal is to be agnostic, but to cover all the lifecycle from idea to shipping for solo project, while providing better human in the loop experience."
+    },
+    "success-criteria": {
+      "status": "discuss",
+      "notes": "there a pretty vague and subject to interpretation. the key i think is that UI and Skills become a natural integration to the daily routine of using Claude Code."
+    }
+  }
+}

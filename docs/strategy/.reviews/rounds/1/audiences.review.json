@@ -1,0 +1,20 @@
+{
+  "sections": {
+    "a1-solo-builders": {
+      "status": "discuss",
+      "notes": "Yes i think you can dial it down on the description of the audience. Solo builder is enough. the idea is that you managed the project end to end, so you need claude code through the entire pipeline from idea to implementation. But you also want discipline and some grip on the internal of what you are building. How did you estime the size of the audience ?"
+    },
+    "a2-small-team-leads-senior-engineers": {
+      "status": "discuss",
+      "notes": "no sure that is our crowd. Although your insights are interesting, i have no idea where they come from."
+    },
+    "a3-plugin-builders-power-users": {
+      "status": "discuss",
+      "notes": "I don't see really in what way i can address the pain point of that community.\n"
+    },
+    "a4-vibe-coders-ai-first-builders": {
+      "status": "discuss",
+      "notes": "not really. our core target."
+    }
+  }
+}

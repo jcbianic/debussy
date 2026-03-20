@@ -1,0 +1,23 @@
+{
+  "sections": {
+    "one-liner": {
+      "status": "approved"
+    },
+    "positioning": {
+      "status": "discuss",
+      "notes": "ok maybe complement Claude Code is a bit too overstated. => the goald is to reduce your cognitive load while pushing calude code to its limits, while managing cognitiv debt."
+    },
+    "target-user": {
+      "status": "approved"
+    },
+    "nature": {
+      "status": "approved"
+    },
+    "non-goals": {
+      "status": "approved"
+    },
+    "key-dependencies": {
+      "status": "approved"
+    }
+  }
+}
