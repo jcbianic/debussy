@@ -98,6 +98,8 @@ class StrategyHandler(http.server.BaseHTTPRequestHandler):
     def _serve_review_page(self):
         html = HTML_FILE.read_text(encoding="utf-8")
         request_json = json.dumps(json.loads(REQUEST_FILE.read_text()), indent=2)
+        # Escape </script> to prevent premature script block termination
+        request_json = request_json.replace("</", "<\\/")
         html = html.replace("__REQUEST_JSON__", request_json)
         body = html.encode("utf-8")
         self.send_response(200)
@@ -181,16 +183,26 @@ class StrategyHandler(http.server.BaseHTTPRequestHandler):
     def _save_review(self, slug):
         """Write/update one .review.json sidecar atomically."""
         length = int(self.headers.get("Content-Length", 0))
-        body = json.loads(self.rfile.read(length))
+        try:
+            body = json.loads(self.rfile.read(length))
+        except (json.JSONDecodeError, ValueError):
+            self.send_response(400)
+            self.end_headers()
+            return
 
-        # Build review file path from slug
+        # Build review file path from slug, with containment check
         parts = slug.split("/")
         review_dir = REVIEWS_DIR
         if len(parts) > 1:
             review_dir = REVIEWS_DIR / "/".join(parts[:-1])
-        review_dir.mkdir(parents=True, exist_ok=True)
 
-        review_file = review_dir / f"{parts[-1]}.review.json"
+        review_file = (review_dir / f"{parts[-1]}.review.json").resolve()
+        if not review_file.is_relative_to(REVIEWS_DIR.resolve()):
+            self.send_response(403)
+            self.end_headers()
+            return
+
+        review_dir.mkdir(parents=True, exist_ok=True)
         tmp = review_file.with_suffix(".tmp")
         tmp.write_text(json.dumps(body, indent=2))
         tmp.rename(review_file)
@@ -205,7 +217,12 @@ class StrategyHandler(http.server.BaseHTTPRequestHandler):
     def _handle_submit(self):
         """Write all review sidecars + response.json signal file."""
         length = int(self.headers.get("Content-Length", 0))
-        body = json.loads(self.rfile.read(length))
+        try:
+            body = json.loads(self.rfile.read(length))
+        except (json.JSONDecodeError, ValueError):
+            self.send_response(400)
+            self.end_headers()
+            return
 
         # Write response file atomically (triggers filewatch)
         timestamp = datetime.now(timezone.utc).isoformat()

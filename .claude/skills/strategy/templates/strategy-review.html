@@ -780,29 +780,28 @@ window.addEventListener('beforeunload', flushAllPending);
 window.addEventListener('pagehide', flushAllPending);
 
 // -- Stats ---------------------------------------------------
-function updateStats() {
-  let totalSections = 0;
-  let approvedCount = 0;
-  let flaggedCount = 0;
-  let discussCount = 0;
-  let doneCount = 0;
-  let laterCount = 0;
-  let pendingCount = 0;
-
+function collectStats() {
+  let total = 0, approved = 0, flagged = 0, discuss = 0, done = 0, later = 0, pending = 0;
   artifacts.forEach(a => {
     const sections = artifactSections[a.slug] || [];
     const review = reviews[a.slug] || { sections: {} };
     sections.forEach(s => {
-      totalSections++;
-      const sr = review.sections[s.id];
-      if (sr && sr.status === 'approved') approvedCount++;
-      else if (sr && sr.status === 'flagged') flaggedCount++;
-      else if (sr && sr.status === 'discuss') discussCount++;
-      else if (sr && sr.status === 'done') doneCount++;
-      else if (sr && sr.status === 'later') laterCount++;
-      else pendingCount++;
+      total++;
+      const st = (review.sections[s.id] || {}).status;
+      if (st === 'approved') approved++;
+      else if (st === 'flagged') flagged++;
+      else if (st === 'discuss') discuss++;
+      else if (st === 'done') done++;
+      else if (st === 'later') later++;
+      else pending++;
     });
   });
+  return { total, approved, flagged, discuss, done, later, pending };
+}
+
+function updateStats() {
+  const { total: totalSections, approved: approvedCount, flagged: flaggedCount,
+          discuss: discussCount, done: doneCount, later: laterCount, pending: pendingCount } = collectStats();
 
   const seenCount = seenArtifacts.size;
   const totalArtifacts = artifacts.length;
@@ -864,39 +863,18 @@ async function submitReview() {
   btn.disabled = true;
   btn.textContent = 'Submitting...';
 
-  let totalSections = 0;
-  let approvedCount = 0;
-  let flaggedCount = 0;
-  let discussCount = 0;
-  let doneCount = 0;
-  let laterCount = 0;
-  let pendingCount = 0;
-
-  artifacts.forEach(a => {
-    const sections = artifactSections[a.slug] || [];
-    const review = reviews[a.slug] || { sections: {} };
-    sections.forEach(s => {
-      totalSections++;
-      const sr = review.sections[s.id];
-      if (sr && sr.status === 'approved') approvedCount++;
-      else if (sr && sr.status === 'flagged') flaggedCount++;
-      else if (sr && sr.status === 'discuss') discussCount++;
-      else if (sr && sr.status === 'done') doneCount++;
-      else if (sr && sr.status === 'later') laterCount++;
-      else pendingCount++;
-    });
-  });
+  const stats = collectStats();
 
   const payload = {
     reviews: reviews,
     summary: {
-      total_sections: totalSections,
-      approved: approvedCount,
-      flagged: flaggedCount,
-      discuss: discussCount,
-      done: doneCount,
-      later: laterCount,
-      pending: pendingCount,
+      total_sections: stats.total,
+      approved: stats.approved,
+      flagged: stats.flagged,
+      discuss: stats.discuss,
+      done: stats.done,
+      later: stats.later,
+      pending: stats.pending,
     },
   };
 
@@ -945,8 +923,11 @@ function renderMarkdown(text) {
   // Inline code
   html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
 
-  // Links
-  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+  // Links (only allow http/https/# URLs)
+  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label, url) => {
+    return /^https?:\/\//i.test(url) || url.startsWith('#')
+      ? `<a href="${url}" target="_blank">${label}</a>` : label;
+  });
 
   // Unordered lists
   html = html.replace(/^- (.+)$/gm, '<li>$1</li>');
