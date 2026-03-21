@@ -1,0 +1,238 @@
+<template>
+  <div class="flex flex-col h-full">
+
+    <!-- Worktree header -->
+    <div class="flex items-center justify-between px-8 py-4 border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900/50">
+      <div class="flex items-center gap-3">
+        <div
+          class="size-2 rounded-full flex-shrink-0"
+          :class="worktree.isStaged ? 'bg-blue-500' : 'bg-neutral-400'"
+        />
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-mono text-sm font-medium">{{ worktree.branch }}</span>
+            <UBadge v-if="worktree.isStaged" label="staged" color="primary" variant="subtle" size="xs" />
+          </div>
+          <div class="text-xs text-neutral-400 mt-0.5">{{ worktree.path }}</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <UButton
+          v-if="!worktree.isStaged"
+          label="Stage"
+          icon="i-heroicons-arrow-up-tray"
+          size="sm"
+          color="primary"
+          variant="outline"
+        />
+        <UButton
+          v-else
+          label="Push back"
+          icon="i-heroicons-arrow-down-tray"
+          size="sm"
+          color="neutral"
+          variant="outline"
+        />
+      </div>
+    </div>
+
+    <!-- Inbox -->
+    <div class="flex-1 overflow-auto px-8 py-6">
+      <div class="max-w-3xl">
+
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-sm font-semibold">Inbox</h2>
+          <span class="text-xs text-neutral-400">{{ totalPending }} pending</span>
+        </div>
+
+        <!-- Empty state -->
+        <div
+          v-if="reviewGroups.length === 0"
+          class="rounded-lg border border-dashed border-neutral-200 dark:border-neutral-800 px-6 py-12 text-center"
+        >
+          <UIcon name="i-heroicons-inbox" class="size-8 text-neutral-300 dark:text-neutral-600 mx-auto mb-3" />
+          <p class="text-sm text-neutral-400">No pending reviews</p>
+        </div>
+
+        <!-- Review groups -->
+        <div v-else class="space-y-3">
+          <div
+            v-for="group in reviewGroups"
+            :key="group.id"
+            class="rounded-lg border border-neutral-200 dark:border-neutral-800 overflow-hidden"
+          >
+            <!-- Group header -->
+            <button
+              class="w-full flex items-center gap-3 px-4 py-3 bg-white dark:bg-neutral-900 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors text-left"
+              @click="toggleGroup(group.id)"
+            >
+              <UIcon
+                :name="expanded.has(group.id) ? 'i-heroicons-chevron-down' : 'i-heroicons-chevron-right'"
+                class="size-3.5 text-neutral-400 flex-shrink-0"
+              />
+              <UIcon :name="group.icon" class="size-4 text-neutral-400 flex-shrink-0" />
+              <span class="flex-1 text-sm font-medium">{{ group.title }}</span>
+              <span class="text-xs text-neutral-400 mr-2">{{ group.source }}</span>
+              <UBadge
+                :label="`${pendingCount(group)} pending`"
+                color="warning"
+                variant="subtle"
+                size="xs"
+              />
+            </button>
+
+            <!-- Group items -->
+            <div v-if="expanded.has(group.id)" class="border-t border-neutral-100 dark:border-neutral-800">
+              <NuxtLink
+                v-for="(item, i) in group.items"
+                :key="item.id"
+                :to="`/worktree/${worktree.id}/review/${item.id}`"
+                class="flex items-center gap-3 px-4 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors"
+                :class="i < group.items.length - 1 ? 'border-b border-neutral-100 dark:border-neutral-800' : ''"
+              >
+                <div class="w-4 flex-shrink-0" />
+                <div class="flex-1 min-w-0">
+                  <div class="text-sm truncate">{{ item.title }}</div>
+                  <div class="text-xs text-neutral-400 mt-0.5">{{ item.subtitle }}</div>
+                </div>
+                <UBadge
+                  :label="item.status"
+                  :color="statusColor(item.status)"
+                  variant="subtle"
+                  size="xs"
+                />
+                <UIcon name="i-heroicons-chevron-right" class="size-3.5 text-neutral-300 dark:text-neutral-600 flex-shrink-0" />
+              </NuxtLink>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</template>
+
+<script setup lang="ts">
+const route = useRoute()
+const id = route.params.id as string
+
+const worktreeData: Record<string, { id: string; branch: string; path: string; isStaged: boolean }> = {
+  root: {
+    id: 'root',
+    branch: 'feat/42-unified-ui',
+    path: '~/debussy',
+    isStaged: true,
+  },
+  'wt-feedback': {
+    id: 'wt-feedback',
+    branch: 'feat/feedback-ui',
+    path: '~/debussy/.worktrees/feedback',
+    isStaged: false,
+  },
+  'wt-workflow': {
+    id: 'wt-workflow',
+    branch: 'feat/workflow-mon',
+    path: '~/debussy/.worktrees/workflow',
+    isStaged: false,
+  },
+  'wt-fix': {
+    id: 'wt-fix',
+    branch: 'fix/review-server',
+    path: '~/debussy/.worktrees/fix',
+    isStaged: false,
+  },
+}
+
+interface ReviewItem {
+  id: string
+  title: string
+  subtitle: string
+  status: 'pending' | 'approved' | 'rejected'
+}
+
+interface ReviewGroup {
+  id: string
+  title: string
+  icon: string
+  source: string
+  items: ReviewItem[]
+}
+
+const reviewGroupsData: Record<string, ReviewGroup[]> = {
+  root: [
+    {
+      id: 'rg-1',
+      title: 'Unified UI — Implementation Plan',
+      icon: 'i-heroicons-document-text',
+      source: '/feedback session',
+      items: [
+        { id: 'r-1', title: 'Layout structure and sidebar navigation', subtitle: 'Approve or request changes', status: 'pending' },
+        { id: 'r-2', title: 'Worktree stage/unstage interaction model', subtitle: 'Approve or request changes', status: 'pending' },
+        { id: 'r-3', title: 'Inbox hierarchy and review groups', subtitle: 'Approve or request changes', status: 'approved' },
+      ],
+    },
+    {
+      id: 'rg-2',
+      title: 'PR #42 — feat/42-unified-ui',
+      icon: 'i-heroicons-code-bracket',
+      source: 'code review',
+      items: [
+        { id: 'r-4', title: 'Nuxt layout structure', subtitle: 'layouts/default.vue', status: 'pending' },
+        { id: 'r-5', title: 'Mock data composable', subtitle: 'composables/useMockData.ts', status: 'approved' },
+      ],
+    },
+  ],
+  'wt-feedback': [
+    {
+      id: 'rg-3',
+      title: 'Feedback UI Enhancement — Spec',
+      icon: 'i-heroicons-document-text',
+      source: '/feedback session',
+      items: [
+        { id: 'r-6', title: 'Keyboard navigation shortcuts', subtitle: '⌘K / j·k / Enter', status: 'pending' },
+        { id: 'r-7', title: 'Server startup sequence', subtitle: 'Port detection + auto-open', status: 'pending' },
+      ],
+    },
+  ],
+  'wt-workflow': [],
+  'wt-fix': [
+    {
+      id: 'rg-4',
+      title: 'Fix: review server startup crash',
+      icon: 'i-heroicons-bug-ant',
+      source: 'workflow gate',
+      items: [
+        { id: 'r-8', title: 'Root cause — port conflict on 3001', subtitle: 'Proposed fix: dynamic port allocation', status: 'pending' },
+      ],
+    },
+  ],
+}
+
+const worktree = computed(() => worktreeData[id] ?? worktreeData.root)
+const reviewGroups = computed(() => reviewGroupsData[id] ?? [])
+
+const totalPending = computed(() =>
+  reviewGroups.value.flatMap(g => g.items).filter(i => i.status === 'pending').length,
+)
+
+const pendingCount = (group: ReviewGroup) =>
+  group.items.filter(i => i.status === 'pending').length
+
+const expanded = ref(new Set(reviewGroupsData[id]?.map(g => g.id) ?? []))
+
+const toggleGroup = (groupId: string) => {
+  if (expanded.value.has(groupId)) {
+    expanded.value.delete(groupId)
+  } else {
+    expanded.value.add(groupId)
+  }
+  expanded.value = new Set(expanded.value)
+}
+
+const statusColor = (s: string) => {
+  if (s === 'approved') return 'success' as const
+  if (s === 'rejected') return 'error' as const
+  return 'warning' as const
+}
+</script>
