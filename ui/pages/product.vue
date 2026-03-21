@@ -1,8 +1,6 @@
 <template>
-  <div class="flex h-full">
-
-    <!-- Left panel: artifact list -->
-    <div class="w-56 flex-shrink-0 flex flex-col border-r border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
+  <TwoPanelLayout>
+    <template #left>
       <div class="px-5 py-5 border-b border-neutral-200 dark:border-neutral-800">
         <h1 class="text-sm font-semibold">Product of debussy</h1>
         <p class="mt-0.5 text-xs text-neutral-400 font-mono">~/Projets/Libon-Data/debussy</p>
@@ -33,7 +31,7 @@
       <div class="px-5 py-3 border-t border-neutral-200 dark:border-neutral-800 text-xs text-neutral-400">
         Last run 2 days ago
       </div>
-    </div>
+    </template>
 
     <!-- Right panel: content -->
     <div class="flex-1 overflow-auto px-8 py-8">
@@ -67,7 +65,7 @@
       </div>
     </div>
 
-  </div>
+  </TwoPanelLayout>
 </template>
 
 <script setup lang="ts">

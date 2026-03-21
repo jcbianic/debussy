@@ -1,8 +1,8 @@
 <template>
-  <div class="flex h-full">
+  <TwoPanelLayout>
 
     <!-- Left panel -->
-    <div class="w-56 flex-shrink-0 flex flex-col border-r border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
+    <template #left>
       <div class="px-5 py-5 border-b border-neutral-200 dark:border-neutral-800">
         <h1 class="text-sm font-semibold">Architecture of debussy</h1>
         <p class="mt-0.5 text-xs text-neutral-400 font-mono">~/Projets/Libon-Data/debussy</p>
@@ -43,7 +43,7 @@
         </button>
 
       </nav>
-    </div>
+    </template>
 
     <!-- Right panel -->
     <div class="flex-1 overflow-auto px-8 py-8">
@@ -291,7 +291,7 @@
 
     </div>
 
-  </div>
+  </TwoPanelLayout>
 </template>
 
 <script setup lang="ts">

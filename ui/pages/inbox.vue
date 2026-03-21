@@ -60,7 +60,7 @@
                 <div class="w-3 flex-shrink-0" />
                 <div class="flex-1 min-w-0 pt-0.5">
                   <div class="flex items-center gap-1.5">
-                    <span class="text-xs font-medium truncate" :class="item.status === 'approved' ? 'text-neutral-400 line-through' : ''">{{ item.title }}</span>
+                    <span class="text-xs font-medium truncate" :class="item.status === 'approved' ? 'text-content-faint line-through' : ''">{{ item.title }}</span>
                     <span v-if="item.rounds.length > 1" class="flex-shrink-0 font-mono text-xs text-blue-400">×{{ item.rounds.length }}</span>
                   </div>
                   <div class="text-xs text-content-faint mt-0.5 truncate">{{ item.subtitle }}</div>

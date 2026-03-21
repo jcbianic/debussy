@@ -46,10 +46,7 @@
           <span class="text-xs text-neutral-400">{{ totalPending }} pending</span>
         </div>
 
-        <div v-if="reviewGroups.length === 0" class="rounded-lg border border-dashed border-neutral-200 dark:border-neutral-800 px-6 py-12 text-center">
-          <UIcon name="i-heroicons-inbox" class="size-8 text-neutral-300 dark:text-neutral-600 mx-auto mb-3" />
-          <p class="text-sm text-neutral-400">No pending reviews</p>
-        </div>
+        <EmptyState v-if="reviewGroups.length === 0" icon="i-heroicons-inbox" text="No pending reviews" />
 
         <div v-else class="space-y-3">
           <div v-for="group in reviewGroups" :key="group.id" class="rounded-lg border border-neutral-200 dark:border-neutral-800 overflow-hidden">
@@ -127,10 +124,7 @@
             </div>
           </div>
         </div>
-        <div v-else class="rounded-lg border border-dashed border-neutral-200 dark:border-neutral-800 px-6 py-12 text-center">
-          <UIcon name="i-heroicons-arrow-path" class="size-8 text-neutral-300 dark:text-neutral-600 mx-auto mb-3" />
-          <p class="text-sm text-neutral-400">No active workflow on this lane</p>
-        </div>
+        <EmptyState v-else icon="i-heroicons-arrow-path" text="No active workflow on this lane" />
       </div>
 
       <!-- COMMITS TAB -->

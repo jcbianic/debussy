@@ -1,8 +1,8 @@
 <template>
-  <div class="flex h-full">
+  <TwoPanelLayout left-width="w-60">
 
     <!-- Left panel: groups -->
-    <div class="w-60 flex-shrink-0 flex flex-col border-r border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
+    <template #left>
       <div class="px-5 py-4 border-b border-neutral-200 dark:border-neutral-800">
         <h1 class="text-sm font-semibold">Features of debussy</h1>
         <p class="mt-0.5 text-xs text-neutral-400 font-mono">~/Projets/Libon-Data/debussy</p>
@@ -34,10 +34,10 @@
       <div class="px-5 py-3 border-t border-neutral-200 dark:border-neutral-800 text-xs text-neutral-400">
         docs/strategy/feature-space.md
       </div>
-    </div>
+    </template>
 
     <!-- Right panel -->
-    <div class="flex-1 overflow-hidden flex flex-col">
+    <div class="overflow-hidden flex flex-col flex-1">
 
       <!-- Search bar -->
       <div class="flex items-center gap-3 px-6 py-4 border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 flex-shrink-0">
@@ -89,10 +89,7 @@
                 </div>
               </div>
             </div>
-            <div v-if="searchResults.length === 0" class="text-center py-12">
-              <UIcon name="i-heroicons-magnifying-glass" class="size-8 text-neutral-300 dark:text-neutral-600 mx-auto mb-3" />
-              <p class="text-sm text-neutral-400">No features match "{{ searchQuery }}"</p>
-            </div>
+            <EmptyState v-if="searchResults.length === 0" variant="bare" icon="i-heroicons-magnifying-glass" :text="`No features match &quot;${searchQuery}&quot;`" />
           </div>
 
           <!-- Group view -->
@@ -223,7 +220,7 @@
       </div>
     </div>
 
-  </div>
+  </TwoPanelLayout>
 </template>
 
 <script setup lang="ts">
