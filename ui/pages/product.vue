@@ -74,80 +74,16 @@
 interface ArtifactSection { title: string; content: string[] }
 interface Artifact { key: string; name: string; file: string; icon: string; status: 'reviewed' | 'draft'; sections: ArtifactSection[] }
 
-const artifacts: Artifact[] = [
-  {
-    key: 'vision', name: 'Vision', file: 'docs/strategy/vision.md', icon: 'i-heroicons-eye', status: 'reviewed',
-    sections: [
-      { title: 'Problem', content: [
-        'Solo builders using Claude Code face three compounding frictions: review UX is poor (no keyboard nav, slow startup), workflow runs are opaque (no live progress), and parallel work across worktrees has no management layer.',
-        'Each friction is small individually, but together they break the async AI-assisted development flow that makes Claude Code compelling for solo work.',
-      ]},
-      { title: 'Vision', content: [
-        'Debussy is a Claude Code plugin that restores flow. It makes the review loop fast, workflow runs observable, and parallel lanes manageable — without requiring a separate app, a database, or a running service.',
-        'Everything runs locally, on-demand, and disappears when not needed.',
-      ]},
-      { title: 'Success looks like', content: [
-        'A 20-item review session takes under 2 minutes. Running /strategy produces artifacts you trust without manual prompting. Two independent features can be developed in parallel without git conflicts or context bleed.',
-      ]},
-    ],
-  },
-  {
-    key: 'landscape', name: 'Landscape', file: 'docs/strategy/landscape.md', icon: 'i-heroicons-globe-alt', status: 'reviewed',
-    sections: [
-      { title: 'Adjacent tools', content: [
-        'Linear, GitHub Projects, and Notion address project management at a team level. They require configuration, have their own UIs, and are designed for collaboration — not for a single developer in a terminal.',
-        'Claude Code itself has no project management layer. MCP servers can extend it, but none currently address the review-loop or parallel-lane problem.',
-      ]},
-      { title: 'Differentiation', content: [
-        'Debussy lives inside Claude Code as a plugin. It has no database, no login, no cloud. The UX is the terminal and a lightweight local web view. The audience is a single developer who wants to move fast without managing infrastructure.',
-      ]},
-      { title: 'Key competitors', content: [
-        'GasTown (multi-agent orchestration, 20-30 parallel agents), Superpowers (structured methodology, TDD enforcement), and Claude-Mem (persistent vector memory) are the nearest differentiators in the Claude Code ecosystem.',
-        'None of them address the browser-based review loop, structured product discovery, or lane management that Debussy targets.',
-      ]},
-    ],
-  },
-  {
-    key: 'product', name: 'Product', file: 'docs/strategy/product.md', icon: 'i-heroicons-cube', status: 'draft',
-    sections: [
-      { title: 'Core capabilities (draft)', content: [
-        'Review loop: serve review items from any skill session in a browser UI with keyboard navigation, group hierarchy, and approve/reject/discuss actions.',
-        'Workflow monitoring: show live progress for /workflow-run sessions — current step, elapsed time, what it\'s waiting on.',
-        'Lane management: launch independent work in git worktrees, switch between them, stage a branch to root, and see cross-lane inbox.',
-      ]},
-      { title: 'Open questions', content: [
-        'What is the right persistence model for review decisions? File-based? Git notes?',
-        'Should lane management require a running server, or can it be purely file-driven?',
-      ]},
-    ],
-  },
-  {
-    key: 'audiences', name: 'Audiences', file: 'docs/strategy/audiences.md', icon: 'i-heroicons-users', status: 'reviewed',
-    sections: [
-      { title: 'Primary audience', content: [
-        'A1: Solo Builders — individual developers using Claude Code as their primary coding assistant. They run multiple workstreams in parallel (feature development, bug fixes, documentation) and need lightweight coordination without team tooling overhead.',
-      ]},
-      { title: 'Secondary audience', content: [
-        'Small teams (2-3 developers) who share a Claude Code setup but work independently on separate branches. They could benefit from cross-lane visibility and shared review queues.',
-      ]},
-    ],
-  },
-  {
-    key: 'problems', name: 'Problems', file: 'docs/strategy/problems.md', icon: 'i-heroicons-exclamation-triangle', status: 'reviewed',
-    sections: [
-      { title: 'P1 — Review friction', content: [
-        'The browser-based review UIs (feedback, strategy) require manual server startup, have no keyboard navigation, and are slow to load. A 5-item review takes several minutes when it should take seconds.',
-      ]},
-      { title: 'P2 — Workflow opacity', content: [
-        'Long-running workflow-run sessions have no live progress indicator. The developer must tail logs or wait blindly for completion.',
-      ]},
-      { title: 'P3 — Lane management', content: [
-        'Working across multiple git worktrees is powerful but unmanaged. There is no way to see all active worktrees, their pending reviews, or switch between them from a single interface.',
-      ]},
-    ],
-  },
-]
+const { data: artifacts, refresh } = await useFetch<Artifact[]>('/api/strategy')
 
-const selected = ref('vision')
-const currentArtifact = computed(() => artifacts.find(a => a.key === selected.value))
+const selected = ref(artifacts.value?.[0]?.key ?? 'vision')
+const currentArtifact = computed(() => artifacts.value?.find(a => a.key === selected.value))
+
+// Live reload when markdown files change
+let es: EventSource | null = null
+onMounted(() => {
+  es = new EventSource('/api/watch')
+  es.onmessage = () => refresh()
+})
+onUnmounted(() => es?.close())
 </script>

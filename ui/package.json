@@ -5,14 +5,20 @@
   "scripts": {
     "dev": "nuxi dev --port 4321",
     "build": "nuxi build",
-    "preview": "nuxi preview"
+    "preview": "nuxi preview",
+    "lint": "eslint ."
   },
   "dependencies": {
     "@nuxt/ui": "^4.5.1",
+    "chokidar": "^5.0.0",
+    "gray-matter": "^4.0.3",
     "nuxt": "^4.0.0",
     "tailwindcss": "^4.2.2"
   },
   "devDependencies": {
-    "@iconify-json/heroicons": "^1.2.3"
+    "@iconify-json/heroicons": "^1.2.3",
+    "@typescript-eslint/parser": "^8.57.1",
+    "eslint": "^9.39.4",
+    "vue-eslint-parser": "^9.4.3"
   }
 }
