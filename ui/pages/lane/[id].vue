@@ -169,110 +169,17 @@
 </template>
 
 <script setup lang="ts">
+import type { ReviewGroup } from '~/composables/useMockData'
+
 const route = useRoute()
 const id = route.params.id as string
 
-const laneData: Record<string, { id: string; branch: string; path: string; isActive: boolean }> = {
-  root:          { id: 'root',        branch: 'feat/42-unified-ui', path: '~/debussy',                     isActive: true },
-  'wt-feedback': { id: 'wt-feedback', branch: 'feat/feedback-ui',   path: '~/debussy/.worktrees/feedback',  isActive: false },
-  'wt-workflow': { id: 'wt-workflow', branch: 'feat/workflow-mon',  path: '~/debussy/.worktrees/workflow',  isActive: false },
-  'wt-fix':      { id: 'wt-fix',      branch: 'fix/review-server',  path: '~/debussy/.worktrees/fix',       isActive: false },
-}
+const { getLane, getWorkflow, getCommits } = useMockData()
 
-interface ReviewItem  { id: string; title: string; subtitle: string; status: 'pending' | 'approved' | 'rejected' }
-interface ReviewGroup { id: string; title: string; icon: string; source: string; items: ReviewItem[] }
-
-const reviewGroupsData: Record<string, ReviewGroup[]> = {
-  root: [
-    { id: 'rg-1', title: 'Unified UI — Implementation Plan', icon: 'i-heroicons-document-text', source: '/feedback session', items: [
-      { id: 'r-1', title: 'Layout structure and sidebar navigation', subtitle: 'Approve or request changes', status: 'pending' },
-      { id: 'r-2', title: 'Worktree stage/unstage interaction model', subtitle: 'Approve or request changes', status: 'pending' },
-      { id: 'r-3', title: 'Inbox hierarchy and review groups', subtitle: 'Approve or request changes', status: 'approved' },
-    ]},
-    { id: 'rg-2', title: 'PR #42 — feat/42-unified-ui', icon: 'i-heroicons-code-bracket', source: 'code review', items: [
-      { id: 'r-4', title: 'Nuxt layout structure', subtitle: 'layouts/default.vue', status: 'pending' },
-      { id: 'r-5', title: 'Mock data composable', subtitle: 'composables/useMockData.ts', status: 'approved' },
-    ]},
-  ],
-  'wt-feedback': [
-    { id: 'rg-3', title: 'Feedback UI Enhancement — Spec', icon: 'i-heroicons-document-text', source: '/feedback session', items: [
-      { id: 'r-6', title: 'Keyboard navigation shortcuts', subtitle: '⌘K / j·k / Enter', status: 'pending' },
-      { id: 'r-7', title: 'Server startup sequence', subtitle: 'Port detection + auto-open', status: 'pending' },
-    ]},
-  ],
-  'wt-workflow': [],
-  'wt-fix': [
-    { id: 'rg-4', title: 'Fix: review server startup crash', icon: 'i-heroicons-bug-ant', source: 'workflow gate', items: [
-      { id: 'r-8', title: 'Root cause — port conflict on 3001', subtitle: 'Proposed fix: dynamic port allocation', status: 'pending' },
-    ]},
-  ],
-}
-
-interface WorkflowStep { name: string; state: 'done' | 'running' | 'waiting' | 'pending'; detail?: string; duration?: string }
-interface WorkflowRun  { file: string; status: string; currentStep: number; totalSteps: number; elapsed: string; startedAt: string; steps: WorkflowStep[] }
-
-const workflowData: Record<string, WorkflowRun | null> = {
-  root: {
-    file: 'feat-delivery.yml', status: 'running', currentStep: 4, totalSteps: 7, elapsed: '12m 34s', startedAt: '14:22',
-    steps: [
-      { name: 'Setup environment',   state: 'done',    duration: '8s' },
-      { name: 'Install dependencies', state: 'done',   duration: '42s' },
-      { name: 'Lint & typecheck',     state: 'done',   duration: '18s' },
-      { name: 'Run tests',            state: 'running', detail: 'ui/pages/roadmap.test.ts — 14/32 passing' },
-      { name: 'Build UI',             state: 'pending' },
-      { name: 'Human review gate',    state: 'pending', detail: 'Will pause for approval before continuing' },
-      { name: 'Commit & push',        state: 'pending' },
-    ],
-  },
-  'wt-feedback': {
-    file: 'feedback-spec.yml', status: 'done', currentStep: 5, totalSteps: 5, elapsed: '6m 02s', startedAt: '11:45',
-    steps: [
-      { name: 'Research keyboard nav patterns', state: 'done', duration: '1m 12s' },
-      { name: 'Draft spec',                     state: 'done', duration: '2m 44s' },
-      { name: 'Generate feedback session',      state: 'done', duration: '38s' },
-      { name: 'Human review gate',              state: 'done', duration: '1m 28s', detail: '2 items approved, 1 pending' },
-      { name: 'Write spec to disk',             state: 'done', duration: '0s' },
-    ],
-  },
-  'wt-workflow': {
-    file: 'workflow-monitoring.yml', status: 'running', currentStep: 2, totalSteps: 6, elapsed: '3m 11s', startedAt: '14:31',
-    steps: [
-      { name: 'Research Nitro SSE patterns', state: 'done',    duration: '1m 55s' },
-      { name: 'Design progress API',         state: 'running', detail: 'Drafting server/api/workflow/progress.get.ts' },
-      { name: 'Implement SSE endpoint',      state: 'pending' },
-      { name: 'Wire up UI component',        state: 'pending' },
-      { name: 'Human review gate',           state: 'pending', detail: 'Review progress panel design' },
-      { name: 'Write implementation',        state: 'pending' },
-    ],
-  },
-  'wt-fix': null,
-}
-
-const commitsData: Record<string, Array<{ hash: string; message: string; author: string; date: string; pr?: string }>> = {
-  root: [
-    { hash: 'a1b2c3d', message: 'feat(ui): add architecture + policy + feature pages', author: 'jcbianic', date: '1h ago', pr: '#42' },
-    { hash: 'e4f5a6b', message: 'feat(ui): add product two-panel layout with strategy artifacts', author: 'jcbianic', date: '2h ago', pr: '#42' },
-    { hash: 'c7d8e9f', message: 'feat(ui): restructure sidebar nav with lanes and overview', author: 'jcbianic', date: '3h ago', pr: '#42' },
-    { hash: 'f1a2b3c', message: 'chore(ui): init Nuxt 4 app with @nuxt/ui and i18n', author: 'jcbianic', date: '5h ago', pr: '#42' },
-  ],
-  'wt-feedback': [
-    { hash: 'b4c5d6e', message: 'feat(feedback): draft keyboard nav spec', author: 'jcbianic', date: '2h ago' },
-    { hash: 'a7b8c9d', message: 'chore(feedback): branch setup', author: 'jcbianic', date: '3h ago' },
-  ],
-  'wt-workflow': [
-    { hash: 'e1f2a3b', message: 'feat(workflow): draft SSE progress endpoint design', author: 'jcbianic', date: '45m ago' },
-    { hash: 'c4d5e6f', message: 'chore(workflow): branch setup', author: 'jcbianic', date: '3h ago' },
-  ],
-  'wt-fix': [
-    { hash: 'a7b8c9e', message: 'fix(server): dynamic port allocation to avoid conflicts', author: 'jcbianic', date: '30m ago' },
-    { hash: 'f1a2b4c', message: 'debug(server): reproduce port 3001 conflict', author: 'jcbianic', date: '1h ago' },
-  ],
-}
-
-const lane = computed(() => laneData[id] ?? laneData.root)
-const reviewGroups = computed(() => reviewGroupsData[id] ?? [])
-const workflow = computed(() => workflowData[id] ?? null)
-const commits = computed(() => commitsData[id] ?? [])
+const lane = computed(() => getLane(id))
+const reviewGroups = computed(() => getLane(id).groups)
+const workflow = computed(() => getWorkflow(id))
+const commits = computed(() => getCommits(id))
 
 const totalPending = computed(() => reviewGroups.value.flatMap(g => g.items).filter(i => i.status === 'pending').length)
 
@@ -284,7 +191,7 @@ const tabs = computed(() => [
 
 const activeTab = ref('inbox')
 
-const allIds = reviewGroupsData[id]?.map(g => g.id) ?? []
+const allIds = reviewGroups.value.map(g => g.id)
 const expanded = ref(new Set(allIds))
 const toggleGroup = (gid: string) => {
   if (expanded.value.has(gid)) expanded.value.delete(gid)

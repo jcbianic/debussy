@@ -1,16 +1,16 @@
 <template>
-  <div class="flex h-screen bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 antialiased">
+  <div class="flex h-screen bg-surface-page text-content">
 
     <!-- Sidebar -->
-    <aside class="w-60 flex-shrink-0 flex flex-col border-r border-neutral-200 dark:border-neutral-800">
+    <aside class="w-60 flex-shrink-0 flex flex-col border-r border-line">
 
       <!-- Project header -->
-      <div class="h-16 flex items-center justify-between px-4 border-b border-neutral-200 dark:border-neutral-800">
+      <div class="h-16 flex items-center justify-between px-4 border-b border-line">
         <div class="flex items-center gap-2.5 min-w-0">
           <div class="size-2 rounded-full bg-green-500 flex-shrink-0" />
           <div class="min-w-0">
             <div class="text-sm font-semibold truncate leading-tight">debussy</div>
-            <div class="text-xs text-neutral-400 dark:text-neutral-500 truncate leading-tight font-mono">~/Projets/Libon-Data/debussy</div>
+            <div class="text-xs text-content-faint truncate leading-tight font-mono">~/Projets/Libon-Data/debussy</div>
           </div>
         </div>
         <UButton variant="ghost" color="neutral" size="xs" icon="i-heroicons-chevron-up-down" class="flex-shrink-0" />
@@ -28,29 +28,29 @@
           <NavItem to="/architecture" icon="i-heroicons-building-library"     label="Architecture" />
         </div>
 
-        <div class="mx-3 my-1 border-t border-neutral-200 dark:border-neutral-800" />
+        <div class="mx-3 my-1 border-t border-line" />
 
         <!-- Lanes -->
         <div class="px-3 py-3">
-          <div class="text-xs font-medium text-neutral-400 dark:text-neutral-500 uppercase tracking-wider px-2 mb-1.5">
+          <div class="text-xs font-medium text-content-faint uppercase tracking-wider px-2 mb-1.5">
             Lanes
           </div>
           <div class="space-y-0.5">
             <NuxtLink
-              v-for="lane in lanes"
+              v-for="lane in lanesWithPending"
               :key="lane.id"
               :to="`/lane/${lane.id}`"
-              class="group flex items-center gap-2.5 px-2 py-2 rounded-md text-sm transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-900"
-              :class="route.path.startsWith(`/lane/${lane.id}`) ? 'bg-neutral-100 dark:bg-neutral-900' : ''"
+              class="group flex items-center gap-2.5 px-2 py-2 rounded-md text-sm transition-colors hover:bg-surface-hover"
+              :class="route.path.startsWith(`/lane/${lane.id}`) ? 'bg-surface-hover' : ''"
             >
               <div
                 class="flex-shrink-0 size-2 rounded-full"
-                :class="lane.isActive ? 'bg-blue-500' : 'bg-neutral-300 dark:bg-neutral-600'"
+                :class="lane.isActive ? 'bg-status-active' : 'bg-status-inactive'"
               />
               <div class="flex-1 min-w-0">
                 <div
                   class="truncate font-mono text-xs leading-tight"
-                  :class="lane.isActive ? 'text-neutral-900 dark:text-neutral-100 font-medium' : 'text-neutral-600 dark:text-neutral-400'"
+                  :class="lane.isActive ? 'text-content font-medium' : 'text-content-muted'"
                 >
                   {{ lane.branch }}
                 </div>
@@ -80,13 +80,13 @@
       </div>
 
       <!-- Bottom -->
-      <div class="px-3 py-3 border-t border-neutral-200 dark:border-neutral-800 flex items-center justify-between">
+      <div class="px-3 py-3 border-t border-line flex items-center justify-between">
         <NuxtLink
           to="/setup"
           class="flex items-center gap-2 px-2 py-1.5 rounded-md text-xs transition-colors"
           :class="route.path === '/setup'
-            ? 'text-neutral-700 dark:text-neutral-200 bg-neutral-100 dark:bg-neutral-900'
-            : 'text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200'"
+            ? 'text-content-secondary bg-surface-hover'
+            : 'text-content-faint hover:text-content'"
         >
           <UIcon name="i-heroicons-cpu-chip" class="size-3.5" />
           <span>Claude Setup</span>
@@ -116,12 +116,5 @@ const colorMode = useColorMode()
 const isDark = computed(() => colorMode.value === 'dark')
 const toggleColorMode = () => { colorMode.preference = isDark.value ? 'light' : 'dark' }
 
-const lanes = [
-  { id: 'root',        branch: 'feat/42-unified-ui', isActive: true,  pending: 3 },
-  { id: 'wt-feedback', branch: 'feat/feedback-ui',   isActive: false, pending: 2 },
-  { id: 'wt-workflow', branch: 'feat/workflow-mon',  isActive: false, pending: 0 },
-  { id: 'wt-fix',      branch: 'fix/review-server',  isActive: false, pending: 1 },
-]
-
-const totalPending = computed(() => lanes.reduce((s, l) => s + l.pending, 0))
+const { lanesWithPending, totalPending } = useMockData()
 </script>

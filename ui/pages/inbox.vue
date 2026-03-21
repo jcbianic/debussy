@@ -2,16 +2,16 @@
   <div class="flex h-full">
 
     <!-- Left panel: grouped list -->
-    <div class="w-96 flex-shrink-0 flex flex-col border-r border-neutral-200 dark:border-neutral-800">
+    <div class="w-96 flex-shrink-0 flex flex-col border-r border-line">
 
       <!-- Header + filters -->
-      <div class="px-5 py-4 border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
+      <div class="px-5 py-4 border-b border-line bg-surface">
         <div class="flex items-center justify-between mb-3">
           <div>
             <h1 class="text-sm font-semibold">Inbox of debussy</h1>
-            <p class="text-xs text-neutral-400 font-mono mt-0.5">{{ totalPending }} pending · {{ totalItems }} total</p>
+            <p class="text-xs text-content-faint font-mono mt-0.5">{{ totalPending }} pending · {{ totalItems }} total</p>
           </div>
-          <div class="flex items-center gap-1.5 text-xs text-neutral-400">
+          <div class="flex items-center gap-1.5 text-xs text-content-faint">
             <UIcon name="i-heroicons-command-line" class="size-3.5" />
             <span class="font-mono">j/k · a · r</span>
           </div>
@@ -23,8 +23,8 @@
             :key="f.value"
             class="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs transition-colors"
             :class="activeTypeFilter === f.value
-              ? 'bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 font-medium'
-              : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700'"
+              ? 'bg-surface-inverted text-content-inverted font-medium'
+              : 'bg-surface-sunken text-content-subtle hover:bg-surface-tag'"
             @click="activeTypeFilter = f.value"
           >
             <UIcon :name="f.icon" class="size-3" />
@@ -38,11 +38,11 @@
         <div v-for="lane in visibleLanes" :key="lane.id">
 
           <!-- Lane separator -->
-          <div class="sticky top-0 flex items-center gap-2 px-4 py-2 bg-neutral-50 dark:bg-neutral-900/80 backdrop-blur-sm border-b border-neutral-100 dark:border-neutral-800 z-10">
+          <div class="sticky top-0 flex items-center gap-2 px-4 py-2 bg-surface-hover-subtle backdrop-blur-sm border-b border-line-subtle z-10">
             <div class="size-1.5 rounded-full" :class="lane.isActive ? 'bg-blue-500' : 'bg-neutral-400'" />
-            <span class="font-mono text-xs font-medium text-neutral-500 dark:text-neutral-400">{{ lane.branch }}</span>
+            <span class="font-mono text-xs font-medium text-content-subtle">{{ lane.branch }}</span>
             <UBadge v-if="lane.isActive" label="staged" color="primary" variant="subtle" size="xs" />
-            <span class="ml-auto text-xs text-neutral-400">{{ lanePendingCount(lane) }}</span>
+            <span class="ml-auto text-xs text-content-faint">{{ lanePendingCount(lane) }}</span>
           </div>
 
           <!-- Groups -->
@@ -50,13 +50,13 @@
 
             <!-- Group header -->
             <button
-              class="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors text-left border-b border-neutral-100 dark:border-neutral-800"
+              class="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-surface-hover-subtle transition-colors text-left border-b border-line-subtle"
               @click="toggleGroup(group.id)"
             >
-              <UIcon :name="expanded.has(group.id) ? 'i-heroicons-chevron-down' : 'i-heroicons-chevron-right'" class="size-3 text-neutral-400 flex-shrink-0" />
-              <UIcon :name="group.icon" class="size-3.5 text-neutral-400 flex-shrink-0" />
+              <UIcon :name="expanded.has(group.id) ? 'i-heroicons-chevron-down' : 'i-heroicons-chevron-right'" class="size-3 text-content-faint flex-shrink-0" />
+              <UIcon :name="group.icon" class="size-3.5 text-content-faint flex-shrink-0" />
               <span class="flex-1 text-xs font-medium truncate">{{ group.title }}</span>
-              <span class="text-xs text-neutral-400">{{ pendingCount(group) }}</span>
+              <span class="text-xs text-content-faint">{{ pendingCount(group) }}</span>
             </button>
 
             <!-- Items -->
@@ -64,10 +64,10 @@
               <button
                 v-for="item in filteredItems(group)"
                 :key="item.id"
-                class="group w-full flex items-start gap-3 px-4 py-3 transition-colors border-b border-neutral-100 dark:border-neutral-800 text-left"
+                class="group w-full flex items-start gap-3 px-4 py-3 transition-colors border-b border-line-subtle text-left"
                 :class="selectedId === item.id
-                  ? 'bg-neutral-100 dark:bg-neutral-800'
-                  : 'hover:bg-neutral-50 dark:hover:bg-neutral-800/50'"
+                  ? 'bg-surface-sunken'
+                  : 'hover:bg-surface-hover-subtle'"
                 @click="selectItem(item.id, lane.id)"
               >
                 <div class="w-3 flex-shrink-0" />
@@ -76,7 +76,7 @@
                     <span class="text-xs font-medium truncate" :class="item.status === 'approved' ? 'text-neutral-400 line-through' : ''">{{ item.title }}</span>
                     <span v-if="item.rounds.length > 1" class="flex-shrink-0 font-mono text-xs text-blue-400">×{{ item.rounds.length }}</span>
                   </div>
-                  <div class="text-xs text-neutral-400 mt-0.5 truncate">{{ item.subtitle }}</div>
+                  <div class="text-xs text-content-faint mt-0.5 truncate">{{ item.subtitle }}</div>
                 </div>
                 <!-- Quick actions on hover -->
                 <div v-if="item.status === 'pending'" class="flex-shrink-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -103,22 +103,22 @@
       <!-- Sticky lane strip -->
       <div
         v-if="selectedItem"
-        class="flex-shrink-0 flex items-center gap-2.5 px-6 py-2.5 border-b bg-white dark:bg-neutral-900"
+        class="flex-shrink-0 flex items-center gap-2.5 px-6 py-2.5 border-b bg-surface"
         :class="selectedLane?.isActive
           ? 'border-blue-200 dark:border-blue-900/50'
-          : 'border-neutral-200 dark:border-neutral-800'"
+          : 'border-line'"
       >
         <div
           class="size-2 rounded-full flex-shrink-0"
-          :class="selectedLane?.isActive ? 'bg-blue-500' : 'bg-neutral-400'"
+          :class="selectedLane?.isActive ? 'bg-status-active' : 'bg-neutral-400'"
         />
         <span
           class="font-mono text-xs font-medium truncate"
-          :class="selectedLane?.isActive ? 'text-blue-700 dark:text-blue-300' : 'text-neutral-500 dark:text-neutral-400'"
+          :class="selectedLane?.isActive ? 'text-blue-700 dark:text-blue-300' : 'text-content-subtle'"
         >{{ selectedLane?.branch }}</span>
         <UBadge v-if="selectedLane?.isActive" label="staged" color="primary" variant="subtle" size="xs" class="flex-shrink-0" />
         <div class="flex-1" />
-        <span class="font-mono text-xs text-neutral-400">{{ pendingInLane }} pending in lane</span>
+        <span class="font-mono text-xs text-content-faint">{{ pendingInLane }} pending in lane</span>
       </div>
 
       <!-- Scrollable area -->
@@ -126,9 +126,9 @@
 
       <!-- Empty state -->
       <div v-if="!selectedItem" class="flex flex-col items-center justify-center h-full text-center px-8">
-        <UIcon name="i-heroicons-inbox" class="size-10 text-neutral-300 dark:text-neutral-600 mb-4" />
-        <p class="text-sm font-medium text-neutral-500">Select an item to review</p>
-        <p class="text-xs text-neutral-400 mt-1">Use <span class="font-mono bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">j</span> / <span class="font-mono bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">k</span> to navigate</p>
+        <UIcon name="i-heroicons-inbox" class="size-10 text-content-placeholder mb-4" />
+        <p class="text-sm font-medium text-content-subtle">Select an item to review</p>
+        <p class="text-xs text-content-faint mt-1">Use <span class="font-mono bg-surface-sunken px-1 py-0.5 rounded">j</span> / <span class="font-mono bg-surface-sunken px-1 py-0.5 rounded">k</span> to navigate</p>
       </div>
 
       <!-- Item detail -->
@@ -136,22 +136,22 @@
 
         <!-- Breadcrumb + navigation -->
         <div class="flex items-center justify-between mb-6">
-          <div class="flex items-center gap-1.5 text-xs text-neutral-400">
+          <div class="flex items-center gap-1.5 text-xs text-content-faint">
             <span>{{ selectedGroup?.title }}</span>
           </div>
           <!-- Prev / Next -->
           <div class="flex items-center gap-1">
             <button
-              class="size-6 rounded flex items-center justify-center text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 disabled:opacity-30 transition-colors"
+              class="size-6 rounded flex items-center justify-center text-content-faint hover:bg-surface-hover disabled:opacity-30 transition-colors"
               :disabled="selectedIndex === 0"
               title="Previous (k)"
               @click="navigateBy(-1)"
             >
               <UIcon name="i-heroicons-chevron-up" class="size-3.5" />
             </button>
-            <span class="font-mono text-xs text-neutral-400 w-12 text-center">{{ selectedIndex + 1 }} / {{ flatItems.length }}</span>
+            <span class="font-mono text-xs text-content-faint w-12 text-center">{{ selectedIndex + 1 }} / {{ flatItems.length }}</span>
             <button
-              class="size-6 rounded flex items-center justify-center text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 disabled:opacity-30 transition-colors"
+              class="size-6 rounded flex items-center justify-center text-content-faint hover:bg-surface-hover disabled:opacity-30 transition-colors"
               :disabled="selectedIndex === flatItems.length - 1"
               title="Next (j)"
               @click="navigateBy(1)"
@@ -168,23 +168,23 @@
         </div>
 
         <!-- Context chips -->
-        <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5 mb-6 text-xs text-neutral-400">
+        <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5 mb-6 text-xs text-content-faint">
           <div class="flex items-center gap-1.5">
             <UIcon :name="selectedGroup?.icon || 'i-heroicons-document-text'" class="size-3.5" />
             <span>{{ selectedGroup?.source }}</span>
           </div>
-          <span class="text-neutral-300 dark:text-neutral-700">·</span>
+          <span class="text-content-placeholder">·</span>
           <div class="flex items-center gap-1.5">
             <UIcon name="i-heroicons-code-bracket" class="size-3.5" />
             <span class="font-mono">{{ selectedLaneId }}</span>
           </div>
-          <span class="text-neutral-300 dark:text-neutral-700">·</span>
+          <span class="text-content-placeholder">·</span>
           <div class="flex items-center gap-1.5">
             <UIcon name="i-heroicons-clock" class="size-3.5" />
             <span>{{ selectedItem.createdAt }}</span>
           </div>
           <template v-if="selectedItem.rounds.length > 1">
-            <span class="text-neutral-300 dark:text-neutral-700">·</span>
+            <span class="text-content-placeholder">·</span>
             <div class="flex items-center gap-1.5 text-blue-500">
               <UIcon name="i-heroicons-arrow-path" class="size-3.5" />
               <span>{{ selectedItem.rounds.length }} rounds</span>
@@ -193,14 +193,14 @@
         </div>
 
         <!-- Round selector (only when multiple rounds) -->
-        <div v-if="selectedItem.rounds.length > 1" class="flex items-center gap-1 mb-5 p-1 bg-neutral-100 dark:bg-neutral-800 rounded-lg w-fit">
+        <div v-if="selectedItem.rounds.length > 1" class="flex items-center gap-1 mb-5 p-1 bg-surface-sunken rounded-lg w-fit">
           <button
             v-for="round in selectedItem.rounds"
             :key="round.roundNumber"
             class="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors"
             :class="activeRound === round.roundNumber
-              ? 'bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 shadow-sm'
-              : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300'"
+              ? 'bg-surface-elevated text-content shadow-sm'
+              : 'text-content-subtle hover:text-content-secondary'"
             @click="activeRound = round.roundNumber"
           >
             <span>Round {{ round.roundNumber }}</span>
@@ -216,16 +216,16 @@
         <template v-if="activeRoundData">
 
           <!-- Proposed content -->
-          <div class="rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 mb-4 overflow-hidden">
-            <div class="flex items-center justify-between px-4 py-2.5 border-b border-neutral-100 dark:border-neutral-800">
-              <span class="text-xs font-medium text-neutral-500">
+          <div class="rounded-lg border border-line bg-surface mb-4 overflow-hidden">
+            <div class="flex items-center justify-between px-4 py-2.5 border-b border-line-subtle">
+              <span class="text-xs font-medium text-content-subtle">
                 {{ selectedItem.rounds.length > 1 ? `Proposal — Round ${activeRoundData.roundNumber}` : 'Proposal' }}
               </span>
-              <span class="text-xs text-neutral-400 font-mono">{{ activeRoundData.proposedAt }}</span>
+              <span class="text-xs text-content-faint font-mono">{{ activeRoundData.proposedAt }}</span>
             </div>
             <div class="p-5">
-              <p class="text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed">{{ activeRoundData.content }}</p>
-              <pre v-if="activeRoundData.code" class="mt-4 text-xs bg-neutral-50 dark:bg-neutral-950 border border-neutral-100 dark:border-neutral-800 rounded-md p-4 overflow-auto font-mono leading-relaxed"><code>{{ activeRoundData.code }}</code></pre>
+              <p class="text-sm text-content-secondary leading-relaxed">{{ activeRoundData.content }}</p>
+              <pre v-if="activeRoundData.code" class="mt-4 text-xs bg-surface-page border border-line-subtle rounded-md p-4 overflow-auto font-mono leading-relaxed"><code>{{ activeRoundData.code }}</code></pre>
             </div>
           </div>
 
@@ -256,7 +256,7 @@
                   {{ activeRoundData.feedbackStatus === 'approved' ? 'Approved' : activeRoundData.feedbackStatus === 'changes-requested' ? 'Changes requested' : 'Rejected' }}
                 </span>
               </div>
-              <span class="text-xs text-neutral-400 font-mono">{{ activeRoundData.feedbackAt }}</span>
+              <span class="text-xs text-content-faint font-mono">{{ activeRoundData.feedbackAt }}</span>
             </div>
             <div class="p-5">
               <p class="text-sm leading-relaxed"
@@ -297,146 +297,9 @@
 </template>
 
 <script setup lang="ts">
-interface Round {
-  roundNumber: number
-  proposedAt: string
-  content: string
-  code?: string
-  feedback?: string
-  feedbackAt?: string
-  feedbackStatus?: 'approved' | 'changes-requested' | 'rejected'
-}
+import type { ReviewItem, ReviewGroup, Lane } from '~/composables/useMockData'
 
-interface ReviewItem {
-  id: string; title: string; subtitle: string; status: 'pending' | 'approved' | 'rejected'
-  type: 'feedback' | 'code-review' | 'workflow'
-  createdAt: string
-  rounds: Round[]
-}
-interface ReviewGroup { id: string; title: string; icon: string; source: string; type: string; items: ReviewItem[] }
-interface Lane { id: string; branch: string; isActive: boolean; groups: ReviewGroup[] }
-
-const allLanes: Lane[] = [
-  {
-    id: 'root', branch: 'feat/42-unified-ui', isActive: true,
-    groups: [
-      { id: 'rg-1', title: 'Unified UI — Implementation Plan', icon: 'i-heroicons-document-text', source: '/feedback session', type: 'feedback', items: [
-        { id: 'r-1', title: 'Layout structure and sidebar navigation', subtitle: 'Round 2 pending', status: 'pending', type: 'feedback', createdAt: '2h ago',
-          rounds: [
-            {
-              roundNumber: 1,
-              proposedAt: '3h ago',
-              content: 'The layout uses a persistent left sidebar (w-60) with a project header, a lane list, and a separator above the Overview link. The main area fills remaining space and scrolls independently. Dark mode follows system preference.',
-              feedback: 'The sidebar width feels too narrow for lane names that include branch names. Can we bump it to w-72 and add a collapsed state?',
-              feedbackAt: '2h 30m ago',
-              feedbackStatus: 'changes-requested',
-            },
-            {
-              roundNumber: 2,
-              proposedAt: '2h ago',
-              content: 'Updated: sidebar is now w-72 with a collapse toggle in the header. Collapsed state shows only icons. Branch names truncate with ellipsis and show a tooltip on hover. Dark mode still follows system preference.',
-            },
-          ],
-        },
-        { id: 'r-2', title: 'Lane stage/unstage interaction model', subtitle: 'Approve or request changes', status: 'pending', type: 'feedback', createdAt: '2h ago',
-          rounds: [
-            {
-              roundNumber: 1,
-              proposedAt: '2h ago',
-              content: 'The staged lane is marked with a filled blue dot in the sidebar. Non-staged lanes show a faint Stage button on hover. The lane detail page shows a prominent "Stage" or "Push back" button in its header.',
-            },
-          ],
-        },
-        { id: 'r-3', title: 'Inbox hierarchy and review groups', subtitle: 'Approved 10m ago', status: 'approved', type: 'feedback', createdAt: '4h ago',
-          rounds: [
-            {
-              roundNumber: 1,
-              proposedAt: '4h ago',
-              content: 'Reviews are grouped by session or PR. Each group is collapsible. Individual items within a group link to the review detail page.',
-              feedback: 'LGTM — this matches the mental model I had in mind.',
-              feedbackAt: '10m ago',
-              feedbackStatus: 'approved',
-            },
-          ],
-        },
-      ]},
-      { id: 'rg-2', title: 'PR #42 — feat/42-unified-ui', icon: 'i-heroicons-code-bracket', source: 'code review', type: 'code-review', items: [
-        { id: 'r-4', title: 'Nuxt layout structure', subtitle: 'layouts/default.vue', status: 'pending', type: 'code-review', createdAt: '1h ago',
-          rounds: [
-            {
-              roundNumber: 1,
-              proposedAt: '1h ago',
-              content: 'The layout wraps everything in a full-height flex container. Sidebar is w-60 with flex-col. Main area is flex-1 overflow-auto.',
-              code: `// layouts/default.vue\n<aside class="w-60 flex-shrink-0 flex flex-col ...">\n  <!-- project header, nav, lanes -->\n</aside>\n<main class="flex-1 overflow-auto">\n  <slot />\n</main>`,
-              feedback: 'Use w-72 per the updated layout spec. Also missing aria-label on <aside>.',
-              feedbackAt: '45m ago',
-              feedbackStatus: 'changes-requested',
-            },
-            {
-              roundNumber: 2,
-              proposedAt: '30m ago',
-              content: 'Updated sidebar width to w-72, added aria-label="Sidebar navigation", and added role="main" to the main element.',
-              code: `// layouts/default.vue\n<aside aria-label="Sidebar navigation" class="w-72 flex-shrink-0 flex flex-col ...">\n  <!-- project header, nav, lanes -->\n</aside>\n<main role="main" class="flex-1 overflow-auto">\n  <slot />\n</main>`,
-            },
-          ],
-        },
-        { id: 'r-5', title: 'NavItem component', subtitle: 'components/NavItem.vue', status: 'approved', type: 'code-review', createdAt: '2h ago',
-          rounds: [
-            {
-              roundNumber: 1,
-              proposedAt: '2h ago',
-              content: 'Simple component wrapping NuxtLink with active state detection and optional badge.',
-              feedback: 'Good. Approved as-is.',
-              feedbackAt: '1h ago',
-              feedbackStatus: 'approved',
-            },
-          ],
-        },
-      ]},
-    ],
-  },
-  {
-    id: 'wt-feedback', branch: 'feat/feedback-ui', isActive: false,
-    groups: [
-      { id: 'rg-3', title: 'Feedback UI Enhancement — Spec', icon: 'i-heroicons-document-text', source: '/feedback session', type: 'feedback', items: [
-        { id: 'r-6', title: 'Keyboard navigation shortcuts', subtitle: '⌘K / j·k / Enter', status: 'pending', type: 'feedback', createdAt: '5h ago',
-          rounds: [
-            {
-              roundNumber: 1,
-              proposedAt: '5h ago',
-              content: 'Proposed shortcuts: j/k to move between items, Enter to open, a to approve, r to request changes, x to reject, ? for help. ⌘K opens a command palette.',
-            },
-          ],
-        },
-        { id: 'r-7', title: 'Server startup sequence', subtitle: 'Port detection + auto-open', status: 'pending', type: 'feedback', createdAt: '5h ago',
-          rounds: [
-            {
-              roundNumber: 1,
-              proposedAt: '5h ago',
-              content: 'On skill invocation: scan for available port starting at 3001, write port to .port file, start Nitro server, open browser to that port. On skill exit: kill server, delete .port file.',
-            },
-          ],
-        },
-      ]},
-    ],
-  },
-  {
-    id: 'wt-fix', branch: 'fix/review-server', isActive: false,
-    groups: [
-      { id: 'rg-4', title: 'Fix: review server startup crash', icon: 'i-heroicons-bug-ant', source: 'workflow gate', type: 'workflow', items: [
-        { id: 'r-8', title: 'Root cause — port conflict on 3001', subtitle: 'Proposed fix: dynamic port allocation', status: 'pending', type: 'workflow', createdAt: '6h ago',
-          rounds: [
-            {
-              roundNumber: 1,
-              proposedAt: '6h ago',
-              content: 'The review server crashes on startup when port 3001 is already in use from a previous session that was not cleanly terminated. Fix: scan for a free port starting at 3001, use the first available, write it to .port file.',
-            },
-          ],
-        },
-      ]},
-    ],
-  },
-]
+const { lanes: allLanes } = useMockData()
 
 const typeFilters = [
   { value: 'all',          label: 'All',      icon: 'i-heroicons-funnel' },

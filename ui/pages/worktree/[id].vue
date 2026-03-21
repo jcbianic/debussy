@@ -114,103 +114,18 @@
 </template>
 
 <script setup lang="ts">
+import type { ReviewGroup } from '~/composables/useMockData'
+
 const route = useRoute()
 const id = route.params.id as string
 
-const worktreeData: Record<string, { id: string; branch: string; path: string; isStaged: boolean }> = {
-  root: {
-    id: 'root',
-    branch: 'feat/42-unified-ui',
-    path: '~/debussy',
-    isStaged: true,
-  },
-  'wt-feedback': {
-    id: 'wt-feedback',
-    branch: 'feat/feedback-ui',
-    path: '~/debussy/.worktrees/feedback',
-    isStaged: false,
-  },
-  'wt-workflow': {
-    id: 'wt-workflow',
-    branch: 'feat/workflow-mon',
-    path: '~/debussy/.worktrees/workflow',
-    isStaged: false,
-  },
-  'wt-fix': {
-    id: 'wt-fix',
-    branch: 'fix/review-server',
-    path: '~/debussy/.worktrees/fix',
-    isStaged: false,
-  },
-}
+const { getLane } = useMockData()
 
-interface ReviewItem {
-  id: string
-  title: string
-  subtitle: string
-  status: 'pending' | 'approved' | 'rejected'
-}
-
-interface ReviewGroup {
-  id: string
-  title: string
-  icon: string
-  source: string
-  items: ReviewItem[]
-}
-
-const reviewGroupsData: Record<string, ReviewGroup[]> = {
-  root: [
-    {
-      id: 'rg-1',
-      title: 'Unified UI — Implementation Plan',
-      icon: 'i-heroicons-document-text',
-      source: '/feedback session',
-      items: [
-        { id: 'r-1', title: 'Layout structure and sidebar navigation', subtitle: 'Approve or request changes', status: 'pending' },
-        { id: 'r-2', title: 'Worktree stage/unstage interaction model', subtitle: 'Approve or request changes', status: 'pending' },
-        { id: 'r-3', title: 'Inbox hierarchy and review groups', subtitle: 'Approve or request changes', status: 'approved' },
-      ],
-    },
-    {
-      id: 'rg-2',
-      title: 'PR #42 — feat/42-unified-ui',
-      icon: 'i-heroicons-code-bracket',
-      source: 'code review',
-      items: [
-        { id: 'r-4', title: 'Nuxt layout structure', subtitle: 'layouts/default.vue', status: 'pending' },
-        { id: 'r-5', title: 'Mock data composable', subtitle: 'composables/useMockData.ts', status: 'approved' },
-      ],
-    },
-  ],
-  'wt-feedback': [
-    {
-      id: 'rg-3',
-      title: 'Feedback UI Enhancement — Spec',
-      icon: 'i-heroicons-document-text',
-      source: '/feedback session',
-      items: [
-        { id: 'r-6', title: 'Keyboard navigation shortcuts', subtitle: '⌘K / j·k / Enter', status: 'pending' },
-        { id: 'r-7', title: 'Server startup sequence', subtitle: 'Port detection + auto-open', status: 'pending' },
-      ],
-    },
-  ],
-  'wt-workflow': [],
-  'wt-fix': [
-    {
-      id: 'rg-4',
-      title: 'Fix: review server startup crash',
-      icon: 'i-heroicons-bug-ant',
-      source: 'workflow gate',
-      items: [
-        { id: 'r-8', title: 'Root cause — port conflict on 3001', subtitle: 'Proposed fix: dynamic port allocation', status: 'pending' },
-      ],
-    },
-  ],
-}
-
-const worktree = computed(() => worktreeData[id] ?? worktreeData.root)
-const reviewGroups = computed(() => reviewGroupsData[id] ?? [])
+const worktree = computed(() => {
+  const lane = getLane(id)
+  return { ...lane, isStaged: lane.isActive }
+})
+const reviewGroups = computed(() => getLane(id).groups)
 
 const totalPending = computed(() =>
   reviewGroups.value.flatMap(g => g.items).filter(i => i.status === 'pending').length,
@@ -219,7 +134,7 @@ const totalPending = computed(() =>
 const pendingCount = (group: ReviewGroup) =>
   group.items.filter(i => i.status === 'pending').length
 
-const expanded = ref(new Set(reviewGroupsData[id]?.map(g => g.id) ?? []))
+const expanded = ref(new Set(reviewGroups.value.map(g => g.id)))
 
 const toggleGroup = (groupId: string) => {
   if (expanded.value.has(groupId)) {
