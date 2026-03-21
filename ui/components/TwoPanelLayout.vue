@@ -1,7 +1,7 @@
 <template>
   <div class="flex h-full">
     <div
-      class="flex flex-shrink-0 flex-col border-r border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900"
+      class="border-line bg-surface flex flex-shrink-0 flex-col border-r"
       :class="leftWidth"
     >
       <slot name="left" />

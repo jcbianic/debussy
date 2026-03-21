@@ -7,8 +7,8 @@
       :class="[
         stretch ? 'flex-1 justify-center' : '',
         modelValue === opt.value
-          ? 'bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900'
-          : 'bg-neutral-100 text-neutral-500 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-700',
+          ? 'bg-surface-inverted text-content-inverted'
+          : 'bg-surface-sunken text-content-subtle hover:bg-neutral-200 dark:hover:bg-neutral-700',
       ]"
       type="button"
       @click="$emit('update:modelValue', opt.value)"

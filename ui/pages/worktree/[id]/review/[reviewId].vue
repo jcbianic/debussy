@@ -2,7 +2,7 @@
   <div class="flex h-full flex-col">
     <!-- Header -->
     <div
-      class="flex items-center gap-3 border-b border-neutral-200 bg-white px-8 py-4 dark:border-neutral-800 dark:bg-neutral-900/50"
+      class="border-line flex items-center gap-3 border-b bg-white px-8 py-4 dark:bg-neutral-900/50"
     >
       <NuxtLink
         :to="`/worktree/${worktreeId}`"
@@ -26,17 +26,13 @@
     <div class="flex-1 overflow-auto px-8 py-6">
       <div class="max-w-2xl space-y-5">
         <!-- Review body -->
-        <div
-          class="rounded-lg border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900"
-        >
-          <p
-            class="text-sm leading-relaxed text-neutral-700 dark:text-neutral-300"
-          >
+        <div class="border-line bg-surface rounded-lg border p-6">
+          <p class="text-content-secondary text-sm leading-relaxed">
             {{ review.body }}
           </p>
           <pre
             v-if="review.code"
-            class="mt-4 overflow-auto rounded-md border border-neutral-100 bg-neutral-50 p-4 font-mono text-xs leading-relaxed dark:border-neutral-800 dark:bg-neutral-950"
+            class="border-line-subtle bg-surface-page mt-4 overflow-auto rounded-md border p-4 font-mono text-xs leading-relaxed"
           ><code>{{ review.code }}</code></pre>
         </div>
 

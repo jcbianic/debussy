@@ -3,7 +3,7 @@
     class="text-center"
     :class="
       variant === 'box'
-        ? 'rounded-lg border border-dashed border-neutral-200 px-6 py-12 dark:border-neutral-800'
+        ? 'border-line rounded-lg border border-dashed px-6 py-12'
         : 'py-12'
     "
   >

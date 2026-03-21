@@ -2,9 +2,7 @@
   <TwoPanelLayout>
     <!-- Left panel -->
     <template #left>
-      <div
-        class="border-b border-neutral-200 px-5 py-5 dark:border-neutral-800"
-      >
+      <div class="border-line border-b px-5 py-5">
         <h1 class="text-sm font-semibold">Policy of debussy</h1>
         <p class="mt-0.5 font-mono text-xs text-neutral-400">
           ~/Projets/Libon-Data/debussy
@@ -14,10 +12,10 @@
         <div
           v-for="topic in topics"
           :key="topic.key"
-          class="flex cursor-pointer items-center gap-3 border-b border-neutral-100 px-5 py-3 transition-colors last:border-b-0 dark:border-neutral-800"
+          class="border-line-subtle flex cursor-pointer items-center gap-3 border-b px-5 py-3 transition-colors last:border-b-0"
           :class="
             selected === topic.key
-              ? 'bg-neutral-50 dark:bg-neutral-800'
+              ? 'bg-surface-hover-subtle'
               : 'hover:bg-neutral-50 dark:hover:bg-neutral-800/50'
           "
           @click="selected = topic.key"
@@ -67,16 +65,14 @@
 
         <div class="space-y-6">
           <div v-for="section in currentTopic.sections" :key="section.title">
-            <h3
-              class="mb-3 text-sm font-semibold text-neutral-700 dark:text-neutral-300"
-            >
+            <h3 class="text-content-secondary mb-3 text-sm font-semibold">
               {{ section.title }}
             </h3>
             <div v-if="section.items" class="space-y-2">
               <div
                 v-for="item in section.items"
                 :key="item.rule"
-                class="flex items-start gap-3 rounded-md border border-neutral-100 bg-white px-4 py-3 dark:border-neutral-800 dark:bg-neutral-900"
+                class="border-line-subtle bg-surface flex items-start gap-3 rounded-md border px-4 py-3"
               >
                 <UIcon
                   name="i-heroicons-check-circle"
@@ -92,7 +88,7 @@
             </div>
             <div
               v-if="section.content"
-              class="space-y-2 text-sm leading-relaxed text-neutral-600 dark:text-neutral-400"
+              class="text-content-muted space-y-2 text-sm leading-relaxed"
             >
               <p v-for="(para, i) in section.content" :key="i">{{ para }}</p>
             </div>

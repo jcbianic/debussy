@@ -2,9 +2,7 @@
   <TwoPanelLayout>
     <!-- Left panel -->
     <template #left>
-      <div
-        class="border-b border-neutral-200 px-5 py-5 dark:border-neutral-800"
-      >
+      <div class="border-line border-b px-5 py-5">
         <h1 class="text-sm font-semibold">Architecture of debussy</h1>
         <p class="mt-0.5 font-mono text-xs text-neutral-400">
           ~/Projets/Libon-Data/debussy
@@ -12,9 +10,7 @@
       </div>
       <nav class="flex-1 overflow-y-auto">
         <!-- Principles nav -->
-        <div
-          class="border-b border-neutral-100 px-5 py-2.5 dark:border-neutral-800"
-        >
+        <div class="border-line-subtle border-b px-5 py-2.5">
           <div
             class="text-xs font-medium tracking-wider text-neutral-400 uppercase"
           >
@@ -22,10 +18,10 @@
           </div>
         </div>
         <button
-          class="flex w-full items-center gap-3 border-b border-neutral-100 px-5 py-3 text-left transition-colors dark:border-neutral-800"
+          class="border-line-subtle flex w-full items-center gap-3 border-b px-5 py-3 text-left transition-colors"
           :class="
             view === 'principles-index' || view === 'principle'
-              ? 'bg-neutral-50 dark:bg-neutral-800'
+              ? 'bg-surface-hover-subtle'
               : 'hover:bg-neutral-50 dark:hover:bg-neutral-800/50'
           "
           @click="goTo('principles-index')"
@@ -49,9 +45,7 @@
         </button>
 
         <!-- Decisions nav -->
-        <div
-          class="border-b border-neutral-100 px-5 py-2.5 dark:border-neutral-800"
-        >
+        <div class="border-line-subtle border-b px-5 py-2.5">
           <div
             class="text-xs font-medium tracking-wider text-neutral-400 uppercase"
           >
@@ -59,10 +53,10 @@
           </div>
         </div>
         <button
-          class="flex w-full items-center gap-3 border-b border-neutral-100 px-5 py-3 text-left transition-colors dark:border-neutral-800"
+          class="border-line-subtle flex w-full items-center gap-3 border-b px-5 py-3 text-left transition-colors"
           :class="
             view === 'decisions-index' || view === 'adr'
-              ? 'bg-neutral-50 dark:bg-neutral-800'
+              ? 'bg-surface-hover-subtle'
               : 'hover:bg-neutral-50 dark:hover:bg-neutral-800/50'
           "
           @click="goTo('decisions-index')"
@@ -106,17 +100,17 @@
           <div
             v-for="p in filteredPrinciples"
             :key="p.num"
-            class="cursor-pointer rounded-lg border bg-white p-4 transition-colors dark:bg-neutral-900"
+            class="bg-surface cursor-pointer rounded-lg border p-4 transition-colors"
             :class="
               principleNeedsReview(p)
                 ? 'border-amber-200 hover:bg-amber-50/30 dark:border-amber-900/60 dark:hover:bg-amber-950/20'
-                : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800 dark:hover:bg-neutral-800/50'
+                : 'border-line hover:bg-neutral-50 dark:hover:bg-neutral-800/50'
             "
             @click="goTo('principle', p.num)"
           >
             <div class="flex items-start gap-3">
               <div
-                class="mt-0.5 flex size-6 flex-shrink-0 items-center justify-center rounded-full bg-neutral-100 dark:bg-neutral-800"
+                class="bg-surface-sunken mt-0.5 flex size-6 flex-shrink-0 items-center justify-center rounded-full"
               >
                 <span class="text-xs font-bold text-neutral-500">{{
                   p.num
@@ -137,7 +131,7 @@
                   >
                 </div>
                 <p
-                  class="line-clamp-2 text-sm leading-relaxed text-neutral-500 dark:text-neutral-400"
+                  class="text-content-subtle line-clamp-2 text-sm leading-relaxed"
                 >
                   {{ p.description }}
                 </p>
@@ -181,7 +175,7 @@
         <div class="mb-6 flex items-start justify-between">
           <div class="flex items-start gap-4">
             <div
-              class="flex size-8 flex-shrink-0 items-center justify-center rounded-full bg-neutral-100 dark:bg-neutral-800"
+              class="bg-surface-sunken flex size-8 flex-shrink-0 items-center justify-center rounded-full"
             >
               <span class="text-sm font-bold text-neutral-500">{{
                 currentPrinciple.num
@@ -205,7 +199,7 @@
             :class="
               flagged.has('principle:' + currentPrinciple.num)
                 ? 'border-red-200 bg-red-50 text-red-600 hover:border-red-300 dark:border-red-800 dark:bg-red-950/30 dark:text-red-400'
-                : 'border-neutral-200 bg-white text-neutral-500 hover:border-neutral-300 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400'
+                : 'bg-surface text-content-subtle border-neutral-200 hover:border-neutral-300 dark:border-neutral-700'
             "
             @click="toggleFlag('principle:' + currentPrinciple.num)"
           >
@@ -218,23 +212,19 @@
           </button>
         </div>
 
-        <p
-          class="mb-8 text-sm leading-relaxed text-neutral-600 dark:text-neutral-400"
-        >
+        <p class="text-content-muted mb-8 text-sm leading-relaxed">
           {{ currentPrinciple.description }}
         </p>
 
         <div v-if="currentPrinciple.relatedAdrs?.length">
-          <h3
-            class="mb-3 text-sm font-semibold text-neutral-700 dark:text-neutral-300"
-          >
+          <h3 class="text-content-secondary mb-3 text-sm font-semibold">
             Related decisions
           </h3>
           <div class="space-y-2">
             <div
               v-for="adrKey in currentPrinciple.relatedAdrs"
               :key="adrKey"
-              class="flex cursor-pointer items-center gap-3 rounded-lg border border-neutral-200 bg-white px-4 py-3 transition-colors hover:bg-neutral-50 dark:border-neutral-800 dark:bg-neutral-900 dark:hover:bg-neutral-800/50"
+              class="border-line bg-surface flex cursor-pointer items-center gap-3 rounded-lg border px-4 py-3 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/50"
               @click="goTo('adr', adrKey)"
             >
               <UIcon
@@ -281,13 +271,11 @@
             class="max-w-sm"
           />
         </div>
-        <div
-          class="overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-800"
-        >
+        <div class="border-line overflow-hidden rounded-lg border">
           <table class="w-full text-sm">
             <thead>
               <tr
-                class="border-b border-neutral-200 bg-neutral-50 dark:border-neutral-800 dark:bg-neutral-900"
+                class="border-line border-b bg-neutral-50 dark:bg-neutral-900"
               >
                 <th
                   class="w-12 px-4 py-2.5 text-left text-xs font-medium text-neutral-500"
@@ -320,7 +308,7 @@
               <tr
                 v-for="adr in filteredAdrs"
                 :key="adr.key"
-                class="cursor-pointer border-b border-neutral-100 transition-colors last:border-b-0 hover:bg-neutral-50 dark:border-neutral-800 dark:hover:bg-neutral-800/50"
+                class="border-line-subtle cursor-pointer border-b transition-colors last:border-b-0 hover:bg-neutral-50 dark:hover:bg-neutral-800/50"
                 @click="goTo('adr', adr.key)"
               >
                 <td class="px-4 py-3 font-mono text-xs text-neutral-400">
@@ -340,7 +328,7 @@
                     <span
                       v-for="num in adr.affectedPrinciples || []"
                       :key="num"
-                      class="rounded bg-neutral-100 px-1.5 py-0.5 font-mono text-xs text-neutral-500 dark:bg-neutral-800"
+                      class="bg-surface-sunken rounded px-1.5 py-0.5 font-mono text-xs text-neutral-500"
                       >P{{ num }}</span
                     >
                   </div>
@@ -417,7 +405,7 @@
             :class="
               flagged.has('adr:' + currentAdr.key)
                 ? 'border-red-200 bg-red-50 text-red-600 hover:border-red-300 dark:border-red-800 dark:bg-red-950/30 dark:text-red-400'
-                : 'border-neutral-200 bg-white text-neutral-500 hover:border-neutral-300 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400'
+                : 'bg-surface text-content-subtle border-neutral-200 hover:border-neutral-300 dark:border-neutral-700'
             "
             @click="toggleFlag('adr:' + currentAdr.key)"
           >
@@ -433,7 +421,7 @@
         <!-- Affects principles callout -->
         <div
           v-if="currentAdr.affectedPrinciples?.length"
-          class="mb-6 flex items-start gap-3 rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 dark:border-neutral-800 dark:bg-neutral-900/50"
+          class="border-line mb-6 flex items-start gap-3 rounded-lg border bg-neutral-50 px-4 py-3 dark:bg-neutral-900/50"
         >
           <UIcon
             name="i-heroicons-scale"
@@ -447,7 +435,7 @@
               <button
                 v-for="num in currentAdr.affectedPrinciples"
                 :key="num"
-                class="rounded border border-neutral-200 bg-white px-2 py-0.5 font-mono text-xs text-neutral-600 transition-colors hover:border-neutral-400 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-400"
+                class="text-content-muted rounded border border-neutral-200 bg-white px-2 py-0.5 font-mono text-xs transition-colors hover:border-neutral-400 dark:border-neutral-700 dark:bg-neutral-800"
                 @click="goTo('principle', num)"
               >
                 P{{ num }} · {{ principles.find((p) => p.num === num)?.name }}
@@ -458,24 +446,20 @@
 
         <div class="space-y-8">
           <div v-for="section in currentAdr.sections" :key="section.title">
-            <h3
-              class="mb-3 text-sm font-semibold text-neutral-700 dark:text-neutral-300"
-            >
+            <h3 class="text-content-secondary mb-3 text-sm font-semibold">
               {{ section.title }}
             </h3>
-            <div
-              class="space-y-3 text-sm leading-relaxed text-neutral-600 dark:text-neutral-400"
-            >
+            <div class="text-content-muted space-y-3 text-sm leading-relaxed">
               <p v-for="(para, i) in section.content" :key="i">{{ para }}</p>
             </div>
             <div
               v-if="section.table"
-              class="mt-4 overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-800"
+              class="border-line mt-4 overflow-hidden rounded-lg border"
             >
               <table class="w-full text-xs">
                 <thead>
                   <tr
-                    class="border-b border-neutral-200 bg-neutral-50 dark:border-neutral-800 dark:bg-neutral-900"
+                    class="border-line border-b bg-neutral-50 dark:bg-neutral-900"
                   >
                     <th
                       v-for="col in section.table.headers"
@@ -490,12 +474,12 @@
                   <tr
                     v-for="(row, i) in section.table.rows"
                     :key="i"
-                    class="border-b border-neutral-100 last:border-b-0 dark:border-neutral-800"
+                    class="border-line-subtle border-b last:border-b-0"
                   >
                     <td
                       v-for="(cell, j) in row"
                       :key="j"
-                      class="px-4 py-2.5 text-neutral-600 dark:text-neutral-400"
+                      class="text-content-muted px-4 py-2.5"
                     >
                       {{ cell }}
                     </td>
@@ -851,6 +835,6 @@ function adrChipClass(adrKey: string) {
   if (adr?.status === 'Proposed') {
     return 'border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400'
   }
-  return 'border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400'
+  return 'border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-content-muted'
 }
 </script>

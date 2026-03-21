@@ -1,9 +1,7 @@
 <template>
   <div class="flex h-full flex-col overflow-hidden">
     <!-- Header -->
-    <div
-      class="flex-shrink-0 border-b border-neutral-200 px-8 py-5 dark:border-neutral-800"
-    >
+    <div class="border-line flex-shrink-0 border-b px-8 py-5">
       <div class="mb-3 flex items-center justify-between">
         <div>
           <h1 class="text-xl font-semibold">Claude Setup</h1>
@@ -40,7 +38,7 @@
     <div class="flex min-h-0 flex-1">
       <!-- Left: filter + list -->
       <div
-        class="flex w-72 flex-shrink-0 flex-col overflow-hidden border-r border-neutral-200 dark:border-neutral-800"
+        class="border-line flex w-72 flex-shrink-0 flex-col overflow-hidden border-r"
       >
         <!-- Type filter -->
         <div
@@ -54,7 +52,7 @@
               class="rounded px-2 py-1 text-xs transition-colors"
               :class="
                 activeTab === tab.key
-                  ? 'bg-neutral-900 font-medium text-white dark:bg-neutral-100 dark:text-neutral-900'
+                  ? 'bg-surface-inverted text-content-inverted font-medium'
                   : 'text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800 dark:hover:bg-neutral-900 dark:hover:text-neutral-200'
               "
             >
@@ -74,7 +72,7 @@
               class="px-4 pt-3 pb-1"
             >
               <span
-                class="text-xs font-medium tracking-wider text-neutral-400 uppercase dark:text-neutral-500"
+                class="text-content-faint text-xs font-medium tracking-wider uppercase"
                 >{{ group.label }}</span
               >
             </div>
@@ -85,7 +83,7 @@
               class="mx-1.5 flex w-[calc(100%-12px)] items-center gap-2.5 rounded-md px-3 py-1.5 text-left transition-colors"
               :class="
                 selected?.id === item.id
-                  ? 'bg-neutral-100 dark:bg-neutral-800'
+                  ? 'bg-surface-sunken'
                   : 'hover:bg-neutral-50 dark:hover:bg-neutral-900/50'
               "
             >
@@ -98,8 +96,8 @@
                 class="flex-1 truncate font-mono text-xs"
                 :class="
                   selected?.id === item.id
-                    ? 'text-neutral-900 dark:text-neutral-100'
-                    : 'text-neutral-600 dark:text-neutral-400'
+                    ? 'text-content'
+                    : 'text-content-muted'
                 "
                 >{{ item.name }}</span
               >
@@ -122,11 +120,11 @@
             <div
               v-for="plugin in plugins"
               :key="plugin.id"
-              class="overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-800"
+              class="border-line overflow-hidden rounded-lg border"
             >
               <!-- Plugin header -->
               <div
-                class="flex cursor-pointer items-center gap-3 border-b border-neutral-100 bg-white px-5 py-3 transition-colors hover:bg-neutral-50 dark:border-neutral-800 dark:bg-neutral-900 dark:hover:bg-neutral-900/80"
+                class="border-line-subtle bg-surface flex cursor-pointer items-center gap-3 border-b px-5 py-3 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-900/80"
                 @click="selected = plugin"
               >
                 <UIcon
@@ -161,7 +159,7 @@
               </div>
               <!-- Provides -->
               <div
-                class="flex flex-wrap gap-x-4 gap-y-1.5 bg-neutral-50 px-5 py-3 dark:bg-neutral-950/30"
+                class="bg-surface-page py-3/30 flex flex-wrap gap-x-4 gap-y-1.5 px-5"
               >
                 <template
                   v-for="group in pluginProvides(plugin.id)"
@@ -175,7 +173,7 @@
                       v-for="item in group.items"
                       :key="item.id"
                       @click="selected = item"
-                      class="font-mono text-xs text-neutral-600 transition-colors hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100"
+                      class="text-content-muted hover:text-content font-mono text-xs transition-colors"
                     >
                       {{ item.name }}
                     </button>
@@ -231,7 +229,7 @@
                 class="text-2xl font-semibold tabular-nums"
                 :class="
                   usageFor(selected) > 0
-                    ? 'text-neutral-900 dark:text-neutral-100'
+                    ? 'text-content'
                     : 'text-neutral-300 dark:text-neutral-700'
                 "
               >
@@ -246,7 +244,7 @@
           <!-- Metadata -->
           <div
             v-if="selectedMeta.length"
-            class="mb-5 flex gap-8 rounded-lg border border-neutral-200 bg-neutral-50 px-5 py-3.5 dark:border-neutral-800 dark:bg-neutral-900/50"
+            class="border-line mb-5 flex gap-8 rounded-lg border bg-neutral-50 px-5 py-3.5 dark:bg-neutral-900/50"
           >
             <div v-for="m in selectedMeta" :key="m.label">
               <div class="mb-0.5 text-xs text-neutral-400">{{ m.label }}</div>
@@ -256,9 +254,7 @@
 
           <!-- Description -->
           <div v-if="selected.description" class="mb-5">
-            <p
-              class="text-sm leading-relaxed text-neutral-700 dark:text-neutral-300"
-            >
+            <p class="text-content-secondary text-sm leading-relaxed">
               {{ selected.description }}
             </p>
           </div>
@@ -278,9 +274,7 @@
                   group.items.length
                 }}</span>
               </h3>
-              <div
-                class="overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-800"
-              >
+              <div class="border-line overflow-hidden rounded-lg border">
                 <button
                   v-for="(item, i) in group.items"
                   :key="item.id"
@@ -288,7 +282,7 @@
                   class="flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-900/50"
                   :class="
                     i < group.items.length - 1
-                      ? 'border-b border-neutral-100 dark:border-neutral-800'
+                      ? 'border-line-subtle border-b'
                       : ''
                   "
                 >
@@ -298,7 +292,7 @@
                     :class="typeColor(item.type)"
                   />
                   <span
-                    class="flex-1 font-mono text-xs text-neutral-700 dark:text-neutral-300"
+                    class="text-content-secondary flex-1 font-mono text-xs"
                     >{{ item.name }}</span
                   >
                   <span
@@ -333,7 +327,7 @@
                 <span
                   v-for="tool in selected.allowedTools.split(', ')"
                   :key="tool"
-                  class="rounded border border-neutral-200 bg-neutral-100 px-2 py-1 font-mono text-xs text-neutral-600 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+                  class="bg-surface-hover text-content-muted rounded border border-neutral-200 px-2 py-1 font-mono text-xs dark:border-neutral-700"
                   >{{ tool }}</span
                 >
               </div>
@@ -345,8 +339,7 @@
               >
                 Usage
               </h3>
-              <code
-                class="font-mono text-sm text-neutral-700 dark:text-neutral-300"
+              <code class="text-content-secondary font-mono text-sm"
                 >{{ selected.name }} {{ selected.argHint }}</code
               >
             </div>
@@ -358,7 +351,7 @@
                 Content
               </h3>
               <pre
-                class="overflow-x-auto rounded-lg border border-neutral-200 bg-neutral-50 px-5 py-4 font-mono text-xs leading-relaxed whitespace-pre-wrap text-neutral-700 dark:border-neutral-800 dark:bg-neutral-900/50 dark:text-neutral-300"
+                class="border-line text-content-secondary overflow-x-auto rounded-lg border bg-neutral-50 px-5 py-4 font-mono text-xs leading-relaxed whitespace-pre-wrap dark:bg-neutral-900/50"
                 >{{ selected.body }}</pre
               >
             </div>
@@ -371,16 +364,15 @@
               </h3>
               <button
                 @click="selectByName(selected.delegatesTo)"
-                class="flex items-center gap-2 rounded-lg border border-neutral-200 px-3 py-2 transition-colors hover:bg-neutral-50 dark:border-neutral-800 dark:hover:bg-neutral-900/50"
+                class="border-line flex items-center gap-2 rounded-lg border px-3 py-2 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-900/50"
               >
                 <UIcon
                   name="i-heroicons-sparkles"
                   class="size-3.5 text-violet-500"
                 />
-                <span
-                  class="font-mono text-xs text-neutral-700 dark:text-neutral-300"
-                  >{{ selected.delegatesTo }}</span
-                >
+                <span class="text-content-secondary font-mono text-xs">{{
+                  selected.delegatesTo
+                }}</span>
                 <UIcon
                   name="i-heroicons-arrow-right"
                   class="ml-1 size-3 text-neutral-400"

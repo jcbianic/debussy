@@ -6,9 +6,7 @@
       <div class="mb-6 flex items-start justify-between">
         <div>
           <h1 class="text-xl font-semibold">Roadmap of debussy</h1>
-          <p
-            class="mt-1 font-mono text-sm text-neutral-500 dark:text-neutral-400"
-          >
+          <p class="text-content-subtle mt-1 font-mono text-sm">
             ~/Projets/Libon-Data/debussy
           </p>
         </div>
@@ -61,7 +59,7 @@
       >
         <!-- Past -->
         <button
-          class="flex items-center gap-4 bg-white px-5 py-4 text-left transition-colors hover:bg-neutral-50 dark:bg-neutral-900 dark:hover:bg-neutral-800/70"
+          class="bg-surface flex items-center gap-4 px-5 py-4 text-left transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/70"
           :class="
             activeFilter === 'shipped'
               ? 'ring-1 ring-neutral-300 ring-inset dark:ring-neutral-600'
@@ -84,14 +82,14 @@
             <div class="text-xs text-neutral-400">
               release{{ shippedReleases.length === 1 ? '' : 's' }} shipped
             </div>
-            <div class="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">
+            <div class="text-content-subtle mt-0.5 text-xs">
               {{ shippedReleases.map((r) => r.name).join(', ') }}
             </div>
           </div>
         </button>
 
         <!-- Current -->
-        <div class="bg-white px-5 py-4 dark:bg-neutral-900">
+        <div class="bg-surface px-5 py-4">
           <div v-if="currentRelease">
             <div class="mb-2 flex items-center gap-2">
               <span class="text-sm font-semibold">{{
@@ -132,7 +130,7 @@
 
         <!-- Ahead -->
         <button
-          class="flex items-center justify-end gap-4 bg-white px-5 py-4 text-right transition-colors hover:bg-neutral-50 dark:bg-neutral-900 dark:hover:bg-neutral-800/70"
+          class="bg-surface flex items-center justify-end gap-4 px-5 py-4 text-right transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/70"
           :class="
             activeFilter === 'planned'
               ? 'ring-1 ring-neutral-300 ring-inset dark:ring-neutral-600'
@@ -147,12 +145,12 @@
             <div class="text-xs text-neutral-400">
               release{{ plannedReleases.length === 1 ? '' : 's' }} planned
             </div>
-            <div class="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">
+            <div class="text-content-subtle mt-0.5 text-xs">
               {{ plannedReleases.map((r) => r.name).join(', ') }}
             </div>
           </div>
           <div
-            class="flex size-8 flex-shrink-0 items-center justify-center rounded-full bg-neutral-100 dark:bg-neutral-800"
+            class="bg-surface-sunken flex size-8 flex-shrink-0 items-center justify-center rounded-full"
           >
             <UIcon
               name="i-heroicons-arrow-right"
@@ -203,20 +201,20 @@
           <!-- Intents (collapsible) -->
           <div
             v-if="!collapsed.has(release.id)"
-            class="overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-800"
+            class="border-line overflow-hidden rounded-lg border"
           >
             <div
               v-for="(intent, i) in release.intents"
               :key="intent.id"
-              class="group/row flex cursor-pointer items-center gap-4 bg-white px-5 py-3.5 transition-colors hover:bg-neutral-50 dark:bg-neutral-900 dark:hover:bg-neutral-800/50"
+              class="group/row bg-surface flex cursor-pointer items-center gap-4 px-5 py-3.5 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/50"
               :class="[
                 i < release.intents.length - 1
-                  ? 'border-b border-neutral-100 dark:border-neutral-800'
+                  ? 'border-line-subtle border-b'
                   : '',
                 intent.state === 'out-of-scope' ? 'opacity-40' : '',
                 selectedIntent?.id === intent.id &&
                 selectedIntent?.title === intent.title
-                  ? 'bg-neutral-50 dark:bg-neutral-800/50'
+                  ? 'bg-surface-hover-subtle/50'
                   : '',
               ]"
               @click="
@@ -313,10 +311,10 @@
     <Transition name="slide">
       <div
         v-if="selectedIntent"
-        class="flex w-96 flex-shrink-0 flex-col overflow-auto border-l border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900"
+        class="border-line bg-surface flex w-96 flex-shrink-0 flex-col overflow-auto border-l"
       >
         <div
-          class="flex flex-shrink-0 items-center justify-between border-b border-neutral-200 px-6 py-4 dark:border-neutral-800"
+          class="border-line flex flex-shrink-0 items-center justify-between border-b px-6 py-4"
         >
           <div class="flex items-center gap-2">
             <UIcon
@@ -348,7 +346,7 @@
 
           <div
             v-if="selectedIntent.description"
-            class="text-sm leading-relaxed text-neutral-600 dark:text-neutral-400"
+            class="text-content-muted text-sm leading-relaxed"
           >
             {{ selectedIntent.description }}
           </div>
@@ -359,9 +357,7 @@
             >
               Done when
             </div>
-            <p
-              class="text-sm leading-relaxed text-neutral-600 dark:text-neutral-400"
-            >
+            <p class="text-content-muted text-sm leading-relaxed">
               {{ selectedIntent.doneWhen }}
             </p>
           </div>

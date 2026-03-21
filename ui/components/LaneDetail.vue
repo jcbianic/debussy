@@ -2,7 +2,7 @@
   <div class="flex h-full flex-col">
     <!-- Lane header -->
     <div
-      class="flex flex-shrink-0 items-center justify-between border-b border-neutral-200 bg-white px-8 py-4 dark:border-neutral-800 dark:bg-neutral-900/50"
+      class="border-line flex flex-shrink-0 items-center justify-between border-b bg-white px-8 py-4 dark:bg-neutral-900/50"
     >
       <div class="flex items-center gap-3">
         <div
@@ -45,7 +45,7 @@
 
     <!-- Tab bar -->
     <div
-      class="flex flex-shrink-0 items-center gap-0 border-b border-neutral-200 bg-white px-8 dark:border-neutral-800 dark:bg-neutral-900/30"
+      class="border-line flex flex-shrink-0 items-center gap-0 border-b bg-white px-8 dark:bg-neutral-900/30"
     >
       <button
         v-for="tab in tabs"
@@ -53,8 +53,8 @@
         class="flex items-center gap-2 border-b-2 px-4 py-3 text-sm transition-colors"
         :class="
           activeTab === tab.key
-            ? 'border-neutral-900 font-medium text-neutral-900 dark:border-neutral-100 dark:text-neutral-100'
-            : 'border-transparent text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200'
+            ? 'text-content border-neutral-900 font-medium dark:border-neutral-100'
+            : 'text-content-subtle border-transparent hover:text-neutral-700 dark:hover:text-neutral-200'
         "
         @click="activeTab = tab.key"
       >
@@ -91,10 +91,10 @@
           <div
             v-for="group in reviewGroups"
             :key="group.id"
-            class="overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-800"
+            class="border-line overflow-hidden rounded-lg border"
           >
             <button
-              class="flex w-full items-center gap-3 bg-white px-4 py-3 text-left transition-colors hover:bg-neutral-50 dark:bg-neutral-900 dark:hover:bg-neutral-800/50"
+              class="bg-surface flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/50"
               @click="toggleGroup(group.id)"
             >
               <UIcon
@@ -122,7 +122,7 @@
             </button>
             <div
               v-if="expanded.has(group.id)"
-              class="border-t border-neutral-100 dark:border-neutral-800"
+              class="border-line-subtle border-t"
             >
               <NuxtLink
                 v-for="(item, i) in group.items"
@@ -131,7 +131,7 @@
                 class="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/50"
                 :class="
                   i < group.items.length - 1
-                    ? 'border-b border-neutral-100 dark:border-neutral-800'
+                    ? 'border-line-subtle border-b'
                     : ''
                 "
               >
@@ -197,9 +197,9 @@
               :class="{
                 'border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30':
                   step.state === 'running',
-                'border-neutral-100 bg-white dark:border-neutral-800 dark:bg-neutral-900':
+                'border-line-subtle bg-surface':
                   step.state === 'done' || step.state === 'waiting',
-                'border-neutral-100 bg-neutral-50 opacity-60 dark:border-neutral-800 dark:bg-neutral-900/50':
+                'border-line-subtle bg-neutral-50 opacity-60 dark:bg-neutral-900/50':
                   step.state === 'pending',
               }"
             >
@@ -264,18 +264,12 @@
             >{{ commits.length }} commits ahead of main</span
           >
         </div>
-        <div
-          class="overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-800"
-        >
+        <div class="border-line overflow-hidden rounded-lg border">
           <div
             v-for="(commit, i) in commits"
             :key="commit.hash"
-            class="flex items-start gap-4 bg-white px-5 py-3.5 dark:bg-neutral-900"
-            :class="
-              i < commits.length - 1
-                ? 'border-b border-neutral-100 dark:border-neutral-800'
-                : ''
-            "
+            class="bg-surface flex items-start gap-4 px-5 py-3.5"
+            :class="i < commits.length - 1 ? 'border-line-subtle border-b' : ''"
           >
             <span
               class="mt-0.5 w-14 flex-shrink-0 font-mono text-xs text-neutral-400"

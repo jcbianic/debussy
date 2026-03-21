@@ -2,9 +2,7 @@
   <TwoPanelLayout left-width="w-60">
     <!-- Left panel: groups -->
     <template #left>
-      <div
-        class="border-b border-neutral-200 px-5 py-4 dark:border-neutral-800"
-      >
+      <div class="border-line border-b px-5 py-4">
         <h1 class="text-sm font-semibold">Features of debussy</h1>
         <p class="mt-0.5 font-mono text-xs text-neutral-400">
           ~/Projets/Libon-Data/debussy
@@ -21,10 +19,10 @@
         <div
           v-for="group in groups"
           :key="group.key"
-          class="flex cursor-pointer items-center gap-3 border-b border-neutral-100 px-5 py-3 transition-colors last:border-b-0 dark:border-neutral-800"
+          class="border-line-subtle flex cursor-pointer items-center gap-3 border-b px-5 py-3 transition-colors last:border-b-0"
           :class="
             selected === group.key
-              ? 'bg-neutral-50 dark:bg-neutral-800'
+              ? 'bg-surface-hover-subtle'
               : 'hover:bg-neutral-50 dark:hover:bg-neutral-800/50'
           "
           @click="selected = group.key"
@@ -42,9 +40,7 @@
           </div>
         </div>
       </div>
-      <div
-        class="border-t border-neutral-200 px-5 py-3 text-xs text-neutral-400 dark:border-neutral-800"
-      >
+      <div class="border-line border-t px-5 py-3 text-xs text-neutral-400">
         .debussy/strategy/feature-space.md
       </div>
     </template>
@@ -53,7 +49,7 @@
     <div class="flex flex-1 flex-col overflow-hidden">
       <!-- Search bar -->
       <div
-        class="flex flex-shrink-0 items-center gap-3 border-b border-neutral-200 bg-white px-6 py-4 dark:border-neutral-800 dark:bg-neutral-900"
+        class="border-line bg-surface flex flex-shrink-0 items-center gap-3 border-b px-6 py-4"
       >
         <div class="relative flex-1">
           <UIcon
@@ -64,7 +60,7 @@
             v-model="searchQuery"
             type="text"
             placeholder="Search features…"
-            class="w-full rounded-lg border-0 bg-neutral-100 py-2 pr-3 pl-9 text-sm outline-none focus:ring-2 focus:ring-neutral-300 dark:bg-neutral-800 dark:focus:ring-neutral-600"
+            class="bg-surface-sunken w-full rounded-lg border-0 py-2 pr-3 pl-9 text-sm outline-none focus:ring-2 focus:ring-neutral-300 dark:focus:ring-neutral-600"
           />
           <button
             v-if="searchQuery"
@@ -83,7 +79,7 @@
           class="overflow-auto py-5 transition-[width,padding]"
           :class="
             selectedFeature
-              ? 'w-96 flex-shrink-0 border-r border-neutral-200 px-4 dark:border-neutral-800'
+              ? 'border-line w-96 flex-shrink-0 border-r px-4'
               : 'flex-1 px-6'
           "
         >
@@ -102,8 +98,8 @@
                 class="cursor-pointer rounded-lg border transition-colors"
                 :class="
                   selectedFeature?.name === f.name
-                    ? 'border-neutral-400 bg-neutral-50 dark:border-neutral-500 dark:bg-neutral-800'
-                    : 'border-neutral-200 bg-white hover:border-neutral-300 hover:bg-neutral-50 dark:border-neutral-800 dark:bg-neutral-900 dark:hover:border-neutral-700 dark:hover:bg-neutral-800/50'
+                    ? 'bg-surface-hover-subtle border-neutral-400 dark:border-neutral-500'
+                    : 'border-line bg-surface hover:border-neutral-300 hover:bg-neutral-50 dark:hover:border-neutral-700 dark:hover:bg-neutral-800/50'
                 "
                 @click="selectedFeature = f"
               >
@@ -132,7 +128,7 @@
                   </div>
                   <p
                     v-if="!selectedFeature"
-                    class="text-sm leading-relaxed text-neutral-500 dark:text-neutral-400"
+                    class="text-content-subtle text-sm leading-relaxed"
                     v-html="highlight(f.description)"
                   />
                 </div>
@@ -179,8 +175,8 @@
                 class="cursor-pointer rounded-lg border transition-colors"
                 :class="
                   selectedFeature?.name === f.name
-                    ? 'border-neutral-400 bg-neutral-50 dark:border-neutral-500 dark:bg-neutral-800'
-                    : 'border-neutral-200 bg-white hover:border-neutral-300 hover:bg-neutral-50 dark:border-neutral-800 dark:bg-neutral-900 dark:hover:border-neutral-700 dark:hover:bg-neutral-800/50'
+                    ? 'bg-surface-hover-subtle border-neutral-400 dark:border-neutral-500'
+                    : 'border-line bg-surface hover:border-neutral-300 hover:bg-neutral-50 dark:hover:border-neutral-700 dark:hover:bg-neutral-800/50'
                 "
                 @click="selectedFeature = f"
               >
@@ -228,7 +224,7 @@
                   </div>
                   <p
                     v-if="!selectedFeature"
-                    class="mt-2 text-sm leading-relaxed text-neutral-500 dark:text-neutral-400"
+                    class="text-content-subtle mt-2 text-sm leading-relaxed"
                   >
                     {{ f.description }}
                   </p>
@@ -312,9 +308,7 @@
                   <div class="text-xs font-semibold">
                     {{ problemMeta[p]?.name }}
                   </div>
-                  <div
-                    class="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400"
-                  >
+                  <div class="text-content-subtle mt-0.5 text-xs">
                     {{ problemMeta[p]?.description }}
                   </div>
                 </div>
@@ -329,9 +323,7 @@
             >
               Description
             </div>
-            <p
-              class="text-sm leading-relaxed text-neutral-600 dark:text-neutral-400"
-            >
+            <p class="text-content-muted text-sm leading-relaxed">
               {{ selectedFeature.description }}
             </p>
           </div>
@@ -347,7 +339,7 @@
               <li
                 v-for="item in selectedFeature.items"
                 :key="item"
-                class="flex items-start gap-2.5 text-sm text-neutral-600 dark:text-neutral-400"
+                class="text-content-muted flex items-start gap-2.5 text-sm"
               >
                 <UIcon
                   name="i-heroicons-chevron-right"
@@ -359,10 +351,7 @@
           </div>
 
           <!-- Related features -->
-          <div
-            v-if="relatedFeatures.length"
-            class="border-t border-neutral-200 pt-4 dark:border-neutral-800"
-          >
+          <div v-if="relatedFeatures.length" class="border-line border-t pt-4">
             <div
               class="mb-2 text-xs font-semibold tracking-wider text-neutral-400 uppercase"
             >
@@ -483,8 +472,7 @@ const domainMeta: Record<
     icon: 'i-heroicons-code-bracket',
     color: 'text-neutral-500',
     description: 'Git, commits, tests, security, documentation',
-    badgeClass:
-      'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400',
+    badgeClass: 'bg-surface-sunken text-content-muted',
   },
   'context-memory': {
     name: 'Context & Memory',
@@ -544,8 +532,7 @@ const problemMeta: Record<
 const typeMeta: Record<string, { shortName: string; badgeClass: string }> = {
   'table-stakes': {
     shortName: 'Table Stakes',
-    badgeClass:
-      'bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400',
+    badgeClass: 'bg-surface-sunken text-content-subtle',
   },
   differentiators: {
     shortName: 'Differentiator',
@@ -1041,24 +1028,15 @@ const searchResults = computed<EnrichedFeature[]>(() => {
 })
 
 function problemBadgeClass(p: string): string {
-  return (
-    problemMeta[p]?.badgeClass ??
-    'bg-neutral-100 dark:bg-neutral-800 text-neutral-500'
-  )
+  return problemMeta[p]?.badgeClass ?? 'bg-surface-sunken text-neutral-500'
 }
 
 function domainBadgeClass(d: string): string {
-  return (
-    domainMeta[d]?.badgeClass ??
-    'bg-neutral-100 dark:bg-neutral-800 text-neutral-500'
-  )
+  return domainMeta[d]?.badgeClass ?? 'bg-surface-sunken text-neutral-500'
 }
 
 function typeBadgeClass(t: string): string {
-  return (
-    typeMeta[t]?.badgeClass ??
-    'bg-neutral-100 dark:bg-neutral-800 text-neutral-500'
-  )
+  return typeMeta[t]?.badgeClass ?? 'bg-surface-sunken text-neutral-500'
 }
 
 function problemCardClass(p: string): string {
@@ -1067,10 +1045,7 @@ function problemCardClass(p: string): string {
     P2: 'border-sky-200 dark:border-sky-800 bg-sky-50 dark:bg-sky-900/20',
     P3: 'border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20',
   }
-  return (
-    classes[p] ??
-    'border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/50'
-  )
+  return classes[p] ?? 'border-line bg-neutral-50 dark:bg-neutral-900/50'
 }
 
 const highlight = (text: string) => {
