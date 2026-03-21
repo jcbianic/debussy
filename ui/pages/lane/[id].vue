@@ -191,14 +191,7 @@ const tabs = computed(() => [
 
 const activeTab = ref('inbox')
 
-const allIds = reviewGroups.value.map(g => g.id)
-const expanded = ref(new Set(allIds))
-const toggleGroup = (gid: string) => {
-  if (expanded.value.has(gid)) expanded.value.delete(gid)
-  else expanded.value.add(gid)
-  expanded.value = new Set(expanded.value)
-}
+const { expanded, toggle: toggleGroup } = useExpandable(reviewGroups.value.map(g => g.id))
 
 const pendingCount = (g: ReviewGroup) => g.items.filter(i => i.status === 'pending').length
-const statusColor = (s: string) => s === 'approved' ? 'success' as const : s === 'rejected' ? 'error' as const : 'warning' as const
 </script>

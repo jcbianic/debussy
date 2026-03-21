@@ -134,20 +134,5 @@ const totalPending = computed(() =>
 const pendingCount = (group: ReviewGroup) =>
   group.items.filter(i => i.status === 'pending').length
 
-const expanded = ref(new Set(reviewGroups.value.map(g => g.id)))
-
-const toggleGroup = (groupId: string) => {
-  if (expanded.value.has(groupId)) {
-    expanded.value.delete(groupId)
-  } else {
-    expanded.value.add(groupId)
-  }
-  expanded.value = new Set(expanded.value)
-}
-
-const statusColor = (s: string) => {
-  if (s === 'approved') return 'success' as const
-  if (s === 'rejected') return 'error' as const
-  return 'warning' as const
-}
+const { expanded, toggle: toggleGroup } = useExpandable(reviewGroups.value.map(g => g.id))
 </script>

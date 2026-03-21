@@ -328,12 +328,7 @@ const totalItems = computed(() => allLanes.flatMap(l => l.groups.flatMap(g => g.
 const lanePendingCount = (lane: Lane) => lane.groups.flatMap(g => g.items).filter(i => i.status === 'pending').length
 
 const allGroupIds = allLanes.flatMap(l => l.groups.map(g => g.id))
-const expanded = ref(new Set(allGroupIds))
-const toggleGroup = (id: string) => {
-  if (expanded.value.has(id)) expanded.value.delete(id)
-  else expanded.value.add(id)
-  expanded.value = new Set(expanded.value)
-}
+const { expanded, toggle: toggleGroup } = useExpandable(allGroupIds)
 
 const pendingCount = (g: ReviewGroup) => g.items.filter(i => i.status === 'pending').length
 
@@ -376,7 +371,6 @@ const selectedLane = computed(() => allLanes.find(l => l.id === selectedLaneId.v
 const pendingInLane = computed(() => selectedLane.value?.groups.flatMap(g => g.items).filter(i => i.status === 'pending').length ?? 0)
 const activeRoundData = computed(() => selectedItem.value?.rounds.find(r => r.roundNumber === activeRound.value) ?? null)
 
-const statusColor = (s: string) => s === 'approved' ? 'success' as const : s === 'rejected' ? 'error' as const : 'warning' as const
 
 const comment = ref('')
 const commentError = ref('')
