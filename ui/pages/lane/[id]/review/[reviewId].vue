@@ -2,7 +2,7 @@
   <div class="flex h-full flex-col">
     <!-- Header -->
     <div
-      class="border-line flex items-center gap-3 border-b bg-white px-8 py-4 dark:bg-neutral-900/50"
+      class="border-line bg-surface-tinted flex items-center gap-3 border-b px-8 py-4"
     >
       <NuxtLink
         :to="`/lane/${laneId}`"

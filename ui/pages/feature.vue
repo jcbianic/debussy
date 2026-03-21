@@ -98,7 +98,7 @@
                 class="cursor-pointer rounded-lg border transition-colors"
                 :class="
                   selectedFeature?.name === f.name
-                    ? 'bg-surface-hover-subtle border-neutral-400 dark:border-neutral-500'
+                    ? 'bg-surface-hover-subtle border-line-active'
                     : 'border-line bg-surface hover:border-neutral-300 hover:bg-neutral-50 dark:hover:border-neutral-700 dark:hover:bg-neutral-800/50'
                 "
                 @click="selectedFeature = f"
@@ -175,7 +175,7 @@
                 class="cursor-pointer rounded-lg border transition-colors"
                 :class="
                   selectedFeature?.name === f.name
-                    ? 'bg-surface-hover-subtle border-neutral-400 dark:border-neutral-500'
+                    ? 'bg-surface-hover-subtle border-line-active'
                     : 'border-line bg-surface hover:border-neutral-300 hover:bg-neutral-50 dark:hover:border-neutral-700 dark:hover:bg-neutral-800/50'
                 "
                 @click="selectedFeature = f"
@@ -370,9 +370,7 @@
                   :class="problemBadgeClass(f.problems[0])"
                   >{{ f.problems[0] }}</span
                 >
-                <span
-                  v-else
-                  class="flex-shrink-0 text-xs text-neutral-300 dark:text-neutral-600"
+                <span v-else class="text-content-ghost flex-shrink-0 text-xs"
                   >—</span
                 >
                 <span class="flex-1 truncate text-sm">{{ f.name }}</span>
@@ -1045,7 +1043,7 @@ function problemCardClass(p: string): string {
     P2: 'border-sky-200 dark:border-sky-800 bg-sky-50 dark:bg-sky-900/20',
     P3: 'border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20',
   }
-  return classes[p] ?? 'border-line bg-neutral-50 dark:bg-neutral-900/50'
+  return classes[p] ?? 'border-line bg-surface-tinted'
 }
 
 const highlight = (text: string) => {

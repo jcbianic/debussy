@@ -41,9 +41,7 @@
         class="border-line flex w-72 flex-shrink-0 flex-col overflow-hidden border-r"
       >
         <!-- Type filter -->
-        <div
-          class="flex-shrink-0 border-b border-neutral-100 px-3 py-2.5 dark:border-neutral-800/60"
-        >
+        <div class="border-line-subtle flex-shrink-0 border-b px-3 py-2.5">
           <div class="flex flex-wrap gap-0.5">
             <button
               v-for="tab in tabs"
@@ -154,7 +152,7 @@
                 }}</span>
                 <UIcon
                   name="i-heroicons-chevron-right"
-                  class="size-3.5 text-neutral-300 dark:text-neutral-600"
+                  class="text-content-ghost size-3.5"
                 />
               </div>
               <!-- Provides -->
@@ -212,7 +210,7 @@
                 >
                 <span
                   v-if="selected.version"
-                  class="font-mono text-xs text-neutral-300 dark:text-neutral-600"
+                  class="text-content-ghost font-mono text-xs"
                   >v{{ selected.version }}</span
                 >
                 <UBadge
@@ -230,7 +228,7 @@
                 :class="
                   usageFor(selected) > 0
                     ? 'text-content'
-                    : 'text-neutral-300 dark:text-neutral-700'
+                    : 'text-content-placeholder'
                 "
               >
                 {{ usageFor(selected) > 0 ? usageFor(selected) : '—' }}
@@ -244,7 +242,7 @@
           <!-- Metadata -->
           <div
             v-if="selectedMeta.length"
-            class="border-line mb-5 flex gap-8 rounded-lg border bg-neutral-50 px-5 py-3.5 dark:bg-neutral-900/50"
+            class="border-line bg-surface-tinted mb-5 flex gap-8 rounded-lg border px-5 py-3.5"
           >
             <div v-for="m in selectedMeta" :key="m.label">
               <div class="mb-0.5 text-xs text-neutral-400">{{ m.label }}</div>
@@ -307,7 +305,7 @@
                   >
                   <UIcon
                     name="i-heroicons-chevron-right"
-                    class="size-3 flex-shrink-0 text-neutral-300 dark:text-neutral-600"
+                    class="text-content-ghost size-3 flex-shrink-0"
                   />
                 </button>
               </div>
@@ -327,7 +325,7 @@
                 <span
                   v-for="tool in selected.allowedTools.split(', ')"
                   :key="tool"
-                  class="bg-surface-hover text-content-muted rounded border border-neutral-200 px-2 py-1 font-mono text-xs dark:border-neutral-700"
+                  class="bg-surface-hover text-content-muted border-line-raised rounded border px-2 py-1 font-mono text-xs"
                   >{{ tool }}</span
                 >
               </div>
@@ -351,7 +349,7 @@
                 Content
               </h3>
               <pre
-                class="border-line text-content-secondary overflow-x-auto rounded-lg border bg-neutral-50 px-5 py-4 font-mono text-xs leading-relaxed whitespace-pre-wrap dark:bg-neutral-900/50"
+                class="border-line text-content-secondary bg-surface-tinted overflow-x-auto rounded-lg border px-5 py-4 font-mono text-xs leading-relaxed whitespace-pre-wrap"
                 >{{ selected.body }}</pre
               >
             </div>

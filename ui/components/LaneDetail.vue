@@ -2,7 +2,7 @@
   <div class="flex h-full flex-col">
     <!-- Lane header -->
     <div
-      class="border-line flex flex-shrink-0 items-center justify-between border-b bg-white px-8 py-4 dark:bg-neutral-900/50"
+      class="border-line bg-surface-tinted flex flex-shrink-0 items-center justify-between border-b px-8 py-4"
     >
       <div class="flex items-center gap-3">
         <div
@@ -45,7 +45,7 @@
 
     <!-- Tab bar -->
     <div
-      class="border-line flex flex-shrink-0 items-center gap-0 border-b bg-white px-8 dark:bg-neutral-900/30"
+      class="border-line bg-surface-tinted flex flex-shrink-0 items-center gap-0 border-b px-8"
     >
       <button
         v-for="tab in tabs"
@@ -53,8 +53,8 @@
         class="flex items-center gap-2 border-b-2 px-4 py-3 text-sm transition-colors"
         :class="
           activeTab === tab.key
-            ? 'text-content border-neutral-900 font-medium dark:border-neutral-100'
-            : 'text-content-subtle border-transparent hover:text-neutral-700 dark:hover:text-neutral-200'
+            ? 'text-content border-line-indicator font-medium'
+            : 'text-content-subtle hover:text-content-strong border-transparent'
         "
         @click="activeTab = tab.key"
       >
@@ -150,7 +150,7 @@
                 />
                 <UIcon
                   name="i-heroicons-chevron-right"
-                  class="size-3.5 flex-shrink-0 text-neutral-300 dark:text-neutral-600"
+                  class="text-content-ghost size-3.5 flex-shrink-0"
                 />
               </NuxtLink>
             </div>
@@ -199,7 +199,7 @@
                   step.state === 'running',
                 'border-line-subtle bg-surface':
                   step.state === 'done' || step.state === 'waiting',
-                'border-line-subtle bg-neutral-50 opacity-60 dark:bg-neutral-900/50':
+                'border-line-subtle bg-surface-tinted opacity-60':
                   step.state === 'pending',
               }"
             >
@@ -218,8 +218,7 @@
                   'text-green-500': step.state === 'done',
                   'animate-spin text-blue-500': step.state === 'running',
                   'text-yellow-500': step.state === 'waiting',
-                  'text-neutral-300 dark:text-neutral-600':
-                    step.state === 'pending',
+                  'text-content-ghost': step.state === 'pending',
                 }"
               />
               <div class="min-w-0 flex-1">
@@ -281,9 +280,7 @@
                 <span class="text-xs text-neutral-400">{{
                   commit.author
                 }}</span>
-                <span class="text-xs text-neutral-300 dark:text-neutral-600"
-                  >·</span
-                >
+                <span class="text-content-ghost text-xs">·</span>
                 <span class="text-xs text-neutral-400">{{ commit.date }}</span>
               </div>
             </div>

@@ -70,6 +70,21 @@
   ); /* separators, empty state */
   --color-content-inverted: var(--color-white); /* text on inverted bg */
 
+  /* Lines / Borders (extended) ────────────────────── */
+  --color-line-raised: var(--color-neutral-200); /* chip / elevated component border */
+  --color-line-active: var(--color-neutral-400); /* selected card / item border      */
+  --color-line-indicator: var(--color-neutral-900); /* active tab underline (inverted) */
+
+  /* Ring ───────────────────────────────────────────── */
+  --color-ring: var(--color-neutral-300); /* selection ring on filter pills / cards */
+
+  /* Content / Text (extended) ─────────────────────── */
+  --color-content-ghost: var(--color-neutral-300); /* idle icons, separators, empty state */
+  --color-content-strong: var(--color-neutral-800); /* active item title, bold secondary   */
+
+  /* Surfaces (extended) ───────────────────────────── */
+  --color-surface-tinted: var(--color-neutral-50); /* frosted panel: code blocks, info boxes */
+
   /* Status Indicators ─────────────────────────────── */
   --color-status-active: var(--color-blue-500); /* staged / in-progress */
   --color-status-inactive: var(--color-neutral-300); /* idle lane dot      */
@@ -111,6 +126,25 @@
   --color-content-faint: var(--color-neutral-500);
   --color-content-placeholder: var(--color-neutral-700);
   --color-content-inverted: var(--color-neutral-900);
+
+  /* Lines (extended) */
+  --color-line-raised: var(--color-neutral-700);
+  --color-line-active: var(--color-neutral-500);
+  --color-line-indicator: var(--color-neutral-100);
+
+  /* Ring */
+  --color-ring: var(--color-neutral-600);
+
+  /* Content (extended) */
+  --color-content-ghost: var(--color-neutral-600);
+  --color-content-strong: var(--color-neutral-200);
+
+  /* Surfaces (extended) */
+  --color-surface-tinted: color-mix(
+    in oklch,
+    var(--color-neutral-900) 50%,
+    transparent
+  );
 
   /* Status */
   --color-status-inactive: var(--color-neutral-600);

@@ -150,7 +150,7 @@
               </div>
               <UIcon
                 name="i-heroicons-chevron-right"
-                class="mt-1 size-4 flex-shrink-0 text-neutral-300 dark:text-neutral-600"
+                class="text-content-ghost mt-1 size-4 flex-shrink-0"
               />
             </div>
           </div>
@@ -199,7 +199,7 @@
             :class="
               flagged.has('principle:' + currentPrinciple.num)
                 ? 'border-red-200 bg-red-50 text-red-600 hover:border-red-300 dark:border-red-800 dark:bg-red-950/30 dark:text-red-400'
-                : 'bg-surface text-content-subtle border-neutral-200 hover:border-neutral-300 dark:border-neutral-700'
+                : 'bg-surface text-content-subtle border-line-raised hover:border-neutral-300'
             "
             @click="toggleFlag('principle:' + currentPrinciple.num)"
           >
@@ -247,7 +247,7 @@
               />
               <UIcon
                 name="i-heroicons-chevron-right"
-                class="size-4 flex-shrink-0 text-neutral-300 dark:text-neutral-600"
+                class="text-content-ghost size-4 flex-shrink-0"
               />
             </div>
           </div>
@@ -274,9 +274,7 @@
         <div class="border-line overflow-hidden rounded-lg border">
           <table class="w-full text-sm">
             <thead>
-              <tr
-                class="border-line border-b bg-neutral-50 dark:bg-neutral-900"
-              >
+              <tr class="border-line bg-surface-hover border-b">
                 <th
                   class="w-12 px-4 py-2.5 text-left text-xs font-medium text-neutral-500"
                 >
@@ -405,7 +403,7 @@
             :class="
               flagged.has('adr:' + currentAdr.key)
                 ? 'border-red-200 bg-red-50 text-red-600 hover:border-red-300 dark:border-red-800 dark:bg-red-950/30 dark:text-red-400'
-                : 'bg-surface text-content-subtle border-neutral-200 hover:border-neutral-300 dark:border-neutral-700'
+                : 'bg-surface text-content-subtle border-line-raised hover:border-neutral-300'
             "
             @click="toggleFlag('adr:' + currentAdr.key)"
           >
@@ -421,7 +419,7 @@
         <!-- Affects principles callout -->
         <div
           v-if="currentAdr.affectedPrinciples?.length"
-          class="border-line mb-6 flex items-start gap-3 rounded-lg border bg-neutral-50 px-4 py-3 dark:bg-neutral-900/50"
+          class="border-line bg-surface-tinted mb-6 flex items-start gap-3 rounded-lg border px-4 py-3"
         >
           <UIcon
             name="i-heroicons-scale"
@@ -435,7 +433,7 @@
               <button
                 v-for="num in currentAdr.affectedPrinciples"
                 :key="num"
-                class="text-content-muted rounded border border-neutral-200 bg-white px-2 py-0.5 font-mono text-xs transition-colors hover:border-neutral-400 dark:border-neutral-700 dark:bg-neutral-800"
+                class="text-content-muted border-line-raised bg-surface-sunken rounded border px-2 py-0.5 font-mono text-xs transition-colors hover:border-neutral-400"
                 @click="goTo('principle', num)"
               >
                 P{{ num }} · {{ principles.find((p) => p.num === num)?.name }}
@@ -458,9 +456,7 @@
             >
               <table class="w-full text-xs">
                 <thead>
-                  <tr
-                    class="border-line border-b bg-neutral-50 dark:bg-neutral-900"
-                  >
+                  <tr class="border-line bg-surface-hover border-b">
                     <th
                       v-for="col in section.table.headers"
                       :key="col"
@@ -835,6 +831,6 @@ function adrChipClass(adrKey: string) {
   if (adr?.status === 'Proposed') {
     return 'border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400'
   }
-  return 'border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-content-muted'
+  return 'border-line-raised bg-surface-sunken text-content-muted'
 }
 </script>

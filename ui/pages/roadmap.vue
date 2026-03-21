@@ -36,7 +36,7 @@
             <span class="flex items-center gap-1"
               ><UIcon
                 name="i-heroicons-minus-circle"
-                class="size-3.5 text-neutral-300 dark:text-neutral-600"
+                class="text-content-ghost size-3.5"
               />
               Out of scope</span
             >
@@ -55,15 +55,13 @@
 
       <!-- Summary bar -->
       <div
-        class="mb-5 grid grid-cols-3 gap-px overflow-hidden rounded-xl border border-neutral-200 bg-neutral-200 dark:border-neutral-700 dark:bg-neutral-700"
+        class="border-line-raised bg-surface-tag mb-5 grid grid-cols-3 gap-px overflow-hidden rounded-xl border"
       >
         <!-- Past -->
         <button
           class="bg-surface flex items-center gap-4 px-5 py-4 text-left transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/70"
           :class="
-            activeFilter === 'shipped'
-              ? 'ring-1 ring-neutral-300 ring-inset dark:ring-neutral-600'
-              : ''
+            activeFilter === 'shipped' ? 'ring-ring ring-1 ring-inset' : ''
           "
           @click="activeFilter = activeFilter === 'shipped' ? 'all' : 'shipped'"
         >
@@ -119,7 +117,7 @@
                 :class="{
                   'bg-green-500': intent.state === 'done',
                   'bg-blue-500': intent.state === 'in-progress',
-                  'bg-neutral-200 dark:bg-neutral-700': intent.state === 'open',
+                  'bg-surface-tag': intent.state === 'open',
                 }"
                 :title="intent.title"
               />
@@ -132,9 +130,7 @@
         <button
           class="bg-surface flex items-center justify-end gap-4 px-5 py-4 text-right transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/70"
           :class="
-            activeFilter === 'planned'
-              ? 'ring-1 ring-neutral-300 ring-inset dark:ring-neutral-600'
-              : ''
+            activeFilter === 'planned' ? 'ring-ring ring-1 ring-inset' : ''
           "
           @click="activeFilter = activeFilter === 'planned' ? 'all' : 'planned'"
         >
@@ -186,7 +182,7 @@
             <span class="text-sm font-semibold">{{ release.name }}</span>
             <span class="text-sm text-neutral-400">—</span>
             <span class="text-sm text-neutral-500">{{ release.theme }}</span>
-            <div class="h-px flex-1 bg-neutral-200 dark:bg-neutral-800" />
+            <div class="bg-line h-px flex-1" />
             <span class="text-xs text-neutral-400"
               >{{ meaningfulCount(release) }} intents</span
             >
@@ -240,7 +236,7 @@
                   :class="
                     intent.state === 'done'
                       ? 'text-neutral-400 line-through'
-                      : 'text-neutral-800 dark:text-neutral-200'
+                      : 'text-content-strong'
                   "
                 >
                   {{ intent.title }}
@@ -273,7 +269,7 @@
                 class="opacity-0 transition-opacity group-hover/row:opacity-100"
               >
                 <select
-                  class="cursor-pointer rounded border border-neutral-200 bg-transparent px-1.5 py-0.5 text-xs text-neutral-400 transition-colors hover:border-neutral-400 dark:border-neutral-700"
+                  class="border-line-raised cursor-pointer rounded border bg-transparent px-1.5 py-0.5 text-xs text-neutral-400 transition-colors hover:border-neutral-400"
                   :value="release.id"
                   @change.stop="
                     moveIntent(
@@ -727,7 +723,7 @@ const stateIconColor = (s: string) => {
   if (s === 'done') return 'text-green-500'
   if (s === 'in-progress') return 'text-blue-500'
   if (s === 'open') return 'text-neutral-400'
-  return 'text-neutral-300 dark:text-neutral-600'
+  return 'text-content-ghost'
 }
 </script>
 

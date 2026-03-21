@@ -7,10 +7,7 @@
         : 'py-12'
     "
   >
-    <UIcon
-      :name="icon"
-      class="mx-auto mb-3 size-8 text-neutral-300 dark:text-neutral-600"
-    />
+    <UIcon :name="icon" class="text-content-ghost mx-auto mb-3 size-8" />
     <p class="text-sm text-neutral-400">{{ text }}</p>
     <slot />
   </div>
