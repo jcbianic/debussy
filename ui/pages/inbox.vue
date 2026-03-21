@@ -17,20 +17,7 @@
           </div>
         </div>
         <!-- Type filter -->
-        <div class="flex items-center gap-1">
-          <button
-            v-for="f in typeFilters"
-            :key="f.value"
-            class="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs transition-colors"
-            :class="activeTypeFilter === f.value
-              ? 'bg-surface-inverted text-content-inverted font-medium'
-              : 'bg-surface-sunken text-content-subtle hover:bg-surface-tag'"
-            @click="activeTypeFilter = f.value"
-          >
-            <UIcon :name="f.icon" class="size-3" />
-            {{ f.label }}
-          </button>
-        </div>
+        <SegmentedControl v-model="activeTypeFilter" :options="typeFilters" />
       </div>
 
       <!-- Items list -->

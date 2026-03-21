@@ -93,20 +93,7 @@
       </div>
 
       <!-- Filter tabs -->
-      <div class="flex items-center gap-1 mb-6">
-        <button
-          v-for="f in filterTabs"
-          :key="f.value"
-          class="px-3 py-1.5 rounded-md text-xs transition-colors font-medium"
-          :class="activeFilter === f.value
-            ? 'bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900'
-            : 'text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-700 dark:hover:text-neutral-200'"
-          @click="activeFilter = f.value"
-        >
-          {{ f.label }}
-          <span class="ml-1 opacity-60">{{ f.count }}</span>
-        </button>
-      </div>
+      <SegmentedControl v-model="activeFilter" :options="filterTabs" class="mb-6" />
 
       <!-- Releases -->
       <div class="space-y-6">

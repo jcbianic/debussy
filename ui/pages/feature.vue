@@ -6,17 +6,13 @@
       <div class="px-5 py-4 border-b border-neutral-200 dark:border-neutral-800">
         <h1 class="text-sm font-semibold">Features of debussy</h1>
         <p class="mt-0.5 text-xs text-neutral-400 font-mono">~/Projets/Libon-Data/debussy</p>
-        <div class="flex gap-1 mt-3">
-          <button
-            v-for="opt in groupByOptions"
-            :key="opt.key"
-            class="flex-1 px-2 py-1.5 rounded text-xs font-medium transition-colors"
-            :class="groupByMode === opt.key
-              ? 'bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900'
-              : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700'"
-            @click="setGroupBy(opt.key)"
-          >{{ opt.label }}</button>
-        </div>
+        <SegmentedControl
+          :model-value="groupByMode"
+          :options="groupByOptions"
+          stretch
+          class="mt-3"
+          @update:model-value="setGroupBy($event as GroupByMode)"
+        />
       </div>
       <div class="flex-1 overflow-y-auto">
         <div
@@ -362,10 +358,10 @@ const categoryDefs: CategoryDef[] = [
   },
 ]
 
-const groupByOptions: Array<{ key: GroupByMode; label: string }> = [
-  { key: 'type', label: 'Type' },
-  { key: 'domain', label: 'Domain' },
-  { key: 'problem', label: 'Problem' },
+const groupByOptions = [
+  { value: 'type',    label: 'Type' },
+  { value: 'domain',  label: 'Domain' },
+  { value: 'problem', label: 'Problem' },
 ]
 
 const groupByMode = ref<GroupByMode>('type')
