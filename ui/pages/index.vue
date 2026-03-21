@@ -1,185 +1,377 @@
 <template>
   <div class="px-8 py-8">
-
     <!-- Page header -->
     <div class="mb-8">
       <h1 class="text-xl font-semibold">Overview of debussy</h1>
-      <p class="mt-1 text-sm text-content-subtle font-mono">~/Projets/Libon-Data/debussy</p>
+      <p class="text-content-subtle mt-1 font-mono text-sm">
+        ~/Projets/Libon-Data/debussy
+      </p>
     </div>
 
     <div class="space-y-4">
-
       <!-- Row 1: Product + Roadmap -->
       <div class="grid grid-cols-2 gap-4">
-
         <!-- Product -->
-        <div class="rounded-lg border border-line overflow-hidden">
-          <div class="flex items-center justify-between px-5 py-4 border-b border-line-subtle bg-surface">
-            <h2 class="text-sm font-semibold flex items-center gap-2">
-              <UIcon name="i-heroicons-cube" class="size-4 text-content-faint" />
+        <div class="border-line overflow-hidden rounded-lg border">
+          <div
+            class="border-line-subtle bg-surface flex items-center justify-between border-b px-5 py-4"
+          >
+            <h2 class="flex items-center gap-2 text-sm font-semibold">
+              <UIcon
+                name="i-heroicons-cube"
+                class="text-content-faint size-4"
+              />
               Product of debussy
             </h2>
-            <NuxtLink to="/product" class="text-xs text-content-faint hover:text-content transition-colors">Explore →</NuxtLink>
+            <NuxtLink
+              to="/product"
+              class="text-content-faint hover:text-content text-xs transition-colors"
+              >Explore →</NuxtLink
+            >
           </div>
           <div class="bg-surface p-5">
-            <div class="grid grid-cols-3 gap-2 mb-4">
+            <div class="mb-4 grid grid-cols-3 gap-2">
               <NuxtLink
                 v-for="artifact in artifacts"
                 :key="artifact.key"
                 to="/product"
-                class="rounded-md border border-line-subtle p-3 hover:border-line transition-colors"
+                class="border-line-subtle hover:border-line rounded-md border p-3 transition-colors"
               >
-                <div class="flex items-start justify-between mb-2">
-                  <UIcon :name="artifact.icon" class="size-3.5 text-content-faint" />
-                  <UBadge :label="artifact.status" :color="artifact.status === 'reviewed' ? 'success' : 'warning'" variant="subtle" size="xs" />
+                <div class="mb-2 flex items-start justify-between">
+                  <UIcon
+                    :name="artifact.icon"
+                    class="text-content-faint size-3.5"
+                  />
+                  <UBadge
+                    :label="artifact.status"
+                    :color="
+                      artifact.status === 'reviewed' ? 'success' : 'warning'
+                    "
+                    variant="subtle"
+                    size="xs"
+                  />
                 </div>
                 <div class="text-xs font-medium">{{ artifact.name }}</div>
               </NuxtLink>
             </div>
-            <p class="text-xs text-content-faint leading-relaxed line-clamp-2">
-              Debussy is a Claude Code plugin for solo builders — structured review workflows, product visibility, and parallel lane management.
+            <p class="text-content-faint line-clamp-2 text-xs leading-relaxed">
+              Debussy is a Claude Code plugin for solo builders — structured
+              review workflows, product visibility, and parallel lane
+              management.
             </p>
           </div>
         </div>
 
         <!-- Roadmap -->
-        <div class="rounded-lg border border-line overflow-hidden">
-          <div class="flex items-center justify-between px-5 py-4 border-b border-line-subtle bg-surface">
-            <h2 class="text-sm font-semibold flex items-center gap-2">
-              <UIcon name="i-heroicons-flag" class="size-4 text-content-faint" />
+        <div class="border-line overflow-hidden rounded-lg border">
+          <div
+            class="border-line-subtle bg-surface flex items-center justify-between border-b px-5 py-4"
+          >
+            <h2 class="flex items-center gap-2 text-sm font-semibold">
+              <UIcon
+                name="i-heroicons-flag"
+                class="text-content-faint size-4"
+              />
               Roadmap of debussy
             </h2>
-            <NuxtLink to="/roadmap" class="text-xs text-content-faint hover:text-content transition-colors">Full roadmap →</NuxtLink>
+            <NuxtLink
+              to="/roadmap"
+              class="text-content-faint hover:text-content text-xs transition-colors"
+              >Full roadmap →</NuxtLink
+            >
           </div>
           <div class="bg-surface">
-            <div class="px-5 py-2.5 border-b border-line-subtle">
-              <span class="text-xs font-medium text-content-subtle">Release 1.0 — Foundation</span>
+            <div class="border-line-subtle border-b px-5 py-2.5">
+              <span class="text-content-subtle text-xs font-medium"
+                >Release 1.0 — Foundation</span
+              >
             </div>
             <div
               v-for="(intent, i) in nextRelease"
               :key="intent.id"
               class="flex items-center gap-3 px-5 py-2.5"
-              :class="i < nextRelease.length - 1 ? 'border-b border-line-subtle' : ''"
+              :class="
+                i < nextRelease.length - 1 ? 'border-line-subtle border-b' : ''
+              "
             >
-              <UIcon :name="stateIcon(intent.state)" class="size-3.5 flex-shrink-0" :class="stateIconColor(intent.state)" />
-              <span class="font-mono text-xs text-content-faint w-7 flex-shrink-0">{{ intent.id }}</span>
-              <span class="flex-1 text-xs truncate" :class="intent.state === 'done' ? 'text-content-faint line-through' : 'text-content-secondary'">{{ intent.title }}</span>
-              <span v-if="intent.lane" class="text-xs text-status-active font-mono truncate max-w-24">{{ intent.lane }}</span>
+              <UIcon
+                :name="stateIcon(intent.state)"
+                class="size-3.5 flex-shrink-0"
+                :class="stateIconColor(intent.state)"
+              />
+              <span
+                class="text-content-faint w-7 flex-shrink-0 font-mono text-xs"
+                >{{ intent.id }}</span
+              >
+              <span
+                class="flex-1 truncate text-xs"
+                :class="
+                  intent.state === 'done'
+                    ? 'text-content-faint line-through'
+                    : 'text-content-secondary'
+                "
+                >{{ intent.title }}</span
+              >
+              <span
+                v-if="intent.lane"
+                class="text-status-active max-w-24 truncate font-mono text-xs"
+                >{{ intent.lane }}</span
+              >
             </div>
           </div>
         </div>
-
       </div>
 
       <!-- Row 2: Inbox + Lanes -->
       <div class="grid grid-cols-2 gap-4">
-
         <!-- Inbox -->
-        <div class="rounded-lg border border-line overflow-hidden">
-          <div class="flex items-center justify-between px-5 py-4 border-b border-line-subtle bg-surface">
-            <h2 class="text-sm font-semibold flex items-center gap-2">
-              <UIcon name="i-heroicons-inbox" class="size-4 text-content-faint" />
+        <div class="border-line overflow-hidden rounded-lg border">
+          <div
+            class="border-line-subtle bg-surface flex items-center justify-between border-b px-5 py-4"
+          >
+            <h2 class="flex items-center gap-2 text-sm font-semibold">
+              <UIcon
+                name="i-heroicons-inbox"
+                class="text-content-faint size-4"
+              />
               Inbox
             </h2>
-            <NuxtLink to="/inbox" class="text-xs text-content-faint hover:text-content transition-colors">View all →</NuxtLink>
+            <NuxtLink
+              to="/inbox"
+              class="text-content-faint hover:text-content text-xs transition-colors"
+              >View all →</NuxtLink
+            >
           </div>
           <div class="bg-surface">
             <div
               v-for="(lane, i) in lanesWithPending"
               :key="lane.id"
               class="flex items-center gap-3 px-5 py-3"
-              :class="i < lanesWithPending.length - 1 ? 'border-b border-line-subtle' : ''"
+              :class="
+                i < lanesWithPending.length - 1
+                  ? 'border-line-subtle border-b'
+                  : ''
+              "
             >
-              <div class="size-1.5 rounded-full flex-shrink-0" :class="lane.isActive ? 'bg-status-active' : 'bg-status-inactive'" />
-              <span class="flex-1 font-mono text-xs text-content-muted truncate">{{ lane.branch }}</span>
-              <UBadge :label="`${lane.pending} pending`" color="warning" variant="subtle" size="xs" />
+              <div
+                class="size-1.5 flex-shrink-0 rounded-full"
+                :class="
+                  lane.isActive ? 'bg-status-active' : 'bg-status-inactive'
+                "
+              />
+              <span
+                class="text-content-muted flex-1 truncate font-mono text-xs"
+                >{{ lane.branch }}</span
+              >
+              <UBadge
+                :label="`${lane.pending} pending`"
+                color="warning"
+                variant="subtle"
+                size="xs"
+              />
             </div>
-            <div class="px-5 py-3 border-t border-line-subtle">
-              <span class="text-xs text-content-faint">6 total across 3 lanes</span>
+            <div class="border-line-subtle border-t px-5 py-3">
+              <span class="text-content-faint text-xs"
+                >6 total across 3 lanes</span
+              >
             </div>
           </div>
         </div>
 
         <!-- Lanes -->
-        <div class="rounded-lg border border-line overflow-hidden">
-          <div class="flex items-center justify-between px-5 py-4 border-b border-line-subtle bg-surface">
-            <h2 class="text-sm font-semibold flex items-center gap-2">
-              <UIcon name="i-heroicons-rectangle-stack" class="size-4 text-content-faint" />
+        <div class="border-line overflow-hidden rounded-lg border">
+          <div
+            class="border-line-subtle bg-surface flex items-center justify-between border-b px-5 py-4"
+          >
+            <h2 class="flex items-center gap-2 text-sm font-semibold">
+              <UIcon
+                name="i-heroicons-rectangle-stack"
+                class="text-content-faint size-4"
+              />
               Lanes
             </h2>
-            <span class="text-xs text-content-faint">4 active</span>
+            <span class="text-content-faint text-xs">4 active</span>
           </div>
           <div class="bg-surface">
             <NuxtLink
               v-for="(lane, i) in lanes"
               :key="lane.id"
               :to="`/lane/${lane.id}`"
-              class="flex items-center gap-3 px-5 py-3 hover:bg-surface-hover-subtle transition-colors"
-              :class="i < lanes.length - 1 ? 'border-b border-line-subtle' : ''"
+              class="hover:bg-surface-hover-subtle flex items-center gap-3 px-5 py-3 transition-colors"
+              :class="i < lanes.length - 1 ? 'border-line-subtle border-b' : ''"
             >
-              <div class="size-1.5 rounded-full flex-shrink-0" :class="lane.isActive ? 'bg-status-active' : 'bg-status-inactive'" />
-              <div class="flex-1 min-w-0">
-                <div class="font-mono text-xs truncate" :class="lane.isActive ? 'font-medium text-content-secondary' : 'text-content-muted'">{{ lane.branch }}</div>
-                <div class="text-xs text-content-faint mt-0.5">{{ lane.intent }}</div>
+              <div
+                class="size-1.5 flex-shrink-0 rounded-full"
+                :class="
+                  lane.isActive ? 'bg-status-active' : 'bg-status-inactive'
+                "
+              />
+              <div class="min-w-0 flex-1">
+                <div
+                  class="truncate font-mono text-xs"
+                  :class="
+                    lane.isActive
+                      ? 'text-content-secondary font-medium'
+                      : 'text-content-muted'
+                  "
+                >
+                  {{ lane.branch }}
+                </div>
+                <div class="text-content-faint mt-0.5 text-xs">
+                  {{ lane.intent }}
+                </div>
               </div>
-              <UBadge v-if="lane.isActive" label="staged" color="primary" variant="subtle" size="xs" />
-              <UIcon name="i-heroicons-chevron-right" class="size-3.5 text-content-placeholder" />
+              <UBadge
+                v-if="lane.isActive"
+                label="staged"
+                color="primary"
+                variant="subtle"
+                size="xs"
+              />
+              <UIcon
+                name="i-heroicons-chevron-right"
+                class="text-content-placeholder size-3.5"
+              />
             </NuxtLink>
           </div>
         </div>
-
       </div>
 
       <!-- Row 3: Claude Setup (full-width compact) -->
-      <div class="rounded-lg border border-line overflow-hidden">
-        <div class="flex items-center justify-between px-5 py-4 border-b border-line-subtle bg-surface">
-          <h2 class="text-sm font-semibold flex items-center gap-2">
-            <UIcon name="i-heroicons-cpu-chip" class="size-4 text-content-faint" />
+      <div class="border-line overflow-hidden rounded-lg border">
+        <div
+          class="border-line-subtle bg-surface flex items-center justify-between border-b px-5 py-4"
+        >
+          <h2 class="flex items-center gap-2 text-sm font-semibold">
+            <UIcon
+              name="i-heroicons-cpu-chip"
+              class="text-content-faint size-4"
+            />
             Claude Setup
           </h2>
           <div class="flex items-center gap-3">
-            <UBadge label="No conflicts" color="success" variant="subtle" size="xs" />
-            <NuxtLink to="/setup" class="text-xs text-content-faint hover:text-content transition-colors">Details →</NuxtLink>
+            <UBadge
+              label="No conflicts"
+              color="success"
+              variant="subtle"
+              size="xs"
+            />
+            <NuxtLink
+              to="/setup"
+              class="text-content-faint hover:text-content text-xs transition-colors"
+              >Details →</NuxtLink
+            >
           </div>
         </div>
-        <div class="bg-surface px-5 py-4 flex items-center gap-8">
-          <div v-for="stat in claudeStats" :key="stat.label" class="flex items-baseline gap-2">
-            <span class="text-xl font-semibold tabular-nums">{{ stat.value }}</span>
-            <span class="text-xs text-content-faint">{{ stat.label }}</span>
+        <div class="bg-surface flex items-center gap-8 px-5 py-4">
+          <div
+            v-for="stat in claudeStats"
+            :key="stat.label"
+            class="flex items-baseline gap-2"
+          >
+            <span class="text-xl font-semibold tabular-nums">{{
+              stat.value
+            }}</span>
+            <span class="text-content-faint text-xs">{{ stat.label }}</span>
           </div>
-          <div class="flex-1 flex items-center gap-2 flex-wrap">
-            <UBadge v-for="item in claudeItems" :key="item.name" :label="item.name" color="neutral" variant="subtle" size="xs" />
+          <div class="flex flex-1 flex-wrap items-center gap-2">
+            <UBadge
+              v-for="item in claudeItems"
+              :key="item.name"
+              :label="item.name"
+              color="neutral"
+              variant="subtle"
+              size="xs"
+            />
           </div>
         </div>
       </div>
-
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 const lanes = [
-  { id: 'root',        branch: 'feat/42-unified-ui', intent: 'Unified UI',                isActive: true,  pending: 3 },
-  { id: 'wt-feedback', branch: 'feat/feedback-ui',   intent: 'Feedback UI Enhancement',   isActive: false, pending: 2 },
-  { id: 'wt-workflow', branch: 'feat/workflow-mon',  intent: 'Workflow Monitoring',        isActive: false, pending: 0 },
-  { id: 'wt-fix',      branch: 'fix/review-server',  intent: 'Fix: server startup crash',  isActive: false, pending: 1 },
+  {
+    id: 'root',
+    branch: 'feat/42-unified-ui',
+    intent: 'Unified UI',
+    isActive: true,
+    pending: 3,
+  },
+  {
+    id: 'wt-feedback',
+    branch: 'feat/feedback-ui',
+    intent: 'Feedback UI Enhancement',
+    isActive: false,
+    pending: 2,
+  },
+  {
+    id: 'wt-workflow',
+    branch: 'feat/workflow-mon',
+    intent: 'Workflow Monitoring',
+    isActive: false,
+    pending: 0,
+  },
+  {
+    id: 'wt-fix',
+    branch: 'fix/review-server',
+    intent: 'Fix: server startup crash',
+    isActive: false,
+    pending: 1,
+  },
 ]
 
-const lanesWithPending = computed(() => lanes.filter(l => l.pending > 0))
+const lanesWithPending = computed(() => lanes.filter((l) => l.pending > 0))
 
 const nextRelease = [
-  { id: '001', title: 'Roadmap Skill Iteration',      state: 'done',        lane: null },
-  { id: '002', title: 'Feedback UI Enhancement',      state: 'in-progress', lane: 'feat/feedback-ui' },
-  { id: '003', title: 'Workflow Progress Monitoring', state: 'open',        lane: null },
+  { id: '001', title: 'Roadmap Skill Iteration', state: 'done', lane: null },
+  {
+    id: '002',
+    title: 'Feedback UI Enhancement',
+    state: 'in-progress',
+    lane: 'feat/feedback-ui',
+  },
+  {
+    id: '003',
+    title: 'Workflow Progress Monitoring',
+    state: 'open',
+    lane: null,
+  },
 ]
 
-const stateIcon = (s: string) => s === 'done' ? 'i-heroicons-check-circle' : s === 'in-progress' ? 'i-heroicons-arrow-path' : 'i-heroicons-ellipsis-horizontal-circle'
-const stateIconColor = (s: string) => s === 'done' ? 'text-green-500' : s === 'in-progress' ? 'text-blue-500' : 'text-content-placeholder'
+const stateIcon = (s: string) =>
+  s === 'done'
+    ? 'i-heroicons-check-circle'
+    : s === 'in-progress'
+      ? 'i-heroicons-arrow-path'
+      : 'i-heroicons-ellipsis-horizontal-circle'
+const stateIconColor = (s: string) =>
+  s === 'done'
+    ? 'text-green-500'
+    : s === 'in-progress'
+      ? 'text-blue-500'
+      : 'text-content-placeholder'
 
 const artifacts = [
-  { key: 'vision',    name: 'Vision',    icon: 'i-heroicons-eye',       status: 'reviewed' },
-  { key: 'landscape', name: 'Landscape', icon: 'i-heroicons-globe-alt', status: 'reviewed' },
-  { key: 'product',   name: 'Product',   icon: 'i-heroicons-cube',      status: 'draft' },
+  {
+    key: 'vision',
+    name: 'Vision',
+    icon: 'i-heroicons-eye',
+    status: 'reviewed',
+  },
+  {
+    key: 'landscape',
+    name: 'Landscape',
+    icon: 'i-heroicons-globe-alt',
+    status: 'reviewed',
+  },
+  {
+    key: 'product',
+    name: 'Product',
+    icon: 'i-heroicons-cube',
+    status: 'draft',
+  },
 ]
 
 const claudeStats = [

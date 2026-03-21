@@ -1,56 +1,84 @@
 <template>
-  <div class="flex flex-col h-full">
-
+  <div class="flex h-full flex-col">
     <!-- Header -->
-    <div class="flex items-center gap-3 px-8 py-4 border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900/50">
+    <div
+      class="flex items-center gap-3 border-b border-neutral-200 bg-white px-8 py-4 dark:border-neutral-800 dark:bg-neutral-900/50"
+    >
       <NuxtLink
         :to="`/worktree/${worktreeId}`"
-        class="text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 transition-colors flex-shrink-0"
+        class="flex-shrink-0 text-neutral-400 transition-colors hover:text-neutral-600 dark:hover:text-neutral-200"
       >
         <UIcon name="i-heroicons-arrow-left" class="size-4" />
       </NuxtLink>
-      <div class="flex-1 min-w-0">
-        <div class="text-sm font-medium truncate">{{ review.title }}</div>
-        <div class="text-xs text-neutral-400 mt-0.5">{{ review.source }}</div>
+      <div class="min-w-0 flex-1">
+        <div class="truncate text-sm font-medium">{{ review.title }}</div>
+        <div class="mt-0.5 text-xs text-neutral-400">{{ review.source }}</div>
       </div>
-      <UBadge :label="review.status" :color="statusColor(review.status)" variant="subtle" size="sm" />
+      <UBadge
+        :label="review.status"
+        :color="statusColor(review.status)"
+        variant="subtle"
+        size="sm"
+      />
     </div>
 
     <!-- Content -->
     <div class="flex-1 overflow-auto px-8 py-6">
       <div class="max-w-2xl space-y-5">
-
         <!-- Review body -->
-        <div class="rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6">
-          <p class="text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed">{{ review.body }}</p>
+        <div
+          class="rounded-lg border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900"
+        >
+          <p
+            class="text-sm leading-relaxed text-neutral-700 dark:text-neutral-300"
+          >
+            {{ review.body }}
+          </p>
           <pre
             v-if="review.code"
-            class="mt-4 text-xs bg-neutral-50 dark:bg-neutral-950 border border-neutral-100 dark:border-neutral-800 rounded-md p-4 overflow-auto font-mono leading-relaxed"
+            class="mt-4 overflow-auto rounded-md border border-neutral-100 bg-neutral-50 p-4 font-mono text-xs leading-relaxed dark:border-neutral-800 dark:bg-neutral-950"
           ><code>{{ review.code }}</code></pre>
         </div>
 
         <!-- Actions -->
         <div v-if="review.status === 'pending'" class="flex gap-2">
-          <UButton label="Approve" icon="i-heroicons-check" color="success" variant="outline" class="flex-1" />
-          <UButton label="Request changes" icon="i-heroicons-pencil" color="warning" variant="outline" class="flex-1" />
-          <UButton label="Reject" icon="i-heroicons-x-mark" color="error" variant="outline" class="flex-1" />
+          <UButton
+            label="Approve"
+            icon="i-heroicons-check"
+            color="success"
+            variant="outline"
+            class="flex-1"
+          />
+          <UButton
+            label="Request changes"
+            icon="i-heroicons-pencil"
+            color="warning"
+            variant="outline"
+            class="flex-1"
+          />
+          <UButton
+            label="Reject"
+            icon="i-heroicons-x-mark"
+            color="error"
+            variant="outline"
+            class="flex-1"
+          />
         </div>
 
         <!-- Comment -->
         <div>
-          <UTextarea
-            placeholder="Add a comment…"
-            class="w-full"
-            :rows="3"
-          />
+          <UTextarea placeholder="Add a comment…" class="w-full" :rows="3" />
           <div class="mt-2 flex justify-end">
-            <UButton label="Comment" size="sm" variant="outline" color="neutral" />
+            <UButton
+              label="Comment"
+              size="sm"
+              variant="outline"
+              color="neutral"
+            />
           </div>
         </div>
-
       </div>
     </div>
-
   </div>
 </template>
 
@@ -127,14 +155,17 @@ const allReviews: Record<string, Review> = {
   },
 }
 
-const review = computed<Review>(() => allReviews[reviewId] ?? {
-  id: reviewId,
-  title: 'Review item',
-  source: 'Unknown source',
-  status: 'pending',
-  body: 'Review content would appear here.',
-  code: null,
-})
+const review = computed<Review>(
+  () =>
+    allReviews[reviewId] ?? {
+      id: reviewId,
+      title: 'Review item',
+      source: 'Unknown source',
+      status: 'pending',
+      body: 'Review content would appear here.',
+      code: null,
+    }
+)
 
 const statusColor = (s: string) => {
   if (s === 'approved') return 'success' as const
