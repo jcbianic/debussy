@@ -107,6 +107,7 @@
       <ArchitectureAdrDetail
         v-else-if="view === 'adr' && currentAdr"
         :adr="currentAdr"
+        :adrs="adrs"
         :principles="principles"
         :flagged="flagged"
         @navigate="goTo"

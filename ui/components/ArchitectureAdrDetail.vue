@@ -100,6 +100,7 @@ import type { Adr, Principle, ViewType } from '~/composables/useArchitecture'
 
 defineProps<{
   adr: Adr
+  adrs: Adr[]
   principles: Principle[]
   flagged: Set<string>
 }>()

@@ -223,8 +223,8 @@ Prioritize by impact. Lead with the highest-value refactor.
 These are derived from the current state of `ui/` in this repo and should
 guide prioritization when reviewing:
 
-- `pages/` files are the highest-value targets: `inbox.vue` and `roadmap.vue`
-  each exceed 300 lines and mix orchestration with inline rendering
+- `pages/` files are orchestrators and should stay thin: `inbox.vue` is 86 lines,
+  `roadmap.vue` is 103 lines — these are the target for new pages
 - The data layer (`useMockData.ts`) is correct tier-1; when API calls replace
   mock data, they belong here, not in pages
 - `SegmentedControl.vue` is the reference implementation of a correct tier-3
@@ -233,5 +233,5 @@ guide prioritization when reviewing:
 - New presenters should have zero domain composable imports
 - All Vue / Nuxt APIs (`ref`, `computed`, `useRoute`, `useFetch`) are auto-imported;
   any explicit import of these is a check-9 violation
-- No design token layer exists yet; arbitrary Tailwind values are expected for now,
-  but flag them so a token refactor can be tracked
+- A semantic token layer exists in `ui/assets/css/main.css` (`@theme inline`);
+  flag any hardcoded color values or arbitrary Tailwind values as check-12 violations
