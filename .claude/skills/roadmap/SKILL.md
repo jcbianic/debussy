@@ -14,7 +14,7 @@ metadata:
 # Roadmap Skill
 
 Shape a product's roadmap from scratch or evolve an existing one. When
-`docs/strategy/` artifacts exist (produced by `/debussy:strategy`), they are
+`.debussy/strategy/` artifacts exist (produced by `/debussy:strategy`), they are
 the **primary input** — the roadmap skill consumes them to produce intents with
 cross-references. When strategy artifacts are missing, the skill falls back to
 its own research.
@@ -55,11 +55,11 @@ Read each of the following files if they exist (use Read tool; skip silently if 
 
 | File | Purpose |
 |---|---|
-| `docs/strategy/**/*.md` | **Primary source** — strategy artifacts (vision, problems, audiences, landscape, competitors, allies, feature-space, product) |
+| `.debussy/strategy/**/*.md` | **Primary source** — strategy artifacts (vision, problems, audiences, landscape, competitors, allies, feature-space, product) |
 | `README.md` | Product name, one-liner, basic description |
 | `CLAUDE.md` | Project instructions, structure, next steps |
 | `INTENT.md` or `PREMISE.md` | Vision, pain points, architecture decisions |
-| `docs/vision.md` | Legacy vision artifact (fallback if no `docs/strategy/`) |
+| `docs/vision.md` | Legacy vision artifact (fallback if no `.debussy/strategy/`) |
 | `docs/landscape.md` | Legacy landscape artifact (fallback) |
 | `docs/product.md` | Legacy product definition artifact (fallback) |
 | `specs/intents.md` | Existing intent list |
@@ -81,10 +81,10 @@ After gathering, build an internal summary:
 - **Product name** and one-liner
 - **Problem domain** the product operates in (e.g., "CLI plugin for AI coding assistants")
 - **Target user** segment (if known)
-- **Existing pain points** — from `docs/strategy/problems.md` (P{N} refs) or `docs/vision.md`
-- **Known competitors** — from `docs/strategy/competitors/*.md` or `docs/landscape.md`
-- **Audiences** — from `docs/strategy/audiences.md` (A{N} refs) if available
-- **Strategy readiness** — whether `docs/strategy/` has 3+ artifacts
+- **Existing pain points** — from `.debussy/strategy/problems.md` (P{N} refs) or `docs/vision.md`
+- **Known competitors** — from `.debussy/strategy/competitors/*.md` or `docs/landscape.md`
+- **Audiences** — from `.debussy/strategy/audiences.md` (A{N} refs) if available
+- **Strategy readiness** — whether `.debussy/strategy/` has 3+ artifacts
 
 This summary drives the research queries in Step 4.
 
@@ -94,9 +94,9 @@ This summary drives the research queries in Step 4.
 
 Determine which artifact areas are **thin or missing** and which are **solid**:
 
-**Strategy readiness check**: If `docs/strategy/problems.md` and
-`docs/strategy/audiences.md` both exist, strategy artifacts are the primary
-source. Print: "Using strategy artifacts from docs/strategy/."
+**Strategy readiness check**: If `.debussy/strategy/problems.md` and
+`.debussy/strategy/audiences.md` both exist, strategy artifacts are the primary
+source. Print: "Using strategy artifacts from .debussy/strategy/."
 
 If they don't exist, suggest:
 "Consider running `/debussy:strategy` first to build strategy artifacts.
@@ -104,7 +104,7 @@ Proceeding with standalone research..."
 
 | Artifact | Solid if... | Thin if... |
 |---|---|---|
-| `docs/strategy/` (3+ files) | Strategy skill has run; use as primary input | Skip own research for covered areas |
+| `.debussy/strategy/` (3+ files) | Strategy skill has run; use as primary input | Skip own research for covered areas |
 | `docs/product.md` | Contains target user, nature, distribution, non-goals | Missing or lacks key sections |
 | `docs/vision.md` | Contains pain points + north star + success criteria | Missing or has fewer than 2 pain points |
 | `docs/landscape.md` | Contains 3+ competitor entries with strengths and gaps | Missing or has only 1-2 vague entries |
@@ -117,7 +117,7 @@ Flag solid areas for validation research (lighter touch — verify, enrich, don'
 
 ## Step 4: Research
 
-**If strategy artifacts are solid** (3+ files in `docs/strategy/` covering
+**If strategy artifacts are solid** (3+ files in `.debussy/strategy/` covering
 problems, audiences, and landscape), skip this step — the strategy skill owns
 research. Print: "Strategy artifacts are solid. Skipping research."
 
@@ -290,7 +290,7 @@ mkdir -p docs specs
 
 Write the artifact files using the Write tool.
 
-**If `docs/strategy/` exists with 3+ artifacts**, skip writing `docs/vision.md`,
+**If `.debussy/strategy/` exists with 3+ artifacts**, skip writing `docs/vision.md`,
 `docs/landscape.md`, and `docs/product.md` — the strategy skill manages those.
 Only write `specs/intents.md`.
 

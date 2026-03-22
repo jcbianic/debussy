@@ -16,3 +16,4 @@ coverage/
 .claude/skills/tessl__*
 __pycache__/
 .strategy-review/
+.debussy/strategy/.reviews/

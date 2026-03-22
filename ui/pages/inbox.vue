@@ -1,0 +1,86 @@
+<template>
+  <div class="flex h-full">
+    <InboxListPanel
+      :visible-lanes="visibleLanes"
+      :selected-id="selectedId"
+      :expanded="expanded"
+      :active-type-filter="activeTypeFilter"
+      :type-filters="typeFilters"
+      :filtered-items="filteredItems"
+      :lane-pending-count="lanePendingCount"
+      :pending-count="pendingCount"
+      :total-pending="totalPending"
+      :total-items="totalItems"
+      @select="selectItem"
+      @toggle-group="toggleGroup"
+      @update-filter="activeTypeFilter = $event"
+    />
+    <ReviewItemDetail
+      :selected-item="selectedItem"
+      :selected-group="selectedGroup"
+      :selected-lane="selectedLane"
+      :selected-lane-id="selectedLaneId"
+      :selected-index="selectedIndex"
+      :flat-items-length="flatItems.length"
+      :active-round="activeRound"
+      :active-round-data="activeRoundData"
+      :pending-in-lane="pendingInLane"
+      v-model:comment="comment"
+      v-model:comment-error="commentError"
+      :comment-placeholder="commentPlaceholder"
+      @navigate="navigateBy"
+      @set-round="activeRound = $event"
+      @submit="submitAction"
+    />
+  </div>
+</template>
+
+<script setup lang="ts">
+const {
+  typeFilters,
+  activeTypeFilter,
+  selectedId,
+  selectedLaneId,
+  activeRound,
+  filteredItems,
+  visibleLanes,
+  totalPending,
+  totalItems,
+  lanePendingCount,
+  expanded,
+  toggleGroup,
+  pendingCount,
+  flatItems,
+  selectedIndex,
+  selectItem,
+  navigateBy,
+  selectedItem,
+  selectedGroup,
+  selectedLane,
+  pendingInLane,
+  activeRoundData,
+  comment,
+  commentError,
+  commentPlaceholder,
+  submitAction,
+} = useInbox()
+
+onMounted(() => window.addEventListener('keydown', onKey))
+onUnmounted(() => window.removeEventListener('keydown', onKey))
+
+const onKey = (e: KeyboardEvent) => {
+  if (
+    e.target instanceof HTMLInputElement ||
+    e.target instanceof HTMLTextAreaElement
+  )
+    return
+  if (e.key === 'j') {
+    e.preventDefault()
+    navigateBy(1)
+  }
+  if (e.key === 'k') {
+    e.preventDefault()
+    navigateBy(-1)
+  }
+}
+</script>

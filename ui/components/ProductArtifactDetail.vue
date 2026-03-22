@@ -1,0 +1,56 @@
+<template>
+  <div class="flex-1 overflow-auto px-8 py-8">
+    <div v-if="artifact">
+      <div class="mb-8 flex items-start justify-between">
+        <div>
+          <h2 class="text-xl font-semibold">
+            {{ artifact.name }}
+          </h2>
+          <div class="mt-1.5 flex items-center gap-3">
+            <span class="font-mono text-xs text-neutral-400">{{
+              artifact.file
+            }}</span>
+            <UBadge
+              :label="artifact.status"
+              :color="artifact.status === 'reviewed' ? 'success' : 'warning'"
+              variant="subtle"
+              size="xs"
+            />
+          </div>
+        </div>
+        <UButton
+          label="Request revision"
+          icon="i-heroicons-pencil"
+          size="sm"
+          color="neutral"
+          variant="outline"
+        />
+      </div>
+
+      <div class="space-y-8">
+        <div
+          v-for="section in artifact.sections"
+          :key="section.title"
+        >
+          <h3 class="text-content-secondary mb-3 text-sm font-semibold">
+            {{ section.title }}
+          </h3>
+          <div class="text-content-muted space-y-3 text-sm leading-relaxed">
+            <p
+              v-for="(para, i) in section.content"
+              :key="i"
+            >
+              {{ para }}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import type { Artifact } from '~/composables/useProduct'
+
+defineProps<{ artifact: Artifact | undefined }>()
+</script>

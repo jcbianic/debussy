@@ -1,0 +1,43 @@
+{
+  "name": "debussy-ui",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "nuxi dev --port 4321",
+    "build": "nuxi build",
+    "preview": "nuxi preview",
+    "lint": "eslint .",
+    "type-check": "vue-tsc --noEmit",
+    "test": "vitest",
+    "format": "prettier --write .",
+    "prepare": "cd .. && ./ui/node_modules/.bin/husky"
+  },
+  "lint-staged": {
+    "*.{vue,ts,js}": ["prettier --write", "eslint --fix"]
+  },
+  "dependencies": {
+    "@nuxt/ui": "^4.5.1",
+    "chokidar": "^5.0.0",
+    "gray-matter": "^4.0.3",
+    "nuxt": "^4.0.0",
+    "tailwindcss": "^4.2.2"
+  },
+  "devDependencies": {
+    "@iconify-json/heroicons": "^1.2.3",
+    "@nuxt/test-utils": "^4.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.57.1",
+    "@typescript-eslint/parser": "^8.57.1",
+    "@vue/test-utils": "^2.4.6",
+    "eslint": "^9.39.4",
+    "eslint-plugin-jsdoc": "^62.8.0",
+    "eslint-plugin-vue": "^10.8.0",
+    "eslint-plugin-vuejs-accessibility": "^2.5.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
+    "prettier": "^3.8.1",
+    "prettier-plugin-tailwindcss": "^0.7.2",
+    "vitest": "^4.1.0",
+    "vue-eslint-parser": "^10.4.0",
+    "vue-tsc": "^3.2.6"
+  }
+}

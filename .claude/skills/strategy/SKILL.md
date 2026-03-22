@@ -1,7 +1,7 @@
 ---
 description: >-
   Product discovery: research the space, produce structured artifacts under
-  docs/strategy/, and review them in a browser UI. Use when shaping product
+  .debussy/strategy/, and review them in a browser UI. Use when shaping product
   direction, mapping the competitive landscape, or defining audiences and
   problems before roadmap scoping.
   Commands: /strategy | /strategy --refresh {type} | /strategy --review
@@ -16,7 +16,7 @@ metadata:
 Research-first product discovery. This skill actively investigates the product
 space — vision, problems, audiences, landscape, competitors, allies, feature
 space, and product positioning — and produces structured, machine-parseable
-artifacts under `docs/strategy/`.
+artifacts under `.debussy/strategy/`.
 
 These artifacts feed `/debussy:roadmap`, which consumes them to produce intents
 and sync GitHub Issues. The two skills have different rhythms: strategy runs
@@ -57,7 +57,7 @@ Read each of the following files if they exist (use Read tool; skip silently if 
 
 | File | Purpose |
 |---|---|
-| `docs/strategy/**/*.md` | Existing strategy artifacts |
+| `.debussy/strategy/**/*.md` | Existing strategy artifacts |
 | `docs/vision.md` | Legacy vision artifact (fallback) |
 | `docs/landscape.md` | Legacy landscape artifact (fallback) |
 | `docs/product.md` | Legacy product artifact (fallback) |
@@ -198,7 +198,7 @@ For each artifact:
 - If **thin**: enrich with research findings, preserve user's existing content
 - If **solid**: add new findings, flag changes for review
 
-**If `docs/strategy/` artifacts already exist, enrich them — don't replace.**
+**If `.debussy/strategy/` artifacts already exist, enrich them — don't replace.**
 
 Draft artifacts must be grounded in research — cite specific tools, specific
 user frustrations, specific features. Avoid vague generalities.
@@ -246,7 +246,7 @@ sections. Ask once more for confirmation. Do not loop more than twice.
 Create directories:
 
 ```bash
-mkdir -p docs/strategy/competitors docs/strategy/allies
+mkdir -p .debussy/strategy/competitors .debussy/strategy/allies
 ```
 
 Write all artifacts using the Write tool. Each file gets YAML frontmatter
@@ -276,7 +276,7 @@ Valid targets: `vision`, `problems`, `audiences`, `landscape`, `competitors`,
 
 ### A. Build Request Manifest
 
-Read all existing strategy artifacts from `docs/strategy/`. For each, extract
+Read all existing strategy artifacts from `.debussy/strategy/`. For each, extract
 frontmatter (type, status, updated). **Skip artifacts with `status: reviewed`
 in their frontmatter** — these were fully approved in a prior round and don't
 need re-review. Build a `request.json` with the remaining artifacts:
@@ -285,11 +285,11 @@ need re-review. Build a `request.json` with the remaining artifacts:
 {
   "title": "Strategy Review: {product-name}",
   "project_root": "{absolute path to repo root}",
-  "reviews_dir": "docs/strategy/.reviews",
+  "reviews_dir": ".debussy/strategy/.reviews",
   "artifacts": [
     {
       "slug": "vision",
-      "path": "docs/strategy/vision.md",
+      "path": ".debussy/strategy/vision.md",
       "type": "vision",
       "label": "Vision",
       "status": "draft",
@@ -297,7 +297,7 @@ need re-review. Build a `request.json` with the remaining artifacts:
     },
     {
       "slug": "competitors/cursor",
-      "path": "docs/strategy/competitors/cursor.md",
+      "path": ".debussy/strategy/competitors/cursor.md",
       "type": "competitor",
       "label": "Cursor",
       "group": "Competitors",
@@ -425,16 +425,16 @@ starts clean but can reference prior feedback:
 
 ```bash
 # Determine next round number
-ROUND=$(ls -d docs/strategy/.reviews/rounds/*/ 2>/dev/null | wc -l | tr -d ' ')
+ROUND=$(ls -d .debussy/strategy/.reviews/rounds/*/ 2>/dev/null | wc -l | tr -d ' ')
 ROUND=$((ROUND + 1))
-mkdir -p "docs/strategy/.reviews/rounds/$ROUND"
+mkdir -p ".debussy/strategy/.reviews/rounds/$ROUND"
 # Move current review files (not rounds/ directory) into the archive
-find docs/strategy/.reviews -maxdepth 1 -name "*.review.json" -exec mv {} "docs/strategy/.reviews/rounds/$ROUND/" \;
+find .debussy/strategy/.reviews -maxdepth 1 -name "*.review.json" -exec mv {} ".debussy/strategy/.reviews/rounds/$ROUND/" \;
 # Also archive grouped reviews (competitors/, allies/)
 for subdir in competitors allies; do
-  if [ -d "docs/strategy/.reviews/$subdir" ]; then
-    mkdir -p "docs/strategy/.reviews/rounds/$ROUND/$subdir"
-    find "docs/strategy/.reviews/$subdir" -name "*.review.json" -exec mv {} "docs/strategy/.reviews/rounds/$ROUND/$subdir/" \;
+  if [ -d ".debussy/strategy/.reviews/$subdir" ]; then
+    mkdir -p ".debussy/strategy/.reviews/rounds/$ROUND/$subdir"
+    find ".debussy/strategy/.reviews/$subdir" -name "*.review.json" -exec mv {} ".debussy/strategy/.reviews/rounds/$ROUND/$subdir/" \;
   fi
 done
 ```
@@ -456,7 +456,7 @@ fi
 ## Artifact Directory Structure
 
 ```
-docs/strategy/
+.debussy/strategy/
   vision.md                    # Why, north star, success criteria
   problems.md                  # Named problems, severity, evidence
   audiences.md                 # User segments, sizes, workflows
@@ -475,24 +475,32 @@ docs/strategy/
 
 ## Frontmatter Schema
 
-Every strategy artifact starts with YAML frontmatter:
+**Top-level artifacts** (vision, problems, audiences, landscape, feature-space, product):
 
 ```yaml
 ---
-type: {artifact-type}          # vision | problems | audiences | landscape |
-                               # feature-space | product | competitor | ally
-subject: {slug}                # Only for competitor/ally files
-updated: {YYYY-MM-DD}          # Last research/write date
+name: {Display Name}           # Required — shown in the UI artifact list
+icon: i-heroicons-{name}       # Required — Heroicons name for the UI
+status: draft | reviewed       # Tracks review state
+---
+```
+
+**Competitor and ally files**:
+
+```yaml
+---
+type: competitor | ally        # Required
+subject: {slug}                # Required — matches the filename slug
+updated: {YYYY-MM-DD}          # Set automatically when the skill writes the file
 status: draft | reviewed       # Tracks review state
 ---
 ```
 
 Rules:
-- `type` is required on all files.
-- `subject` is required only on `competitor` and `ally` files.
-- `updated` is set automatically when the skill writes the file.
+- `name` and `icon` are required on top-level artifacts (the UI gates on them).
+- `type` and `subject` are required on competitor/ally files.
 - `status` starts as `draft`. Set to `reviewed` by the review UI.
-- No other frontmatter fields. Keep it minimal.
+- The server logs a warning and skips any file that fails validation.
 
 ---
 
@@ -500,7 +508,7 @@ Rules:
 
 ### Vision
 
-**File**: `docs/strategy/vision.md`
+**File**: `.debussy/strategy/vision.md`
 **Purpose**: The "why" — motivations, direction, success definition.
 
 Key sections: `# Vision: {name}`, `## Why We're Building This`, `## North Star`,
@@ -510,7 +518,7 @@ See `specs/strategy-skill.md` Section 2.3 for the full template.
 
 ### Problems
 
-**File**: `docs/strategy/problems.md`
+**File**: `.debussy/strategy/problems.md`
 **Purpose**: Named problems with severity, evidence, and workarounds.
 
 Each problem gets a numbered section with a stable ID: `## P1: {Name}`.
@@ -519,7 +527,7 @@ Include `**Severity:**`, `**Affects:**` (audience refs), `### Evidence`,
 
 ### Audiences
 
-**File**: `docs/strategy/audiences.md`
+**File**: `.debussy/strategy/audiences.md`
 **Purpose**: User segments with size estimates, workflows, and pain points.
 
 Each segment gets a numbered section with a stable ID: `## A1: {Name}`.
@@ -529,7 +537,7 @@ Include `**Size:**`, `**Profile:**`, `### Current Workflow`,
 
 ### Landscape
 
-**File**: `docs/strategy/landscape.md`
+**File**: `.debussy/strategy/landscape.md`
 **Purpose**: High-level market map with links to competitor/ally detail files.
 
 Key sections: `## Market Overview`, `## Competitors` (table with links to
@@ -537,7 +545,7 @@ detail files), `## Allies & Complements` (table), `## Trends`, `## Opportunities
 
 ### Competitor
 
-**File**: `docs/strategy/competitors/{slug}.md`
+**File**: `.debussy/strategy/competitors/{slug}.md`
 **Purpose**: Deep profile of a single competitor.
 
 Requires `subject: {slug}` in frontmatter. Key sections: `## What It Does`,
@@ -546,7 +554,7 @@ Requires `subject: {slug}` in frontmatter. Key sections: `## What It Does`,
 
 ### Ally
 
-**File**: `docs/strategy/allies/{slug}.md`
+**File**: `.debussy/strategy/allies/{slug}.md`
 **Purpose**: Deep profile of a complementary tool.
 
 Requires `subject: {slug}` in frontmatter. Key sections: `## What It Does`,
@@ -554,7 +562,7 @@ Requires `subject: {slug}` in frontmatter. Key sections: `## What It Does`,
 
 ### Feature Space
 
-**File**: `docs/strategy/feature-space.md`
+**File**: `.debussy/strategy/feature-space.md`
 **Purpose**: Feature map — what exists, what's missing, where we play.
 
 Key sections: `## Table Stakes`, `## Differentiators`, `## Gaps`,
@@ -562,7 +570,7 @@ Key sections: `## Table Stakes`, `## Differentiators`, `## Gaps`,
 
 ### Product
 
-**File**: `docs/strategy/product.md`
+**File**: `.debussy/strategy/product.md`
 **Purpose**: What the product is, how it's positioned, what it's not.
 
 Key sections: `## One-Liner`, `## Positioning`, `## Target User` (reference A{N}),
@@ -594,7 +602,7 @@ Cross-references are plain text (e.g., "Affects: A1, A2" or "See P3").
 | `gh` not available | Not needed for this skill — strategy is local-only |
 | Research returns thin results | Use what's available, flag gaps in Step 6 validation |
 | No existing artifacts | Normal first run — proceed with full research |
-| `docs/strategy/` exists with content | Enrich, don't replace. Preserve user edits. |
+| `.debussy/strategy/` exists with content | Enrich, don't replace. Preserve user edits. |
 | Empty research for a specific area | Note the gap, ask user to fill in during validation |
 | Server fails to start in review mode | Print server.log content, EXIT |
 | Review timeout | Print check instructions, EXIT |
@@ -604,7 +612,7 @@ Cross-references are plain text (e.g., "Affects: A1, A2" or "See P3").
 ## Integration with Roadmap
 
 After running `/debussy:strategy`, the user can run `/debussy:roadmap` which
-will read `docs/strategy/` artifacts as its primary input. The roadmap skill
+will read `.debussy/strategy/` artifacts as its primary input. The roadmap skill
 will:
 
 1. Read strategy artifacts to understand problems (P{N}), audiences (A{N}),
