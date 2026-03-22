@@ -291,102 +291,10 @@
 </template>
 
 <script setup lang="ts">
-const lanes = [
-  {
-    id: 'root',
-    branch: 'feat/42-unified-ui',
-    intent: 'Unified UI',
-    isActive: true,
-    pending: 3,
-  },
-  {
-    id: 'wt-feedback',
-    branch: 'feat/feedback-ui',
-    intent: 'Feedback UI Enhancement',
-    isActive: false,
-    pending: 2,
-  },
-  {
-    id: 'wt-workflow',
-    branch: 'feat/workflow-mon',
-    intent: 'Workflow Monitoring',
-    isActive: false,
-    pending: 0,
-  },
-  {
-    id: 'wt-fix',
-    branch: 'fix/review-server',
-    intent: 'Fix: server startup crash',
-    isActive: false,
-    pending: 1,
-  },
-]
+const { lanes, lanesWithPending: allLanesWithPending } = useMockData()
+const { nextRelease, artifacts, claudeStats, claudeItems } = useDashboard()
 
-const lanesWithPending = computed(() => lanes.filter((l) => l.pending > 0))
-
-const nextRelease = [
-  { id: '001', title: 'Roadmap Skill Iteration', state: 'done', lane: null },
-  {
-    id: '002',
-    title: 'Feedback UI Enhancement',
-    state: 'in-progress',
-    lane: 'feat/feedback-ui',
-  },
-  {
-    id: '003',
-    title: 'Workflow Progress Monitoring',
-    state: 'open',
-    lane: null,
-  },
-]
-
-const stateIcon = (s: string) =>
-  s === 'done'
-    ? 'i-heroicons-check-circle'
-    : s === 'in-progress'
-      ? 'i-heroicons-arrow-path'
-      : 'i-heroicons-ellipsis-horizontal-circle'
-const stateIconColor = (s: string) =>
-  s === 'done'
-    ? 'text-green-500'
-    : s === 'in-progress'
-      ? 'text-blue-500'
-      : 'text-content-placeholder'
-
-const artifacts = [
-  {
-    key: 'vision',
-    name: 'Vision',
-    icon: 'i-heroicons-eye',
-    status: 'reviewed',
-  },
-  {
-    key: 'landscape',
-    name: 'Landscape',
-    icon: 'i-heroicons-globe-alt',
-    status: 'reviewed',
-  },
-  {
-    key: 'product',
-    name: 'Product',
-    icon: 'i-heroicons-cube',
-    status: 'draft',
-  },
-]
-
-const claudeStats = [
-  { value: '4', label: 'Skills' },
-  { value: '3', label: 'Hooks' },
-  { value: '0', label: 'Conflicts' },
-]
-
-const claudeItems = [
-  { name: 'debussy:strategy' },
-  { name: 'debussy:roadmap' },
-  { name: 'debussy:feedback' },
-  { name: 'debussy:workflow-run' },
-  { name: 'PostToolUse' },
-  { name: 'PreToolUse' },
-  { name: 'Stop' },
-]
+const lanesWithPending = computed(() =>
+  allLanesWithPending.value.filter((l) => l.pending > 0)
+)
 </script>

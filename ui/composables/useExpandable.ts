@@ -1,3 +1,8 @@
+/**
+ * Manage a set of expanded/collapsed IDs with reactive state.
+ * @param initialIds - IDs that start in the expanded state.
+ * @returns `expanded` — reactive Set; `toggle(id)` — flip one entry; `has(id)` — membership check.
+ */
 export function useExpandable(initialIds: string[]) {
   const expanded = ref(new Set(initialIds))
 

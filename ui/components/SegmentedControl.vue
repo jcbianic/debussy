@@ -23,7 +23,7 @@
 </template>
 
 <script setup lang="ts">
-export interface SegmentOption {
+interface SegmentOption {
   value: string
   label: string
   icon?: string

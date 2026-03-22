@@ -8,10 +8,11 @@
         </p>
       </div>
       <div class="flex-1 overflow-y-auto">
-        <div
+        <button
           v-for="artifact in artifacts"
           :key="artifact.key"
-          class="border-line-subtle flex cursor-pointer items-center gap-3 border-b px-5 py-3 transition-colors last:border-b-0"
+          type="button"
+          class="border-line-subtle flex w-full cursor-pointer items-center gap-3 border-b px-5 py-3 text-left transition-colors last:border-b-0"
           :class="
             selected === artifact.key
               ? 'bg-surface-hover-subtle'
@@ -35,7 +36,7 @@
             variant="subtle"
             size="xs"
           />
-        </div>
+        </button>
       </div>
       <div class="border-line border-t px-5 py-3 text-xs text-neutral-400">
         Last run 2 days ago
@@ -87,18 +88,7 @@
 </template>
 
 <script setup lang="ts">
-interface ArtifactSection {
-  title: string
-  content: string[]
-}
-interface Artifact {
-  key: string
-  name: string
-  file: string
-  icon: string
-  status: 'reviewed' | 'draft'
-  sections: ArtifactSection[]
-}
+import type { Artifact } from '~/composables/useProduct'
 
 const { data: artifacts, refresh } = await useFetch<Artifact[]>('/api/strategy')
 

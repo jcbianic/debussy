@@ -26,13 +26,12 @@
 </template>
 
 <script setup lang="ts">
-const route = useRoute()
-const props = defineProps<{
+defineProps<{
   to: string
   icon: string
   label: string
+  isActive?: boolean
   badge?: number
   tag?: string
 }>()
-const isActive = computed(() => route.path === props.to)
 </script>
