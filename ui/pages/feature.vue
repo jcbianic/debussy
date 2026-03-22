@@ -3,7 +3,9 @@
     <!-- Left panel: groups -->
     <template #left>
       <div class="border-line border-b px-5 py-4">
-        <h1 class="text-sm font-semibold">Features of debussy</h1>
+        <h1 class="text-sm font-semibold">
+          Features of debussy
+        </h1>
         <p class="mt-0.5 font-mono text-xs text-neutral-400">
           ~/Projets/Libon-Data/debussy
         </p>
@@ -34,7 +36,9 @@
             :class="group.color"
           />
           <div class="min-w-0 flex-1">
-            <div class="truncate text-sm font-medium">{{ group.name }}</div>
+            <div class="truncate text-sm font-medium">
+              {{ group.name }}
+            </div>
             <div class="mt-0.5 text-xs text-neutral-400">
               {{ group.count }} features
             </div>
@@ -48,8 +52,8 @@
 
     <!-- Right panel -->
     <FeatureListPanel
-      v-model:selectedFeature="selectedFeature"
-      v-model:searchQuery="searchQuery"
+      v-model:selected-feature="selectedFeature"
+      v-model:search-query="searchQuery"
       :search-results="searchResults"
       :current-group="currentGroup"
       :related-features="relatedFeatures"
@@ -59,7 +63,6 @@
 </template>
 
 <script setup lang="ts">
-import { groupByOptions } from '~/composables/useFeatureSpace'
 import type { GroupByMode } from '~/composables/useFeatureSpace'
 
 const {

@@ -28,112 +28,15 @@
 
     <!-- Nav -->
     <div class="flex-1 overflow-y-auto">
-      <div class="space-y-0.5 px-3 py-3">
-        <NavItem
-          to="/"
-          icon="i-heroicons-squares-2x2"
-          label="Overview"
-          :is-active="route.path === '/'"
-        />
-        <NavItem
-          to="/product"
-          icon="i-heroicons-cube"
-          label="Product"
-          :is-active="route.path === '/product'"
-        />
-        <NavItem
-          to="/roadmap"
-          icon="i-heroicons-flag"
-          label="Roadmap"
-          tag="1.0"
-          :is-active="route.path === '/roadmap'"
-        />
-        <NavItem
-          to="/inbox"
-          icon="i-heroicons-inbox"
-          label="Inbox"
-          :badge="totalPending"
-          :is-active="route.path === '/inbox'"
-        />
-        <NavItem
-          to="/feature"
-          icon="i-heroicons-light-bulb"
-          label="Feature"
-          :is-active="route.path === '/feature'"
-        />
-        <NavItem
-          to="/policy"
-          icon="i-heroicons-shield-check"
-          label="Policy"
-          :is-active="route.path === '/policy'"
-        />
-        <NavItem
-          to="/architecture"
-          icon="i-heroicons-building-library"
-          label="Architecture"
-          :is-active="route.path === '/architecture'"
-        />
-      </div>
-
+      <SidebarNavLinks
+        :current-path="route.path"
+        :total-pending="totalPending"
+      />
       <div class="border-line mx-3 my-1 border-t" />
-
-      <!-- Lanes -->
-      <div class="px-3 py-3">
-        <div
-          class="text-content-faint mb-1.5 px-2 text-xs font-medium tracking-wider uppercase"
-        >
-          Lanes
-        </div>
-        <div class="space-y-0.5">
-          <NuxtLink
-            v-for="lane in lanesWithPending"
-            :key="lane.id"
-            :to="`/lane/${lane.id}`"
-            class="group hover:bg-surface-hover flex items-center gap-2.5 rounded-md px-2 py-2 text-sm transition-colors"
-            :class="
-              route.path.startsWith(`/lane/${lane.id}`)
-                ? 'bg-surface-hover'
-                : ''
-            "
-          >
-            <div
-              class="size-2 flex-shrink-0 rounded-full"
-              :class="lane.isActive ? 'bg-status-active' : 'bg-status-inactive'"
-            />
-            <div class="min-w-0 flex-1">
-              <div
-                class="truncate font-mono text-xs leading-tight"
-                :class="
-                  lane.isActive
-                    ? 'text-content font-medium'
-                    : 'text-content-muted'
-                "
-              >
-                {{ lane.branch }}
-              </div>
-            </div>
-            <div class="flex flex-shrink-0 items-center gap-1">
-              <UBadge
-                v-if="lane.pending > 0"
-                :label="String(lane.pending)"
-                color="warning"
-                variant="subtle"
-                size="xs"
-              />
-              <UButton
-                v-if="!lane.isActive"
-                variant="ghost"
-                color="neutral"
-                size="xs"
-                icon="i-heroicons-arrow-up-tray"
-                title="Stage this lane"
-                class="opacity-0 transition-opacity group-hover:opacity-100"
-                @click.prevent
-              />
-            </div>
-          </NuxtLink>
-        </div>
-      </div>
+      <SidebarLanesList
+        :lanes-with-pending="lanesWithPending"
+        :current-path="route.path"
+      />
     </div>
 
     <!-- Bottom -->
@@ -149,7 +52,10 @@
             : 'text-content-faint hover:text-content'
         "
       >
-        <UIcon name="i-heroicons-cpu-chip" class="size-3.5" />
+        <UIcon
+          name="i-heroicons-cpu-chip"
+          class="size-3.5"
+        />
         <span>Claude Setup</span>
       </NuxtLink>
       <UButton

@@ -4,7 +4,10 @@
       class="mb-6 flex items-center gap-1.5 text-xs text-neutral-400 transition-colors hover:text-neutral-600 dark:hover:text-neutral-300"
       @click="emit('navigate', 'principles-index')"
     >
-      <UIcon name="i-heroicons-arrow-left" class="size-3.5" />
+      <UIcon
+        name="i-heroicons-arrow-left"
+        class="size-3.5"
+      />
       Design Principles
     </button>
     <div class="mb-6 flex items-start justify-between">
@@ -24,8 +27,7 @@
             <span
               v-if="principleNeedsReview"
               class="text-xs font-medium text-amber-600 dark:text-amber-400"
-              >· under discussion</span
-            >
+            >· under discussion</span>
           </div>
         </div>
       </div>
@@ -38,7 +40,10 @@
         "
         @click="emit('toggleFlag', 'principle:' + principle.num)"
       >
-        <UIcon name="i-heroicons-flag" class="size-3.5" />
+        <UIcon
+          name="i-heroicons-flag"
+          class="size-3.5"
+        />
         {{
           flagged.has('principle:' + principle.num)
             ? 'Revisit flagged'
@@ -51,42 +56,12 @@
       {{ principle.description }}
     </p>
 
-    <div v-if="principle.relatedAdrs?.length">
-      <h3 class="text-content-secondary mb-3 text-sm font-semibold">
-        Related decisions
-      </h3>
-      <div class="space-y-2">
-        <div
-          v-for="adrKey in principle.relatedAdrs"
-          :key="adrKey"
-          class="border-line bg-surface flex cursor-pointer items-center gap-3 rounded-lg border px-4 py-3 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/50"
-          @click="emit('navigate', 'adr', adrKey)"
-        >
-          <UIcon
-            name="i-heroicons-document-text"
-            class="size-4 flex-shrink-0 text-neutral-400"
-          />
-          <span class="flex-shrink-0 font-mono text-xs text-neutral-400">{{
-            adrs.find((a) => a.key === adrKey)?.id
-          }}</span>
-          <span class="flex-1 text-sm font-medium">{{
-            adrs.find((a) => a.key === adrKey)?.title
-          }}</span>
-          <UBadge
-            :label="adrs.find((a) => a.key === adrKey)?.status || ''"
-            :color="
-              adrStatusColor(adrs.find((a) => a.key === adrKey)?.status || '')
-            "
-            variant="subtle"
-            size="xs"
-          />
-          <UIcon
-            name="i-heroicons-chevron-right"
-            class="text-content-ghost size-4 flex-shrink-0"
-          />
-        </div>
-      </div>
-    </div>
+    <PrincipleRelatedAdrs
+      v-if="principle.relatedAdrs?.length"
+      :related-adr-keys="principle.relatedAdrs"
+      :adrs="adrs"
+      @navigate="(view, key) => emit('navigate', view, key)"
+    />
   </div>
 </template>
 

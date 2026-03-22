@@ -13,7 +13,7 @@
     "prepare": "cd .. && ./ui/node_modules/.bin/husky"
   },
   "lint-staged": {
-    "*.{vue,ts,js}": ["prettier --write"]
+    "*.{vue,ts,js}": ["prettier --write", "eslint --fix"]
   },
   "dependencies": {
     "@nuxt/ui": "^4.5.1",
@@ -29,6 +29,7 @@
     "@typescript-eslint/parser": "^8.57.1",
     "@vue/test-utils": "^2.4.6",
     "eslint": "^9.39.4",
+    "eslint-plugin-jsdoc": "^62.8.0",
     "eslint-plugin-vue": "^10.8.0",
     "eslint-plugin-vuejs-accessibility": "^2.5.0",
     "husky": "^9.1.7",

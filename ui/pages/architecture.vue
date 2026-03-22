@@ -3,7 +3,9 @@
     <!-- Left panel -->
     <template #left>
       <div class="border-line border-b px-5 py-5">
-        <h1 class="text-sm font-semibold">Architecture of debussy</h1>
+        <h1 class="text-sm font-semibold">
+          Architecture of debussy
+        </h1>
         <p class="mt-0.5 font-mono text-xs text-neutral-400">
           ~/Projets/Libon-Data/debussy
         </p>
@@ -81,10 +83,10 @@
     <div class="flex-1 overflow-auto px-8 py-8">
       <ArchitecturePrinciplesIndex
         v-if="view === 'principles-index'"
+        v-model:principle-search="principleSearch"
         :principles="filteredPrinciples"
         :adrs="adrs"
         :flagged="flagged"
-        v-model:principleSearch="principleSearch"
         @navigate="goTo"
       />
       <ArchitecturePrincipleDetail
@@ -97,9 +99,9 @@
       />
       <ArchitectureDecisionsIndex
         v-else-if="view === 'decisions-index'"
+        v-model:adr-search="adrSearch"
         :adrs="filteredAdrs"
         :flagged="flagged"
-        v-model:adrSearch="adrSearch"
         @navigate="goTo"
       />
       <ArchitectureAdrDetail
@@ -115,8 +117,6 @@
 </template>
 
 <script setup lang="ts">
-import { adrs, principles } from '~/composables/useArchitecture'
-
 const {
   view,
   goTo,

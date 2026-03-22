@@ -2,7 +2,9 @@
   <div class="px-8 py-8">
     <!-- Page header -->
     <div class="mb-8">
-      <h1 class="text-xl font-semibold">Overview of debussy</h1>
+      <h1 class="text-xl font-semibold">
+        Overview of debussy
+      </h1>
       <p class="text-content-subtle mt-1 font-mono text-sm">
         ~/Projets/Libon-Data/debussy
       </p>
@@ -26,8 +28,9 @@
             <NuxtLink
               to="/product"
               class="text-content-faint hover:text-content text-xs transition-colors"
-              >Explore →</NuxtLink
             >
+              Explore →
+            </NuxtLink>
           </div>
           <div class="bg-surface p-5">
             <div class="mb-4 grid grid-cols-3 gap-2">
@@ -51,7 +54,9 @@
                     size="xs"
                   />
                 </div>
-                <div class="text-xs font-medium">{{ artifact.name }}</div>
+                <div class="text-xs font-medium">
+                  {{ artifact.name }}
+                </div>
               </NuxtLink>
             </div>
             <p class="text-content-faint line-clamp-2 text-xs leading-relaxed">
@@ -77,14 +82,15 @@
             <NuxtLink
               to="/roadmap"
               class="text-content-faint hover:text-content text-xs transition-colors"
-              >Full roadmap →</NuxtLink
             >
+              Full roadmap →
+            </NuxtLink>
           </div>
           <div class="bg-surface">
             <div class="border-line-subtle border-b px-5 py-2.5">
-              <span class="text-content-subtle text-xs font-medium"
-                >Release 1.0 — Foundation</span
-              >
+              <span class="text-content-subtle text-xs font-medium">{{
+                nextReleaseName
+              }}</span>
             </div>
             <div
               v-for="(intent, i) in nextRelease"
@@ -101,8 +107,7 @@
               />
               <span
                 class="text-content-faint w-7 flex-shrink-0 font-mono text-xs"
-                >{{ intent.id }}</span
-              >
+              >{{ intent.id }}</span>
               <span
                 class="flex-1 truncate text-xs"
                 :class="
@@ -110,13 +115,11 @@
                     ? 'text-content-faint line-through'
                     : 'text-content-secondary'
                 "
-                >{{ intent.title }}</span
-              >
+              >{{ intent.title }}</span>
               <span
                 v-if="intent.lane"
                 class="text-status-active max-w-24 truncate font-mono text-xs"
-                >{{ intent.lane }}</span
-              >
+              >{{ intent.lane }}</span>
             </div>
           </div>
         </div>
@@ -139,8 +142,9 @@
             <NuxtLink
               to="/inbox"
               class="text-content-faint hover:text-content text-xs transition-colors"
-              >View all →</NuxtLink
             >
+              View all →
+            </NuxtLink>
           </div>
           <div class="bg-surface">
             <div
@@ -161,8 +165,7 @@
               />
               <span
                 class="text-content-muted flex-1 truncate font-mono text-xs"
-                >{{ lane.branch }}</span
-              >
+              >{{ lane.branch }}</span>
               <UBadge
                 :label="`${lane.pending} pending`"
                 color="warning"
@@ -171,9 +174,8 @@
               />
             </div>
             <div class="border-line-subtle border-t px-5 py-3">
-              <span class="text-content-faint text-xs"
-                >6 total across 3 lanes</span
-              >
+              <span class="text-content-faint text-xs">{{ totalPending }} total across
+                {{ lanesWithPending.length }} lanes</span>
             </div>
           </div>
         </div>
@@ -190,7 +192,7 @@
               />
               Lanes
             </h2>
-            <span class="text-content-faint text-xs">4 active</span>
+            <span class="text-content-faint text-xs">{{ activeLaneCount }} active</span>
           </div>
           <div class="bg-surface">
             <NuxtLink
@@ -259,8 +261,9 @@
             <NuxtLink
               to="/setup"
               class="text-content-faint hover:text-content text-xs transition-colors"
-              >Details →</NuxtLink
             >
+              Details →
+            </NuxtLink>
           </div>
         </div>
         <div class="bg-surface flex items-center gap-8 px-5 py-4">
@@ -291,10 +294,16 @@
 </template>
 
 <script setup lang="ts">
-const { lanes, lanesWithPending: allLanesWithPending } = useMockData()
-const { nextRelease, artifacts, claudeStats, claudeItems } = useDashboard()
+const {
+  lanes,
+  lanesWithPending: allLanesWithPending,
+  totalPending,
+} = useMockData()
+const { nextRelease, nextReleaseName, artifacts, claudeStats, claudeItems } =
+  useDashboard()
 
 const lanesWithPending = computed(() =>
   allLanesWithPending.value.filter((l) => l.pending > 0)
 )
+const activeLaneCount = lanes.filter((l) => l.isActive).length
 </script>

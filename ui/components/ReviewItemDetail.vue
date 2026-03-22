@@ -21,8 +21,7 @@
             ? 'text-blue-700 dark:text-blue-300'
             : 'text-content-subtle'
         "
-        >{{ selectedLane?.branch }}</span
-      >
+      >{{ selectedLane?.branch }}</span>
       <UBadge
         v-if="selectedLane?.isActive"
         label="staged"
@@ -32,9 +31,7 @@
         class="flex-shrink-0"
       />
       <div class="flex-1" />
-      <span class="text-content-faint font-mono text-xs"
-        >{{ pendingInLane }} pending in lane</span
-      >
+      <span class="text-content-faint font-mono text-xs">{{ pendingInLane }} pending in lane</span>
     </div>
 
     <!-- Scrollable area -->
@@ -61,7 +58,10 @@
       </div>
 
       <!-- Item detail -->
-      <div v-else class="px-8 py-8">
+      <div
+        v-else
+        class="px-8 py-8"
+      >
         <!-- Breadcrumb + navigation -->
         <div class="mb-6 flex items-center justify-between">
           <div class="text-content-faint flex items-center gap-1.5 text-xs">
@@ -74,18 +74,22 @@
               title="Previous (k)"
               @click="emit('navigate', -1)"
             >
-              <UIcon name="i-heroicons-chevron-up" class="size-3.5" />
+              <UIcon
+                name="i-heroicons-chevron-up"
+                class="size-3.5"
+              />
             </button>
-            <span class="text-content-faint w-12 text-center font-mono text-xs"
-              >{{ selectedIndex + 1 }} / {{ flatItemsLength }}</span
-            >
+            <span class="text-content-faint w-12 text-center font-mono text-xs">{{ selectedIndex + 1 }} / {{ flatItemsLength }}</span>
             <button
               class="text-content-faint hover:bg-surface-hover flex size-6 items-center justify-center rounded transition-colors disabled:opacity-30"
               :disabled="selectedIndex === flatItemsLength - 1"
               title="Next (j)"
               @click="emit('navigate', 1)"
             >
-              <UIcon name="i-heroicons-chevron-down" class="size-3.5" />
+              <UIcon
+                name="i-heroicons-chevron-down"
+                class="size-3.5"
+              />
             </button>
           </div>
         </div>
@@ -117,53 +121,40 @@
           </div>
           <span class="text-content-placeholder">·</span>
           <div class="flex items-center gap-1.5">
-            <UIcon name="i-heroicons-code-bracket" class="size-3.5" />
+            <UIcon
+              name="i-heroicons-code-bracket"
+              class="size-3.5"
+            />
             <span class="font-mono">{{ selectedLaneId }}</span>
           </div>
           <span class="text-content-placeholder">·</span>
           <div class="flex items-center gap-1.5">
-            <UIcon name="i-heroicons-clock" class="size-3.5" />
+            <UIcon
+              name="i-heroicons-clock"
+              class="size-3.5"
+            />
             <span>{{ selectedItem.createdAt }}</span>
           </div>
           <template v-if="selectedItem.rounds.length > 1">
             <span class="text-content-placeholder">·</span>
             <div class="flex items-center gap-1.5 text-blue-500">
-              <UIcon name="i-heroicons-arrow-path" class="size-3.5" />
+              <UIcon
+                name="i-heroicons-arrow-path"
+                class="size-3.5"
+              />
               <span>{{ selectedItem.rounds.length }} rounds</span>
             </div>
           </template>
         </div>
 
         <!-- Round selector -->
-        <div
+        <ReviewRoundSelector
           v-if="selectedItem.rounds.length > 1"
-          class="bg-surface-sunken mb-5 flex w-fit items-center gap-1 rounded-lg p-1"
-        >
-          <button
-            v-for="round in selectedItem.rounds"
-            :key="round.roundNumber"
-            class="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors"
-            :class="
-              activeRound === round.roundNumber
-                ? 'bg-surface-elevated text-content shadow-sm'
-                : 'text-content-subtle hover:text-content-secondary'
-            "
-            @click="emit('setRound', round.roundNumber)"
-          >
-            <span>Round {{ round.roundNumber }}</span>
-            <span
-              v-if="round.roundNumber === selectedItem.rounds.length"
-              class="size-1.5 rounded-full"
-              :class="
-                selectedItem.status === 'pending'
-                  ? 'bg-amber-400'
-                  : selectedItem.status === 'approved'
-                    ? 'bg-green-400'
-                    : 'bg-red-400'
-              "
-            />
-          </button>
-        </div>
+          :rounds="selectedItem.rounds"
+          :active-round="activeRound"
+          :current-status="selectedItem.status"
+          @set-round="emit('setRound', $event)"
+        />
 
         <!-- Round content -->
         <template v-if="activeRoundData">
@@ -197,129 +188,23 @@
           </div>
 
           <!-- Feedback from past round -->
-          <div
+          <ReviewFeedbackCard
             v-if="activeRoundData.feedback"
-            class="mb-5 overflow-hidden rounded-lg border"
-            :class="
-              activeRoundData.feedbackStatus === 'changes-requested'
-                ? 'border-amber-200 bg-amber-50 dark:border-amber-900/40 dark:bg-amber-900/10'
-                : activeRoundData.feedbackStatus === 'approved'
-                  ? 'border-green-200 bg-green-50 dark:border-green-900/40 dark:bg-green-900/10'
-                  : 'border-red-200 bg-red-50 dark:border-red-900/40 dark:bg-red-900/10'
-            "
-          >
-            <div
-              class="flex items-center justify-between border-b px-4 py-2.5"
-              :class="
-                activeRoundData.feedbackStatus === 'changes-requested'
-                  ? 'border-amber-200 dark:border-amber-900/40'
-                  : activeRoundData.feedbackStatus === 'approved'
-                    ? 'border-green-200 dark:border-green-900/40'
-                    : 'border-red-200 dark:border-red-900/40'
-              "
-            >
-              <div class="flex items-center gap-2">
-                <UIcon
-                  :name="
-                    activeRoundData.feedbackStatus === 'approved'
-                      ? 'i-heroicons-check-circle'
-                      : activeRoundData.feedbackStatus === 'changes-requested'
-                        ? 'i-heroicons-pencil-square'
-                        : 'i-heroicons-x-circle'
-                  "
-                  class="size-3.5"
-                  :class="
-                    activeRoundData.feedbackStatus === 'approved'
-                      ? 'text-green-500'
-                      : activeRoundData.feedbackStatus === 'changes-requested'
-                        ? 'text-amber-500'
-                        : 'text-red-500'
-                  "
-                />
-                <span
-                  class="text-xs font-medium"
-                  :class="
-                    activeRoundData.feedbackStatus === 'approved'
-                      ? 'text-green-700 dark:text-green-400'
-                      : activeRoundData.feedbackStatus === 'changes-requested'
-                        ? 'text-amber-700 dark:text-amber-400'
-                        : 'text-red-700 dark:text-red-400'
-                  "
-                >
-                  {{
-                    activeRoundData.feedbackStatus === 'approved'
-                      ? 'Approved'
-                      : activeRoundData.feedbackStatus === 'changes-requested'
-                        ? 'Changes requested'
-                        : 'Rejected'
-                  }}
-                </span>
-              </div>
-              <span class="text-content-faint font-mono text-xs">{{
-                activeRoundData.feedbackAt
-              }}</span>
-            </div>
-            <div class="p-5">
-              <p
-                class="text-sm leading-relaxed"
-                :class="
-                  activeRoundData.feedbackStatus === 'changes-requested'
-                    ? 'text-amber-800 dark:text-amber-300'
-                    : activeRoundData.feedbackStatus === 'approved'
-                      ? 'text-green-800 dark:text-green-300'
-                      : 'text-red-800 dark:text-red-300'
-                "
-              >
-                {{ activeRoundData.feedback }}
-              </p>
-            </div>
-          </div>
+            :round-data="activeRoundData"
+          />
         </template>
 
         <!-- Comment + actions -->
-        <div
+        <ReviewActionBar
           v-if="
             selectedItem.status === 'pending' &&
-            activeRound === selectedItem.rounds.length
+              activeRound === selectedItem.rounds.length
           "
-        >
-          <UTextarea
-            v-model="comment"
-            :placeholder="commentPlaceholder"
-            class="w-full"
-            :rows="3"
-            :class="commentError ? 'ring-1 ring-red-400' : ''"
-          />
-          <p v-if="commentError" class="mt-1 text-xs text-red-500">
-            {{ commentError }}
-          </p>
-          <div class="mt-3 flex gap-2">
-            <UButton
-              label="Approve"
-              icon="i-heroicons-check"
-              color="success"
-              variant="outline"
-              class="flex-1"
-              @click="emit('submit', 'approved')"
-            />
-            <UButton
-              label="Request changes"
-              icon="i-heroicons-pencil"
-              color="warning"
-              variant="outline"
-              class="flex-1"
-              @click="emit('submit', 'changes-requested')"
-            />
-            <UButton
-              label="Reject"
-              icon="i-heroicons-x-mark"
-              color="error"
-              variant="outline"
-              class="flex-1"
-              @click="emit('submit', 'rejected')"
-            />
-          </div>
-        </div>
+          v-model:comment="comment"
+          v-model:comment-error="commentError"
+          :comment-placeholder="commentPlaceholder"
+          @submit="emit('submit', $event)"
+        />
       </div>
     </div>
   </div>

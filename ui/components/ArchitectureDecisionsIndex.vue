@@ -1,7 +1,9 @@
 <template>
   <div>
     <div class="mb-6">
-      <h2 class="text-xl font-semibold">Decisions</h2>
+      <h2 class="text-xl font-semibold">
+        Decisions
+      </h2>
       <p class="mt-1 text-sm text-neutral-400">
         Architecture Decision Records — what was decided and why.
       </p>
@@ -50,20 +52,27 @@
           <tr
             v-for="adr in adrs"
             :key="adr.key"
-            class="border-line-subtle cursor-pointer border-b transition-colors last:border-b-0 hover:bg-neutral-50 dark:hover:bg-neutral-800/50"
-            @click="emit('navigate', 'adr', adr.key)"
+            class="border-line-subtle border-b last:border-b-0"
           >
             <td class="px-4 py-3 font-mono text-xs text-neutral-400">
               {{ adr.id }}
             </td>
             <td class="px-4 py-3">
-              <div class="font-medium">{{ adr.title }}</div>
-              <div
-                v-if="flagged.has('adr:' + adr.key)"
-                class="mt-0.5 text-xs text-red-500 dark:text-red-400"
+              <button
+                type="button"
+                class="w-full text-left hover:underline"
+                @click="emit('navigate', 'adr', adr.key)"
               >
-                revision flagged
-              </div>
+                <div class="font-medium">
+                  {{ adr.title }}
+                </div>
+                <div
+                  v-if="flagged.has('adr:' + adr.key)"
+                  class="mt-0.5 text-xs text-red-500 dark:text-red-400"
+                >
+                  revision flagged
+                </div>
+              </button>
             </td>
             <td class="px-4 py-3">
               <div class="flex flex-wrap gap-1">
@@ -71,8 +80,7 @@
                   v-for="num in adr.affectedPrinciples || []"
                   :key="num"
                   class="bg-surface-sunken rounded px-1.5 py-0.5 font-mono text-xs text-neutral-500"
-                  >P{{ num }}</span
-                >
+                >P{{ num }}</span>
               </div>
             </td>
             <td class="px-4 py-3">

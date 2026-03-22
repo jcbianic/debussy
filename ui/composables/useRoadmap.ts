@@ -21,6 +21,32 @@ export interface Release {
   intents: Intent[]
 }
 
+/** Derive the overall status label for a release. */
+export function releaseStatus(
+  r: Release
+): 'shipped' | 'in progress' | 'backlog' | 'planned' {
+  const active = r.intents.filter((i) => i.state !== 'out-of-scope')
+  if (active.every((i) => i.state === 'done')) return 'shipped'
+  if (active.some((i) => i.state === 'in-progress')) return 'in progress'
+  if (r.id === 'backlog') return 'backlog'
+  return 'planned'
+}
+
+/** Map release status to Nuxt UI badge color token. */
+export function releaseStatusColor(
+  r: Release
+): 'success' | 'primary' | 'neutral' {
+  const s = releaseStatus(r)
+  if (s === 'shipped') return 'success'
+  if (s === 'in progress') return 'primary'
+  return 'neutral'
+}
+
+/** Count non-out-of-scope intents in a release. */
+export function meaningfulCount(r: Release): number {
+  return r.intents.filter((i) => i.state !== 'out-of-scope').length
+}
+
 /** Provide roadmap data, computed state, and mutation helpers. */
 export const useRoadmap = () => {
   const releases = reactive<Release[]>([
@@ -226,26 +252,8 @@ export const useRoadmap = () => {
     collapsed.value = new Set(collapsed.value)
   }
 
-  const releaseStatus = (r: Release) => {
-    const active = r.intents.filter((i) => i.state !== 'out-of-scope')
-    if (active.every((i) => i.state === 'done')) return 'shipped'
-    if (active.some((i) => i.state === 'in-progress')) return 'in progress'
-    if (r.id === 'backlog') return 'backlog'
-    return 'planned'
-  }
-
-  const releaseStatusColor = (r: Release) => {
-    const s = releaseStatus(r)
-    if (s === 'shipped') return 'success' as const
-    if (s === 'in progress') return 'primary' as const
-    return 'neutral' as const
-  }
-
   const doneCount = (r: Release) =>
     r.intents.filter((i) => i.state === 'done').length
-
-  const meaningfulCount = (r: Release) =>
-    r.intents.filter((i) => i.state !== 'out-of-scope').length
 
   const shippedReleases = computed(() =>
     releases.filter((r) => releaseStatus(r) === 'shipped')

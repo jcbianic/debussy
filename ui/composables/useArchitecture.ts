@@ -31,6 +31,7 @@ export type ViewType =
   | 'decisions-index'
   | 'adr'
 
+/** Core architectural principles that govern all decisions in the codebase. */
 export const principles: Principle[] = [
   {
     num: '1',
@@ -87,6 +88,7 @@ export const principles: Principle[] = [
   },
 ]
 
+/** Architecture Decision Records — immutable log of decisions made and their rationale. */
 export const adrs: Adr[] = [
   {
     key: 'adr-001',
@@ -268,6 +270,10 @@ export const adrs: Adr[] = [
   },
 ]
 
+/**
+ * Provide navigation state, search, flagging, and filtered views for architecture docs.
+ * @returns `view` — current view; `goTo(v, key)` — navigate; `filteredPrinciples`/`filteredAdrs` — search results; `flagged`/`toggleFlag` — flag state.
+ */
 export function useArchitecture() {
   const view = ref<ViewType>('principles-index')
   const detailKey = ref<string | null>(null)

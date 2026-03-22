@@ -1,7 +1,9 @@
 <template>
   <div>
     <div class="mb-6">
-      <h2 class="text-xl font-semibold">Design Principles</h2>
+      <h2 class="text-xl font-semibold">
+        Design Principles
+      </h2>
       <p class="mt-1 text-sm text-neutral-400">
         Architectural constraints that govern all decisions.
       </p>
@@ -16,10 +18,11 @@
       />
     </div>
     <div class="space-y-2">
-      <div
+      <button
         v-for="p in principles"
         :key="p.num"
-        class="bg-surface cursor-pointer rounded-lg border p-4 transition-colors"
+        type="button"
+        class="bg-surface w-full cursor-pointer rounded-lg border p-4 text-left transition-colors"
         :class="
           principleNeedsReview(p)
             ? 'border-amber-200 hover:bg-amber-50/30 dark:border-amber-900/60 dark:hover:bg-amber-950/20'
@@ -35,17 +38,17 @@
           </div>
           <div class="min-w-0 flex-1">
             <div class="mb-1 flex items-center gap-2">
-              <h3 class="text-sm font-semibold">{{ p.name }}</h3>
+              <h3 class="text-sm font-semibold">
+                {{ p.name }}
+              </h3>
               <span
                 v-if="principleNeedsReview(p)"
                 class="text-xs text-amber-600 dark:text-amber-400"
-                >· under discussion</span
-              >
+              >· under discussion</span>
               <span
                 v-if="flagged.has('principle:' + p.num)"
                 class="text-xs text-red-500 dark:text-red-400"
-                >· revisit flagged</span
-              >
+              >· revisit flagged</span>
             </div>
             <p class="text-content-subtle line-clamp-2 text-sm leading-relaxed">
               {{ p.description }}
@@ -59,8 +62,7 @@
                 :key="adrKey"
                 class="rounded border px-1.5 py-0.5 font-mono text-xs"
                 :class="adrChipClass(adrKey)"
-                >{{ adrs.find((a) => a.key === adrKey)?.id }}</span
-              >
+              >{{ adrs.find((a) => a.key === adrKey)?.id }}</span>
             </div>
           </div>
           <UIcon
@@ -68,7 +70,7 @@
             class="text-content-ghost mt-1 size-4 flex-shrink-0"
           />
         </div>
-      </div>
+      </button>
       <div
         v-if="principles.length === 0"
         class="py-10 text-center text-sm text-neutral-400"

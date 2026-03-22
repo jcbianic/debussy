@@ -539,18 +539,22 @@ export const groupByOptions = [
   { value: 'problem', label: 'Problem' },
 ]
 
+/** Map a problem key to its Tailwind badge class string. */
 export function problemBadgeClass(p: string): string {
   return problemMeta[p]?.badgeClass ?? 'bg-surface-sunken text-neutral-500'
 }
 
+/** Map a domain key to its Tailwind badge class string. */
 export function domainBadgeClass(d: string): string {
   return domainMeta[d]?.badgeClass ?? 'bg-surface-sunken text-neutral-500'
 }
 
+/** Map a feature type key to its Tailwind badge class string. */
 export function typeBadgeClass(t: string): string {
   return typeMeta[t]?.badgeClass ?? 'bg-surface-sunken text-neutral-500'
 }
 
+/** Map a problem key to its colored card border/background class string. */
 export function problemCardClass(p: string): string {
   const classes: Record<string, string> = {
     P1: 'border-violet-200 dark:border-violet-800 bg-violet-50 dark:bg-violet-900/20',
@@ -560,6 +564,7 @@ export function problemCardClass(p: string): string {
   return classes[p] ?? 'border-line bg-surface-tinted'
 }
 
+/** Wrap occurrences of `query` in `text` with a highlighted `<mark>` span. */
 export function highlight(text: string, query: string): string {
   if (!query.trim()) return text
   const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -569,6 +574,10 @@ export function highlight(text: string, query: string): string {
   )
 }
 
+/**
+ * Provide grouping, search, and selection state for the feature space page.
+ * @returns `groupByMode` — current grouping; `groups` — computed group list; `currentGroup` — active group; `searchResults` — filtered features; `selectedFeature` — detail panel selection.
+ */
 export function useFeatureSpace() {
   const groupByMode = ref<GroupByMode>('type')
   const selected = ref('differentiators')

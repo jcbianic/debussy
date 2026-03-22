@@ -81,6 +81,7 @@ const claudeItems: DashboardItem[] = [
 /** Provide static summary data for the dashboard (Overview) page. */
 export const useDashboard = () => ({
   nextRelease,
+  nextReleaseName: 'Release 1.0 — Foundation',
   artifacts: dashboardArtifacts,
   claudeStats,
   claudeItems,
