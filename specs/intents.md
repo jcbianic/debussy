@@ -1,118 +1,251 @@
-# Debussy — Intents
+---
+title: Debussy — Roadmap Intents
+---
 
-Intents are ordered implementation milestones. Each builds on the previous.
+## — Plugin scaffold and distribution model
+
+**id:** —
+**release:** r0
+**releaseName:** Release 0.x
+**releaseTheme:** Early exploration
+**state:** done
+**addresses:** Foundation
+**issue:** 29
+
+Strip repo to plugin-only core, define distribution model via .claude-plugin/.
+
+**doneWhen:** Plugin installs cleanly via npx claude code --install-plugin.
+
+---
+
+## — Strategy skill — research + artifact generation
+
+**id:** —
+**release:** r0
+**releaseName:** Release 0.x
+**releaseTheme:** Early exploration
+**state:** done
+**addresses:** P1: Review Friction
+**issue:** 30
+
+First end-to-end skill: research the landscape and audiences, generate vision/landscape/product artifacts, serve a browser review UI.
+
+**doneWhen:** Running /strategy produces all three artifacts without manual prompting.
+
+---
+
+## — Roadmap skill — intents + GitHub Issue sync
+
+**id:** —
+**release:** r0
+**releaseName:** Release 0.x
+**releaseTheme:** Early exploration
+**state:** done
+**addresses:** P1: Review Friction
+**issue:** 32
+
+**doneWhen:** Running /roadmap produces intents.md and syncs each intent to a GitHub Issue.
+
+---
+
+## — GitHub Pages project site
+
+**id:** —
+**release:** r0
+**releaseName:** Release 0.x
+**releaseTheme:** Early exploration
+**state:** done
+**addresses:** Distribution
+**issue:** 33
+
+**doneWhen:** docs/ site live at jcbianic.github.io/debussy.
 
 ---
 
 ## 001 — Roadmap Skill Iteration
 
-Do a few targeted iterations on the `/roadmap` skill: dogfood it on
-Debussy, fix known bugs found during the run, and validate that the full
-loop (elicit → draft → write artifacts → sync GitHub Issues) works without
-manual workarounds.
+**id:** 001
+**release:** r1
+**releaseName:** Release 1.0
+**releaseTheme:** Foundation
+**state:** done
+**priority:** now
+**addresses:** P1: Documentation Artifact Review Friction
+**issue:** 34
 
-**Addresses:** P1: Documentation Artifact Review Friction
-**Target audience:** A1: Solo Builders
-**Priority:** now
-**Depends on:** none
-**Done when:** The skill runs end-to-end on Debussy with no manual
-workarounds. Known bugs found during dogfooding are fixed and committed.
+Dogfood the roadmap skill on debussy, fix known bugs, validate the full loop works without manual workarounds.
+
+**doneWhen:** The skill runs end-to-end on debussy with no manual workarounds.
 
 ---
 
 ## 002 — Feedback UI Enhancement
 
-Improve the browser-based feedback review UI: faster startup, keyboard
-navigation throughout, no manual port management. Reduce the cost of a
-20-item review session to under 2 minutes.
+**id:** 002
+**release:** r1
+**releaseName:** Release 1.0
+**releaseTheme:** Foundation
+**state:** in-progress
+**priority:** next
+**addresses:** P1: Documentation Artifact Review Friction
+**issue:** 38
+**lane:** feat/feedback-ui
+**laneId:** wt-feedback
 
-**Addresses:** P1: Documentation Artifact Review Friction
-**Target audience:** A1: Solo Builders
-**Priority:** next
-**Depends on:** none
-**Done when:** A 20-item review session takes under 2 minutes end-to-end.
-Keyboard shortcuts handle approve/reject/discuss without touching the
-mouse. Server starts and stops cleanly.
+Faster startup, keyboard navigation, no manual port management. Reduce a 20-item review to under 2 minutes.
+
+**doneWhen:** A 20-item review session takes under 2 minutes. Keyboard shortcuts handle approve/reject/discuss.
 
 ---
 
 ## 003 — Workflow Progress Monitoring
 
-Add live progress visibility to the workflow-run skill: current step,
-elapsed time, completed steps, and what the workflow is waiting on —
-without tailing a log file.
+**id:** 003
+**release:** r1
+**releaseName:** Release 1.0
+**releaseTheme:** Foundation
+**state:** open
+**priority:** next
+**addresses:** P2: Workflow Observability
+**issue:** 40
 
-**Addresses:** P2: Workflow Observability and Organisation
-**Target audience:** A1: Solo Builders
-**Priority:** next
-**Depends on:** none
-**Done when:** During any workflow run, a status display shows current step
-and completed steps. Works reliably for runs over 10 minutes.
+Add live progress visibility: current step, elapsed time, what it's waiting on — without tailing a log file.
 
----
-
-## 004 — Parallel Lanes
-
-Introduce worktree-aware task management: launch independent work
-sessions in isolated git worktrees, switch between them, and merge
-cleanly. No context bleed between lanes.
-
-**Addresses:** P3: Worktree Staging and Session Tracking
-**Target audience:** A1: Solo Builders
-**Priority:** later
-**Depends on:** none
-**Done when:** Two independent tasks can run in separate worktrees via a
-single skill invocation. Switching between lanes requires one command.
-No git conflicts at merge.
+**doneWhen:** During any workflow run, a status display shows current step and completed steps. Works for runs over 10 minutes.
 
 ---
 
-## 005 — Structured Project Documentation
+## 004 — Unified UI
 
-Define and enforce a standardized documentation structure that covers
-features, architecture decisions, and testing strategy. Documentation
-must be granular and searchable enough that Claude can reconstruct
-project context after compaction without manual re-briefing.
+**id:** 004
+**release:** r1
+**releaseName:** Release 1.0
+**releaseTheme:** Foundation
+**state:** in-progress
+**priority:** next
+**addresses:** P1–P3: All friction points
+**issue:** 42
+**lane:** feat/42-unified-ui
+**laneId:** root
 
-**Addresses:** P4: Structured Project Documentation
-**Target audience:** A1: Solo Builders
-**Priority:** later
-**Depends on:** none
-**Done when:** A single skill produces a complete, standardized docs set
-for a project. After context compaction, Claude resumes correctly from
-the docs alone — no re-briefing required.
+Replace per-skill browser UIs with a single Nuxt 4 app. Consolidates feedback review, workflow monitoring, roadmap, and product views.
 
----
-
-## 006 — Claude Setup Observability
-
-Provide a single command that shows all loaded plugins, skills, agents,
-hooks, and their active status. Detect conflicts and flag skills consuming
-disproportionate context budget.
-
-**Addresses:** P5: Claude Setup Observability
-**Target audience:** A1: Solo Builders
-**Priority:** later
-**Depends on:** none
-**Done when:** Running the command lists all active Claude Code extensions
-with their context footprint. Conflicts between plugins are detected and
-reported with actionable suggestions.
+**doneWhen:** All existing skill UIs are replaced by routes in the unified app. Per-skill HTML files removed.
 
 ---
 
-## 007 — Unified Debussy UI
+## 005 — Parallel Lanes
 
-Build a single browser-based UI that covers all Debussy skill interactions:
-feedback review, workflow progress monitoring, strategy artifact browsing,
-and roadmap intent tracking. Replace the current per-skill HTML files with
-one cohesive interface.
+**id:** 005
+**release:** r2
+**releaseName:** Release 2.0
+**releaseTheme:** Parallel Work
+**state:** open
+**priority:** later
+**addresses:** P3: Worktree Staging and Session Tracking
+**issue:** 43
 
-**Addresses:** P1: Documentation Artifact Review Friction, P2: Workflow Observability and Organisation
-**Target audience:** A1: Solo Builders
-**Priority:** later
-**Depends on:** 002, 003
-**Done when:** A single command opens a browser interface showing live
-workflow status, pending feedback items, and navigable strategy/roadmap
-artifacts. No per-skill HTML files required.
+Worktree-aware task management: launch independent work in isolated git worktrees, switch between them, merge cleanly.
+
+**doneWhen:** Two independent tasks run in separate worktrees. Switching requires one command. No git conflicts at merge.
 
 ---
+
+## 006 — Structured Project Documentation
+
+**id:** 006
+**release:** r2
+**releaseName:** Release 2.0
+**releaseTheme:** Parallel Work
+**state:** open
+**priority:** later
+**addresses:** P4: Structured Project Documentation
+
+Standardized documentation structure covering features, architecture decisions, and testing strategy.
+
+**doneWhen:** After context compaction, Claude resumes correctly from the docs alone — no re-briefing required.
+
+---
+
+## 007 — Claude Setup Observability
+
+**id:** 007
+**release:** r2
+**releaseName:** Release 2.0
+**releaseTheme:** Parallel Work
+**state:** open
+**priority:** later
+**addresses:** P5: Claude Setup Observability
+
+Single command listing all loaded plugins, skills, agents, hooks, and their active status. Detects conflicts.
+
+**doneWhen:** Running the command lists all active Claude Code extensions with context footprint. Conflicts detected and reported.
+
+---
+
+## 008 — Plugin compatibility management
+
+**id:** 008
+**release:** r2
+**releaseName:** Release 2.0
+**releaseTheme:** Parallel Work
+**state:** open
+**priority:** later
+**addresses:** Gap: Plugin conflicts
+
+Detect and report conflicts between installed plugins. Suggest resolutions for common incompatibilities.
+
+---
+
+## — Persistent preference learning from feedback loops
+
+**id:** —
+**release:** backlog
+**releaseName:** Backlog
+**releaseTheme:** Not yet scoped
+**state:** out-of-scope
+**addresses:** Gap: Human-to-agent feedback
+
+---
+
+## — Cost predictability and budget controls
+
+**id:** —
+**release:** backlog
+**releaseName:** Backlog
+**releaseTheme:** Not yet scoped
+**state:** out-of-scope
+**addresses:** Gap: Cost opacity
+
+---
+
+## — Plugin update mechanism
+
+**id:** —
+**release:** backlog
+**releaseName:** Backlog
+**releaseTheme:** Not yet scoped
+**state:** out-of-scope
+**addresses:** Gap: Plugin updates
+
+---
+
+## — Workflow audit trails
+
+**id:** —
+**release:** backlog
+**releaseName:** Backlog
+**releaseTheme:** Not yet scoped
+**state:** out-of-scope
+**addresses:** Gap: Observability
+
+---
+
+## — Collaborative multi-user workflows
+
+**id:** —
+**release:** backlog
+**releaseName:** Backlog
+**releaseTheme:** Not yet scoped
+**state:** out-of-scope
+**addresses:** Gap: Collaboration

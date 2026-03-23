@@ -1,3 +1,13 @@
+---
+id: "001"
+shortTitle: Nuxt 4 + Nitro UI Stack
+status: Accepted
+date: 2026-03-20
+issue: https://github.com/jcbianic/debussy/issues/42
+issueLabel: "#42 — Unified Debussy UI"
+affectedPrinciples: ["2", "3"]
+---
+
 # 001 — Unified UI Tech Stack: Nuxt 4 + Nitro
 
 **Status:** Accepted

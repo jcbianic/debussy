@@ -6,10 +6,10 @@
       <div class="mb-6 flex items-start justify-between">
         <div>
           <h1 class="text-xl font-semibold">
-            Roadmap of debussy
+            Roadmap of {{ projectName }}
           </h1>
           <p class="text-content-subtle mt-1 font-mono text-sm">
-            ~/Projets/Libon-Data/debussy
+            {{ projectPath }}
           </p>
         </div>
         <div class="flex items-center gap-3">
@@ -85,6 +85,7 @@
 </template>
 
 <script setup lang="ts">
+const { name: projectName, path: projectPath } = useProjectConfig()
 const {
   releases,
   collapsed,

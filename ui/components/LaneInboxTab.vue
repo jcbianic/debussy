@@ -11,7 +11,10 @@
       text="No pending reviews"
     />
 
-    <div v-else class="space-y-3">
+    <div
+      v-else
+      class="space-y-3"
+    >
       <div
         v-for="group in reviewGroups"
         :key="group.id"
@@ -42,7 +45,10 @@
             size="xs"
           />
         </button>
-        <div v-if="expanded.has(group.id)" class="border-line-subtle border-t">
+        <div
+          v-if="expanded.has(group.id)"
+          class="border-line-subtle border-t"
+        >
           <NuxtLink
             v-for="(item, i) in group.items"
             :key="item.id"
@@ -54,7 +60,9 @@
           >
             <div class="w-4 flex-shrink-0" />
             <div class="min-w-0 flex-1">
-              <div class="truncate text-sm">{{ item.title }}</div>
+              <div class="truncate text-sm">
+                {{ item.title }}
+              </div>
               <div class="mt-0.5 text-xs text-neutral-400">
                 {{ item.subtitle }}
               </div>
@@ -77,7 +85,7 @@
 </template>
 
 <script setup lang="ts">
-import type { ReviewGroup } from '~/composables/useMockData'
+import type { ReviewGroup } from '~/composables/useLanes'
 
 const props = defineProps<{
   laneId: string

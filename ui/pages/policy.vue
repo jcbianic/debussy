@@ -4,10 +4,10 @@
     <template #left>
       <div class="border-line border-b px-5 py-5">
         <h1 class="text-sm font-semibold">
-          Policy of debussy
+          Policy of {{ projectName }}
         </h1>
         <p class="mt-0.5 font-mono text-xs text-neutral-400">
-          ~/Projets/Libon-Data/debussy
+          {{ projectPath }}
         </p>
       </div>
       <div class="flex-1 overflow-y-auto">
@@ -55,5 +55,6 @@
 </template>
 
 <script setup lang="ts">
+const { name: projectName, path: projectPath } = useProjectConfig()
 const { topics, selected, currentTopic } = usePolicy()
 </script>

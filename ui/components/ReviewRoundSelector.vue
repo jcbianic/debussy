@@ -30,7 +30,7 @@
 </template>
 
 <script setup lang="ts">
-import type { ReviewItem } from '~/composables/useMockData'
+import type { ReviewItem } from '~/composables/useLanes'
 
 defineProps<{
   rounds: ReviewItem['rounds']

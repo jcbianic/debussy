@@ -4,10 +4,10 @@
     <template #left>
       <div class="border-line border-b px-5 py-5">
         <h1 class="text-sm font-semibold">
-          Architecture of debussy
+          Architecture of {{ projectName }}
         </h1>
         <p class="mt-0.5 font-mono text-xs text-neutral-400">
-          ~/Projets/Libon-Data/debussy
+          {{ projectPath }}
         </p>
       </div>
       <nav class="flex-1 overflow-y-auto">
@@ -118,6 +118,7 @@
 </template>
 
 <script setup lang="ts">
+const { name: projectName, path: projectPath } = useProjectConfig()
 const {
   view,
   goTo,

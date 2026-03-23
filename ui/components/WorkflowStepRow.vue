@@ -59,7 +59,7 @@
 </template>
 
 <script setup lang="ts">
-import type { WorkflowStep } from '~/composables/useMockData'
+import type { WorkflowStep } from '~/composables/useLanes'
 
 defineProps<{ step: WorkflowStep }>()
 </script>

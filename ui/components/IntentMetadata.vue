@@ -34,7 +34,7 @@
     >
       <span class="text-xs text-neutral-400">GitHub Issue</span>
       <a
-        :href="`https://github.com/jcbianic/debussy/issues/${intent.issue}`"
+        :href="`${repoUrl}/issues/${intent.issue}`"
         class="font-mono text-xs text-blue-500 hover:underline"
       >#{{ intent.issue }}</a>
     </div>
@@ -44,5 +44,6 @@
 <script setup lang="ts">
 import type { Intent } from '~/composables/useRoadmap'
 
+const { repoUrl } = useProjectConfig()
 defineProps<{ intent: Intent }>()
 </script>

@@ -46,7 +46,7 @@
 </template>
 
 <script setup lang="ts">
-import type { WorkflowRun } from '~/composables/useMockData'
+import type { WorkflowRun } from '~/composables/useLanes'
 
 defineProps<{ workflow: WorkflowRun | null }>()
 </script>

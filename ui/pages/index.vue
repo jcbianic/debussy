@@ -3,10 +3,10 @@
     <!-- Page header -->
     <div class="mb-8">
       <h1 class="text-xl font-semibold">
-        Overview of debussy
+        Overview of {{ projectName }}
       </h1>
       <p class="text-content-subtle mt-1 font-mono text-sm">
-        ~/Projets/Libon-Data/debussy
+        {{ projectPath }}
       </p>
     </div>
 
@@ -23,7 +23,7 @@
                 name="i-heroicons-cube"
                 class="text-content-faint size-4"
               />
-              Product of debussy
+              Product of {{ projectName }}
             </h2>
             <NuxtLink
               to="/product"
@@ -77,7 +77,7 @@
                 name="i-heroicons-flag"
                 class="text-content-faint size-4"
               />
-              Roadmap of debussy
+              Roadmap of {{ projectName }}
             </h2>
             <NuxtLink
               to="/roadmap"
@@ -294,11 +294,12 @@
 </template>
 
 <script setup lang="ts">
+const { name: projectName, path: projectPath } = useProjectConfig()
 const {
   lanes,
   lanesWithPending: allLanesWithPending,
   totalPending,
-} = useMockData()
+} = useLanes()
 const { nextRelease, nextReleaseName, artifacts, claudeStats, claudeItems } =
   useDashboard()
 
