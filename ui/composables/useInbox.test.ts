@@ -1,8 +1,126 @@
+import { ref } from 'vue'
 import { describe, it, expect } from 'vitest'
+import { mockNuxtImport } from '@nuxt/test-utils/runtime'
 import { useInbox } from './useInbox'
+import type { Lane } from './useLanes'
 
-// useInbox calls useMockData() which is auto-imported in the nuxt test environment.
-// The mock data is module-level and deterministic, so no mocking is needed.
+// ─── Fixture ─────────────────────────────────────────────────────────────────
+
+const MOCK_LANES: Lane[] = [
+  {
+    id: 'root',
+    branch: 'feat/42-unified-ui',
+    path: '~/debussy',
+    isActive: true,
+    groups: [
+      {
+        id: 'rg-1',
+        title: 'Unified UI — Implementation Plan',
+        icon: 'i-heroicons-document-text',
+        source: '/feedback session',
+        type: 'feedback',
+        items: [
+          {
+            id: 'r-1',
+            title: 'Layout structure and sidebar navigation',
+            subtitle: 'Round 2 pending',
+            status: 'pending',
+            type: 'feedback',
+            createdAt: '2h ago',
+            rounds: [
+              {
+                roundNumber: 1,
+                proposedAt: '3h ago',
+                content: 'The layout uses a persistent left sidebar.',
+                feedback: 'Sidebar too narrow.',
+                feedbackAt: '2h 30m ago',
+                feedbackStatus: 'changes-requested',
+              },
+              {
+                roundNumber: 2,
+                proposedAt: '2h ago',
+                content: 'Updated: sidebar is now w-72.',
+              },
+            ],
+          },
+          {
+            id: 'r-2',
+            title: 'Lane stage/unstage interaction model',
+            subtitle: 'Approve or request changes',
+            status: 'pending',
+            type: 'feedback',
+            createdAt: '2h ago',
+            rounds: [
+              {
+                roundNumber: 1,
+                proposedAt: '2h ago',
+                content: 'Staged lane marked with filled blue dot.',
+              },
+            ],
+          },
+          {
+            id: 'r-3',
+            title: 'Inbox hierarchy and review groups',
+            subtitle: 'Approved 10m ago',
+            status: 'approved',
+            type: 'feedback',
+            createdAt: '4h ago',
+            rounds: [
+              {
+                roundNumber: 1,
+                proposedAt: '4h ago',
+                content: 'Reviews grouped by session or PR.',
+                feedback: 'LGTM.',
+                feedbackAt: '10m ago',
+                feedbackStatus: 'approved',
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'wt-fix',
+    branch: 'fix/review-server',
+    path: '~/debussy/.worktrees/fix',
+    isActive: false,
+    groups: [
+      {
+        id: 'rg-4',
+        title: 'Fix: review server startup crash',
+        icon: 'i-heroicons-bug-ant',
+        source: 'workflow gate',
+        type: 'workflow',
+        items: [
+          {
+            id: 'r-8',
+            title: 'Root cause — port conflict on 3001',
+            subtitle: 'Proposed fix: dynamic port allocation',
+            status: 'pending',
+            type: 'workflow',
+            createdAt: '6h ago',
+            rounds: [
+              {
+                roundNumber: 1,
+                proposedAt: '6h ago',
+                content: 'Fix: scan for a free port starting at 3001.',
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+]
+
+const mockFetchData = ref<Lane[]>(MOCK_LANES)
+
+mockNuxtImport('useFetch', () => {
+  return () => ({ data: mockFetchData })
+})
+
+// ─── Tests ────────────────────────────────────────────────────────────────────
 
 describe('useInbox', () => {
   describe('initial state', () => {
@@ -58,7 +176,7 @@ describe('useInbox', () => {
 
     it('filters out lanes whose groups have no items matching the active type filter', () => {
       const { activeTypeFilter, visibleLanes } = useInbox()
-      // "workflow" items exist only in the wt-fix lane in mock data
+      // "workflow" items exist only in the wt-fix lane in the fixture
       activeTypeFilter.value = 'workflow'
       const laneIds = visibleLanes.value.map((l) => l.id)
       expect(laneIds).toContain('wt-fix')
@@ -350,7 +468,7 @@ describe('useInbox', () => {
     it('collapses a group that starts expanded', () => {
       const { expanded, toggleGroup, visibleLanes } = useInbox()
       const groupId = visibleLanes.value[0]!.groups[0]!.id
-      // All groups start expanded (all group IDs passed to useExpandable)
+      // All groups start expanded via immediate watch
       expect(expanded.value.has(groupId)).toBe(true)
       toggleGroup(groupId)
       expect(expanded.value.has(groupId)).toBe(false)

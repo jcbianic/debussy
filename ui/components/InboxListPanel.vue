@@ -5,7 +5,7 @@
       <div class="mb-3 flex items-center justify-between">
         <div>
           <h1 class="text-sm font-semibold">
-            Inbox of debussy
+            Inbox of {{ projectName }}
           </h1>
           <p class="text-content-faint mt-0.5 font-mono text-xs">
             {{ totalPending }} pending · {{ totalItems }} total
@@ -71,7 +71,9 @@
 </template>
 
 <script setup lang="ts">
-import type { ReviewGroup, Lane } from '~/composables/useMockData'
+import type { ReviewGroup, Lane } from '~/composables/useLanes'
+
+const { name: projectName } = useProjectConfig()
 
 defineProps<{
   visibleLanes: Lane[]

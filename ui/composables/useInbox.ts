@@ -1,8 +1,8 @@
-import type { ReviewItem, ReviewGroup, Lane } from '~/composables/useMockData'
+import type { ReviewItem, ReviewGroup, Lane } from '~/composables/useLanes'
 
 /** Provide all state and logic for the inbox page. */
 export const useInbox = () => {
-  const { lanes: allLanes } = useMockData()
+  const { lanes: allLanes } = useLanes()
 
   const typeFilters = [
     { value: 'all', label: 'All', icon: 'i-heroicons-funnel' },
@@ -30,27 +30,50 @@ export const useInbox = () => {
       : group.items.filter((i) => i.type === activeTypeFilter.value)
 
   const visibleLanes = computed(() =>
-    allLanes.filter((l) => l.groups.some((g) => filteredItems(g).length > 0))
+    allLanes.value.filter((l: Lane) =>
+      l.groups.some((g: ReviewGroup) => filteredItems(g).length > 0)
+    )
   )
 
   const totalPending = computed(
     () =>
-      allLanes
-        .flatMap((l) => l.groups.flatMap((g) => g.items))
-        .filter((i) => i.status === 'pending').length
+      allLanes.value
+        .flatMap((l: Lane) => l.groups.flatMap((g: ReviewGroup) => g.items))
+        .filter((i: ReviewItem) => i.status === 'pending').length
   )
   const totalItems = computed(
-    () => allLanes.flatMap((l) => l.groups.flatMap((g) => g.items)).length
+    () =>
+      allLanes.value.flatMap((l: Lane) =>
+        l.groups.flatMap((g: ReviewGroup) => g.items)
+      ).length
   )
   const lanePendingCount = (lane: Lane) =>
-    lane.groups.flatMap((g) => g.items).filter((i) => i.status === 'pending')
-      .length
+    lane.groups
+      .flatMap((g: ReviewGroup) => g.items)
+      .filter((i: ReviewItem) => i.status === 'pending').length
 
-  const allGroupIds = allLanes.flatMap((l) => l.groups.map((g) => g.id))
-  const { expanded, toggle: toggleGroup } = useExpandable(allGroupIds)
+  // Start with empty set; expand new group IDs as data loads
+  const { expanded, toggle: toggleGroup } = useExpandable([])
+  watch(
+    () =>
+      allLanes.value.flatMap((l: Lane) =>
+        l.groups.map((g: ReviewGroup) => g.id)
+      ),
+    (ids: string[]) => {
+      let changed = false
+      for (const id of ids) {
+        if (!expanded.value.has(id)) {
+          expanded.value.add(id)
+          changed = true
+        }
+      }
+      if (changed) expanded.value = new Set(expanded.value)
+    },
+    { immediate: true }
+  )
 
   const pendingCount = (g: ReviewGroup) =>
-    g.items.filter((i) => i.status === 'pending').length
+    g.items.filter((i: ReviewItem) => i.status === 'pending').length
 
   const flatItems = computed(() => {
     const result: Array<{ item: ReviewItem; laneId: string }> = []
@@ -70,7 +93,9 @@ export const useInbox = () => {
   )
 
   const allItems = computed(() =>
-    allLanes.flatMap((l) => l.groups.flatMap((g) => g.items))
+    allLanes.value.flatMap((l: Lane) =>
+      l.groups.flatMap((g: ReviewGroup) => g.items)
+    )
   )
 
   const selectItem = (id: string, laneId: string) => {
@@ -78,7 +103,7 @@ export const useInbox = () => {
     selectedLaneId.value = laneId
     comment.value = ''
     commentError.value = ''
-    const item = allItems.value.find((i) => i.id === id)
+    const item = allItems.value.find((i: ReviewItem) => i.id === id)
     if (item) activeRound.value = item.rounds.length
   }
 
@@ -91,22 +116,26 @@ export const useInbox = () => {
   }
 
   const selectedItem = computed(
-    () => allItems.value.find((i) => i.id === selectedId.value) ?? null
+    () =>
+      allItems.value.find((i: ReviewItem) => i.id === selectedId.value) ?? null
   )
   const selectedGroup = computed(
     () =>
-      allLanes
-        .flatMap((l) => l.groups)
-        .find((g) => g.items.some((i) => i.id === selectedId.value)) ?? null
+      allLanes.value
+        .flatMap((l: Lane) => l.groups)
+        .find((g: ReviewGroup) =>
+          g.items.some((i: ReviewItem) => i.id === selectedId.value)
+        ) ?? null
   )
   const selectedLane = computed(
-    () => allLanes.find((l) => l.id === selectedLaneId.value) ?? null
+    () =>
+      allLanes.value.find((l: Lane) => l.id === selectedLaneId.value) ?? null
   )
   const pendingInLane = computed(
     () =>
       selectedLane.value?.groups
-        .flatMap((g) => g.items)
-        .filter((i) => i.status === 'pending').length ?? 0
+        .flatMap((g: ReviewGroup) => g.items)
+        .filter((i: ReviewItem) => i.status === 'pending').length ?? 0
   )
   const activeRoundData = computed(
     () =>

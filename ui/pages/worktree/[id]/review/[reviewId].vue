@@ -8,11 +8,18 @@
         :to="`/worktree/${worktreeId}`"
         class="flex-shrink-0 text-neutral-400 transition-colors hover:text-neutral-600 dark:hover:text-neutral-200"
       >
-        <UIcon name="i-heroicons-arrow-left" class="size-4" />
+        <UIcon
+          name="i-heroicons-arrow-left"
+          class="size-4"
+        />
       </NuxtLink>
       <div class="min-w-0 flex-1">
-        <div class="truncate text-sm font-medium">{{ review.title }}</div>
-        <div class="mt-0.5 text-xs text-neutral-400">{{ review.source }}</div>
+        <div class="truncate text-sm font-medium">
+          {{ review.title }}
+        </div>
+        <div class="mt-0.5 text-xs text-neutral-400">
+          {{ review.source }}
+        </div>
       </div>
       <UBadge
         :label="review.status"
@@ -35,7 +42,10 @@
           ><code>{{ review.code }}</code></pre>
         </div>
 
-        <div v-if="review.status === 'pending'" class="flex gap-2">
+        <div
+          v-if="review.status === 'pending'"
+          class="flex gap-2"
+        >
           <UButton
             label="Approve"
             icon="i-heroicons-check"
@@ -60,7 +70,11 @@
         </div>
 
         <div>
-          <UTextarea placeholder="Add a comment…" class="w-full" :rows="3" />
+          <UTextarea
+            placeholder="Add a comment…"
+            class="w-full"
+            :rows="3"
+          />
           <div class="mt-2 flex justify-end">
             <UButton
               label="Comment"
@@ -80,6 +94,6 @@ const route = useRoute()
 const worktreeId = route.params.id as string
 const reviewId = route.params.reviewId as string
 
-const { getReview } = useMockData()
+const { getReview } = useLanes()
 const review = computed(() => getReview(reviewId))
 </script>

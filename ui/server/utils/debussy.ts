@@ -5,19 +5,29 @@ import path from 'node:path'
 const execAsync = promisify(exec)
 
 /**
- * Resolves the .debussy/strategy directory from the main worktree root.
- * Uses `git worktree list` so all worktrees see the same artifacts.
+ * Resolves a path under the main worktree root using the given segments.
+ * Uses `git worktree list` so all worktrees see the same files.
  */
-export async function resolveStrategyPath(): Promise<string> {
+export async function resolveDebussyPath(
+  ...segments: string[]
+): Promise<string> {
   try {
     const { stdout } = await execAsync('git worktree list --porcelain')
     const mainWorktree = (stdout.split('\n')[0] ?? '')
       .replace('worktree ', '')
       .trim()
-    return path.join(mainWorktree, '.debussy', 'strategy')
+    return path.join(mainWorktree, ...segments)
   } catch {
-    return path.resolve(process.cwd(), '..', '.debussy', 'strategy')
+    return path.resolve(process.cwd(), '..', ...segments)
   }
+}
+
+/**
+ * Resolves the .debussy/strategy directory from the main worktree root.
+ * Uses `git worktree list` so all worktrees see the same artifacts.
+ */
+export async function resolveStrategyPath(): Promise<string> {
+  return resolveDebussyPath('.debussy', 'strategy')
 }
 
 // ─── Frontmatter schemas ────────────────────────────────────────────────────

@@ -4,10 +4,10 @@
     <template #left>
       <div class="border-line border-b px-5 py-4">
         <h1 class="text-sm font-semibold">
-          Features of debussy
+          Features of {{ projectName }}
         </h1>
         <p class="mt-0.5 font-mono text-xs text-neutral-400">
-          ~/Projets/Libon-Data/debussy
+          {{ projectPath }}
         </p>
         <SegmentedControl
           :model-value="groupByMode"
@@ -65,6 +65,7 @@
 <script setup lang="ts">
 import type { GroupByMode } from '~/composables/useFeatureSpace'
 
+const { name: projectName, path: projectPath } = useProjectConfig()
 const {
   groupByMode,
   selected,

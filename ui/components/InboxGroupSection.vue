@@ -94,7 +94,7 @@
 </template>
 
 <script setup lang="ts">
-import type { ReviewGroup } from '~/composables/useMockData'
+import type { ReviewGroup } from '~/composables/useLanes'
 
 defineProps<{
   groups: ReviewGroup[]

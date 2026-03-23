@@ -8,7 +8,7 @@
             Claude Setup
           </h1>
           <p class="mt-0.5 font-mono text-xs text-neutral-400">
-            ~/Projets/Libon-Data/debussy
+            {{ projectPath }}
           </p>
         </div>
         <UBadge
@@ -70,6 +70,7 @@
 </template>
 
 <script setup lang="ts">
+const { path: projectPath } = useProjectConfig()
 const {
   plugins,
   activeTab,

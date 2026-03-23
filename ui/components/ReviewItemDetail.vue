@@ -211,7 +211,7 @@
 </template>
 
 <script setup lang="ts">
-import type { ReviewItem, ReviewGroup, Lane } from '~/composables/useMockData'
+import type { ReviewItem, ReviewGroup, Lane } from '~/composables/useLanes'
 
 defineProps<{
   selectedItem: ReviewItem | null

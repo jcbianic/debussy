@@ -8,12 +8,12 @@
         <div class="size-2 flex-shrink-0 rounded-full bg-green-500" />
         <div class="min-w-0">
           <div class="truncate text-sm leading-tight font-semibold">
-            debussy
+            {{ projectName }}
           </div>
           <div
             class="text-content-faint truncate font-mono text-xs leading-tight"
           >
-            ~/Projets/Libon-Data/debussy
+            {{ projectPath }}
           </div>
         </div>
       </div>
@@ -77,5 +77,6 @@ const toggleColorMode = () => {
   colorMode.preference = isDark.value ? 'light' : 'dark'
 }
 
-const { lanesWithPending, totalPending } = useMockData()
+const { name: projectName, path: projectPath } = useProjectConfig()
+const { lanesWithPending, totalPending } = useLanes()
 </script>

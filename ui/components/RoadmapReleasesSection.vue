@@ -90,7 +90,7 @@
 
           <a
             v-if="intent.issue"
-            :href="`https://github.com/jcbianic/debussy/issues/${intent.issue}`"
+            :href="`${repoUrl}/issues/${intent.issue}`"
             class="font-mono text-xs text-neutral-400 transition-colors hover:text-neutral-600 dark:hover:text-neutral-200"
             @click.stop
           >#{{ intent.issue }}</a>
@@ -138,6 +138,8 @@
 
 <script setup lang="ts">
 import type { Release, Intent } from '~/composables/useRoadmap'
+
+const { repoUrl } = useProjectConfig()
 
 const props = defineProps<{
   visibleReleases: Release[]

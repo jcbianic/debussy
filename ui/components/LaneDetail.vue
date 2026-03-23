@@ -20,7 +20,9 @@
               size="xs"
             />
           </div>
-          <div class="mt-0.5 text-xs text-neutral-400">{{ lane.path }}</div>
+          <div class="mt-0.5 text-xs text-neutral-400">
+            {{ lane.path }}
+          </div>
         </div>
       </div>
       <div class="flex items-center gap-2">
@@ -58,7 +60,10 @@
         "
         @click="activeTab = tab.key"
       >
-        <UIcon :name="tab.icon" class="size-4" />
+        <UIcon
+          :name="tab.icon"
+          class="size-4"
+        />
         {{ tab.label }}
         <UBadge
           v-if="tab.badge"
@@ -82,7 +87,10 @@
         v-else-if="activeTab === 'workflow'"
         :workflow="workflow"
       />
-      <LaneCommitsTab v-else-if="activeTab === 'commits'" :commits="commits" />
+      <LaneCommitsTab
+        v-else-if="activeTab === 'commits'"
+        :commits="commits"
+      />
     </div>
   </div>
 </template>
@@ -93,7 +101,7 @@ const props = defineProps<{
   basePath: 'lane' | 'worktree'
 }>()
 
-const { getLane, getWorkflow, getCommits } = useMockData()
+const { getLane, getWorkflow, getCommits } = useLanes()
 
 const lane = computed(() => getLane(props.laneId))
 const reviewGroups = computed(() => lane.value.groups)
