@@ -128,10 +128,21 @@ const {
   adrSearch,
   filteredPrinciples,
   filteredAdrs,
+  principles,
+  adrs,
   flagged,
   toggleFlag,
   flaggedPrinciplesCount,
   proposedCount,
   hasProposedForPrinciples,
+  refresh,
 } = useArchitecture()
+
+// Live reload when principles or ADR files change
+let es: EventSource | null = null
+onMounted(() => {
+  es = new EventSource('/api/watch')
+  es.onmessage = () => refresh()
+})
+onUnmounted(() => es?.close())
 </script>

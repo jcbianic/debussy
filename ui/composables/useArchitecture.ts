@@ -36,10 +36,16 @@ export type ViewType =
  * @returns `view` — current view; `goTo(v, key)` — navigate; `filteredPrinciples`/`filteredAdrs` — search results; `flagged`/`toggleFlag` — flag state.
  */
 export function useArchitecture() {
-  const { data: principlesData } = useFetch<Principle[]>(
-    '/api/architecture/principles'
+  const { data: principlesData, refresh: refreshPrinciples } = useFetch<
+    Principle[]
+  >('/api/architecture/principles')
+  const { data: adrsData, refresh: refreshAdrs } = useFetch<Adr[]>(
+    '/api/architecture/adrs'
   )
-  const { data: adrsData } = useFetch<Adr[]>('/api/architecture/adrs')
+
+  async function refresh() {
+    await Promise.all([refreshPrinciples(), refreshAdrs()])
+  }
 
   const principles = computed(() => principlesData.value ?? [])
   const adrs = computed(() => adrsData.value ?? [])
@@ -112,6 +118,8 @@ export function useArchitecture() {
     goTo,
     currentPrinciple,
     currentAdr,
+    principles,
+    adrs,
     principleSearch,
     adrSearch,
     filteredPrinciples,
@@ -121,5 +129,6 @@ export function useArchitecture() {
     flaggedPrinciplesCount,
     proposedCount,
     hasProposedForPrinciples,
+    refresh,
   }
 }

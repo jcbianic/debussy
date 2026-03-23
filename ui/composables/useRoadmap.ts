@@ -49,7 +49,9 @@ export function meaningfulCount(r: Release): number {
 
 /** Provide roadmap data, computed state, and mutation helpers. */
 export const useRoadmap = () => {
-  const { data: releasesData } = useFetch<Release[]>('/api/roadmap/releases')
+  const { data: releasesData, refresh } = useFetch<Release[]>(
+    '/api/roadmap/releases'
+  )
 
   const releases = computed(() => releasesData.value ?? [])
 
@@ -141,5 +143,6 @@ export const useRoadmap = () => {
     syncing,
     triggerSync,
     moveIntent,
+    refresh,
   }
 }
