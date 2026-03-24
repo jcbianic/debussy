@@ -220,7 +220,7 @@ Once found, start the server:
 ```bash
 node <found-path> &
 sleep 1
-open http://localhost:3000
+open http://localhost:3050
 ```
 
 If the server is not found, print instructions:
@@ -230,7 +230,7 @@ Could not locate Debussy UI server. Please start it manually:
 
   node <path-to-debussy>/ui/.output/server/index.mjs
 
-Then open http://localhost:3000 in your browser.
+Then open http://localhost:3050 in your browser.
 ```
 
 ---
@@ -259,7 +259,7 @@ Files created:
 └──────────────────────────────────────────┴────────────┘
 
 Debussy UI is running at:
-  → http://localhost:3000
+  → http://localhost:3050
 
 Next steps:
 1. Open http://localhost:3050 in your browser
