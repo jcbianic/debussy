@@ -306,5 +306,7 @@ const { nextRelease, nextReleaseName, artifacts, claudeStats, claudeItems } =
 const lanesWithPending = computed(() =>
   allLanesWithPending.value.filter((l) => l.pending > 0)
 )
-const activeLaneCount = lanes.filter((l) => l.isActive).length
+const activeLaneCount = computed(
+  () => lanes.value.filter((l) => l.isActive).length
+)
 </script>
