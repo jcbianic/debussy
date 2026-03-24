@@ -175,37 +175,34 @@ Describe your first architectural principle here.
 
 ### `docs/decisions/001-initial-decision.md`
 
-```yaml
----
-id: "001"
-shortTitle: Initial Decision
-status: Draft
-date: <today>
----
+```markdown
 # ADR 001 — Initial Decision
 
 ## Context
+
 _What is the context for this decision?_
 
 ## Decision
+
 _What was decided?_
 
 ## Consequences
+
 _What are the consequences?_
 ```
 
 ### `specs/intents.md`
 
 ```markdown
-## Intent 001 — First Feature
+## 001 -- First Feature
 
-**release:** R1
-**releaseName:** Alpha
-**releaseTheme:** Foundation
-**id:** I-001
-**state:** open
-**priority:** high
-**doneWhen:** Describe acceptance criteria here.
+Describe the first feature intent here.
+
+**Addresses:** P1: Problem name
+**Target audience:** A1: Audience name
+**Priority:** high
+**Depends on:** none
+**Done when:** Describe acceptance criteria here.
 ```
 
 ---
@@ -223,7 +220,7 @@ Once found, start the server:
 ```bash
 node <found-path> &
 sleep 1
-open http://localhost:3050
+open http://localhost:3000
 ```
 
 If the server is not found, print instructions:
@@ -233,7 +230,7 @@ Could not locate Debussy UI server. Please start it manually:
 
   node <path-to-debussy>/ui/.output/server/index.mjs
 
-Then open http://localhost:3050 in your browser.
+Then open http://localhost:3000 in your browser.
 ```
 
 ---
@@ -262,7 +259,7 @@ Files created:
 └──────────────────────────────────────────┴────────────┘
 
 Debussy UI is running at:
-  → http://localhost:3050
+  → http://localhost:3000
 
 Next steps:
 1. Open http://localhost:3050 in your browser

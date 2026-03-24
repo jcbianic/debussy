@@ -10,4 +10,8 @@ export default defineNuxtConfig({
     fallback: 'dark',
     classSuffix: '',
   },
+
+  nitro: {
+    port: 3050,
+  },
 })
