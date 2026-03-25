@@ -1,8 +1,9 @@
 <template>
   <aside class="border-line flex w-60 flex-shrink-0 flex-col border-r">
     <!-- Project header -->
-    <div
-      class="border-line flex h-16 items-center justify-between border-b px-4"
+    <NuxtLink
+      to="/configure"
+      class="border-line hover:bg-surface-hover flex h-16 items-center justify-between border-b px-4 transition-colors"
     >
       <div class="flex min-w-0 items-center gap-2.5">
         <div class="size-2 flex-shrink-0 rounded-full bg-green-500" />
@@ -11,20 +12,24 @@
             {{ projectName }}
           </div>
           <div
+            v-if="projectDescription"
+            class="text-content-faint truncate text-xs leading-tight"
+          >
+            {{ projectDescription }}
+          </div>
+          <div
+            v-else
             class="text-content-faint truncate font-mono text-xs leading-tight"
           >
             {{ projectPath }}
           </div>
         </div>
       </div>
-      <UButton
-        variant="ghost"
-        color="neutral"
-        size="xs"
-        icon="i-heroicons-chevron-up-down"
-        class="flex-shrink-0"
+      <UIcon
+        name="i-heroicons-cog-6-tooth"
+        class="text-content-faint size-4 flex-shrink-0"
       />
-    </div>
+    </NuxtLink>
 
     <!-- Nav -->
     <div class="flex-1 overflow-y-auto">
@@ -77,6 +82,10 @@ const toggleColorMode = () => {
   colorMode.preference = isDark.value ? 'light' : 'dark'
 }
 
-const { name: projectName, path: projectPath } = useProjectConfig()
+const {
+  name: projectName,
+  description: projectDescription,
+  path: projectPath,
+} = useProjectConfig()
 const { lanesWithPending, totalPending } = useLanes()
 </script>

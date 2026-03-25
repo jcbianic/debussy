@@ -14,6 +14,17 @@ export default defineNuxtConfig({
   },
 
   nitro: {
-    port: 3050,
+    port: 4321,
+  },
+
+  vite: {
+    build: {
+      rollupOptions: {
+        onLog(level, log, handler) {
+          if (log.code === 'SOURCEMAP_BROKEN') return
+          handler(level, log)
+        },
+      },
+    },
   },
 })
