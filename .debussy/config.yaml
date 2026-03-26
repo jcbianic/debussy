@@ -1,7 +1,0 @@
-project:
-  name: Debussy
-  description: "A framework for your Claude Sessions: knowledge base, automation
-    and human review of artifacts."
-strates:
-  strategy: true
-  engineering: true
