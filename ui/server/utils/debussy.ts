@@ -1,6 +1,9 @@
 import { exec } from 'node:child_process'
+import { readFile } from 'node:fs/promises'
 import { promisify } from 'node:util'
 import path from 'node:path'
+import { parse as parseYaml } from 'yaml'
+import type { StrategyManifest } from '~/types/config'
 
 const execAsync = promisify(exec)
 
@@ -28,6 +31,24 @@ export async function resolveDebussyPath(
  */
 export async function resolveStrategyPath(): Promise<string> {
   return resolveDebussyPath('.debussy', 'strategy')
+}
+
+// ─── Manifest ───────────────────────────────────────────────────────────────
+
+/**
+ * Reads and parses .debussy/strategy/manifest.yaml.
+ * Returns null if the file is missing or unparseable.
+ */
+export async function readStrategyManifest(): Promise<StrategyManifest | null> {
+  const strategyPath = await resolveStrategyPath()
+  try {
+    const raw = await readFile(path.join(strategyPath, 'manifest.yaml'), 'utf8')
+    const parsed = parseYaml(raw)
+    if (!parsed || typeof parsed !== 'object' || !parsed.depth) return null
+    return parsed as StrategyManifest
+  } catch {
+    return null
+  }
 }
 
 // ─── Frontmatter schemas ────────────────────────────────────────────────────

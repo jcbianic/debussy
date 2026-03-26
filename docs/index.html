@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Debussy — Workflow orchestration for Claude Code</title>
+  <meta name="description" content="Local-first web UI for orchestrating Claude Code sessions. Structured workflows, artifact review, and parallel lanes — without the terminal chaos.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #ffffff;
+      --bg-subtle: #fafafa;
+      --bg-hover: #f4f4f5;
+      --border: #e4e4e7;
+      --text: #18181b;
+      --text-muted: #71717a;
+      --text-faint: #a1a1aa;
+      --accent: #d97706;
+      --accent-hover: #b45309;
+      --code-bg: #f4f4f5;
+      --code-text: #18181b;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #09090b;
+        --bg-subtle: #0f0f11;
+        --bg-hover: #18181b;
+        --border: #27272a;
+        --text: #f4f4f5;
+        --text-muted: #a1a1aa;
+        --text-faint: #71717a;
+        --accent: #fbbf24;
+        --accent-hover: #f59e0b;
+        --code-bg: #18181b;
+        --code-text: #f4f4f5;
+      }
+    }
+
+    [data-theme="dark"] {
+      --bg: #09090b;
+      --bg-subtle: #0f0f11;
+      --bg-hover: #18181b;
+      --border: #27272a;
+      --text: #f4f4f5;
+      --text-muted: #a1a1aa;
+      --text-faint: #71717a;
+      --accent: #fbbf24;
+      --accent-hover: #f59e0b;
+      --code-bg: #18181b;
+      --code-text: #f4f4f5;
+    }
+
+    html { font-size: 16px; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    a:hover { color: var(--accent); }
+
+    .mono { font-family: 'JetBrains Mono', monospace; }
+
+    /* Layout */
+    .container {
+      max-width: 56rem;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    /* Header */
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 1.25rem 0;
+    }
+    header .inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+      color: var(--text);
+    }
+    .logo:hover { color: var(--accent); }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .theme-toggle {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0.25rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      transition: color 0.15s;
+      border-radius: 4px;
+    }
+    .theme-toggle:hover { color: var(--text); }
+    .github-link {
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      transition: color 0.15s;
+    }
+    .github-link:hover { color: var(--accent); }
+
+    /* Hero */
+    .hero {
+      padding: 5rem 0 4rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .hero-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+      margin-bottom: 1.25rem;
+    }
+    .hero h1 {
+      font-size: clamp(2.25rem, 5vw, 3.25rem);
+      font-weight: 600;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      color: var(--text);
+      margin-bottom: 1.25rem;
+    }
+    .hero h1 em {
+      font-style: normal;
+      color: var(--accent);
+    }
+    .hero p {
+      font-size: 1.125rem;
+      color: var(--text-muted);
+      max-width: 38rem;
+      margin-bottom: 2rem;
+      line-height: 1.7;
+    }
+    .install-block {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.75rem 1.25rem;
+    }
+    .install-block code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+      color: var(--code-text);
+    }
+    .copy-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-faint);
+      display: flex;
+      align-items: center;
+      padding: 0;
+      transition: color 0.15s;
+    }
+    .copy-btn:hover { color: var(--accent); }
+
+    /* Section label */
+    .section-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+      margin-bottom: 2rem;
+    }
+
+    /* Pain points */
+    .pain-section {
+      padding: 4rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .pain-intro {
+      font-size: 1.0625rem;
+      color: var(--text-muted);
+      max-width: 34rem;
+      margin-bottom: 2.5rem;
+      line-height: 1.7;
+    }
+    .pain-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .pain-card {
+      padding: 1.75rem;
+      border-right: 1px solid var(--border);
+      transition: background 0.2s;
+    }
+    .pain-card:last-child { border-right: none; }
+    .pain-card:hover { background: var(--bg-hover); }
+    .pain-number {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text-faint);
+      letter-spacing: 0.08em;
+      margin-bottom: 0.75rem;
+    }
+    .pain-card h3 {
+      font-size: 0.9375rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.01em;
+    }
+    .pain-card p {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* Features */
+    .features-section {
+      padding: 4rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .feature-card {
+      padding: 1.75rem;
+      background: var(--bg);
+      transition: background 0.2s;
+    }
+    .feature-card:hover { background: var(--bg-hover); }
+    .feature-icon {
+      width: 2rem;
+      height: 2rem;
+      border-radius: 6px;
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+    }
+    .feature-card h3 {
+      font-size: 0.9375rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.375rem;
+      letter-spacing: -0.01em;
+    }
+    .feature-card p {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* Stack */
+    .stack-section {
+      padding: 4rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .stack-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .stack-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.25rem 0.625rem;
+      letter-spacing: 0.02em;
+    }
+
+    /* Quick start */
+    .quickstart-section {
+      padding: 4rem 0;
+    }
+    .quickstart-body {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      max-width: 36rem;
+    }
+    .quickstart-body p {
+      font-size: 1.0625rem;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+    .code-block {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem 1.5rem;
+    }
+    .code-block code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.875rem;
+      color: var(--code-text);
+      display: block;
+    }
+    .code-block code .comment {
+      color: var(--text-faint);
+    }
+    .code-block code .cmd {
+      color: var(--accent);
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 1.5rem 0;
+    }
+    footer .inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+    footer p {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text-faint);
+      letter-spacing: 0.04em;
+    }
+    footer a {
+      color: var(--text-faint);
+      transition: color 0.15s;
+    }
+    footer a:hover { color: var(--accent); }
+
+    @media (max-width: 640px) {
+      .pain-grid { grid-template-columns: 1fr; }
+      .pain-card { border-right: none; border-bottom: 1px solid var(--border); }
+      .pain-card:last-child { border-bottom: none; }
+      .features-grid { grid-template-columns: 1fr; }
+      .hero { padding: 3.5rem 0 3rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="container">
+      <div class="inner">
+        <a href="/" class="logo">debussy</a>
+        <div class="header-actions">
+          <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+            <svg id="iconSun" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+            <svg id="iconMoon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          </button>
+          <a href="https://github.com/jcbianic/debussy" class="github-link" target="_blank" rel="noopener">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12.017C22 6.484 17.522 2 12 2Z"/></svg>
+            GitHub
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- Hero -->
+    <section class="hero">
+      <div class="container">
+        <p class="hero-label">developer tooling · claude code</p>
+        <h1>Orchestrate Claude Code.<br><em>Without the chaos.</em></h1>
+        <p>
+          Debussy is a local-first web UI for managing Claude Code sessions, running
+          structured multi-phase workflows, and reviewing AI-produced artifacts —
+          all from the browser, without juggling terminal tabs.
+        </p>
+        <div class="install-block">
+          <code>npx debussy</code>
+          <button class="copy-btn" id="copyBtn" aria-label="Copy command">
+            <svg id="copyIcon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+            <svg id="checkIcon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:none;color:var(--accent)"><polyline points="20 6 9 17 4 12"/></svg>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pain points -->
+    <section class="pain-section">
+      <div class="container">
+        <p class="section-label">The problem</p>
+        <p class="pain-intro">
+          Three concrete friction points in daily Claude Code use — none of the existing tools address all three together.
+        </p>
+        <div class="pain-grid">
+          <div class="pain-card">
+            <p class="pain-number">01</p>
+            <h3>Review UX is broken</h3>
+            <p>Reading a 20-item checklist in a terminal while typing responses is high friction. No way to approve, flag, or skip with a click.</p>
+          </div>
+          <div class="pain-card">
+            <p class="pain-number">02</p>
+            <h3>Long workflows need visibility</h3>
+            <p>A full IIKit cycle takes 30–60 minutes. You shouldn't babysit it — but you can't leave it blind either. You need a clear picture when you return.</p>
+          </div>
+          <div class="pain-card">
+            <p class="pain-number">03</p>
+            <h3>Parallel work creates chaos</h3>
+            <p>Running two features simultaneously means filesystem conflicts and context-switching mess. There's no built-in concept of isolated lanes.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section class="features-section">
+      <div class="container">
+        <p class="section-label">What Debussy adds</p>
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon">⬡</div>
+            <h3>Session Dashboard</h3>
+            <p>Browse, search, and resume Claude Code sessions from the browser. Real-time status across multiple concurrent sessions. Permission prompts surfaced in the UI.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">▶</div>
+            <h3>Workflow Runner</h3>
+            <p>Execute IIKit phases, Ralph loops, and custom pipelines from the UI. Visualize phase progression, auto-switch on exit criteria, and surface validation results at each checkpoint.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">◈</div>
+            <h3>Artifact Manager</h3>
+            <p>View, edit, and validate artifacts produced by Claude Code — specs, plans, task lists, test definitions. Review what each phase produced and validate assertion integrity.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">◎</div>
+            <h3>Cost & Monitoring</h3>
+            <p>Track token consumption, burn rate, and cost per session and workflow. Surface context window usage in real-time. Alert when sessions approach limits.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stack -->
+    <section class="stack-section">
+      <div class="container">
+        <p class="section-label">Built on</p>
+        <div class="stack-list">
+          <span class="stack-tag">Nuxt 4</span>
+          <span class="stack-tag">Vue 3</span>
+          <span class="stack-tag">Nitro</span>
+          <span class="stack-tag">Nuxt UI 3</span>
+          <span class="stack-tag">Tailwind CSS 4</span>
+          <span class="stack-tag">xterm.js</span>
+          <span class="stack-tag">node-pty</span>
+          <span class="stack-tag">SQLite</span>
+          <span class="stack-tag">@anthropic-ai/claude-code</span>
+          <span class="stack-tag">TypeScript</span>
+          <span class="stack-tag">SSE + WebSocket</span>
+          <span class="stack-tag">Vitest 3</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick start -->
+    <section class="quickstart-section">
+      <div class="container">
+        <p class="section-label">Quick start</p>
+        <div class="quickstart-body">
+          <p>
+            Run Debussy from any repository. No install required —
+            it opens at <span class="mono" style="font-size:0.875rem">localhost:4321</span> and reads your existing
+            Claude Code session history.
+          </p>
+          <div class="code-block">
+            <code><span class="comment"># Run from any repository</span></code>
+            <code><span class="cmd">npx debussy</span></code>
+            <code>&nbsp;</code>
+            <code><span class="comment"># Opens http://localhost:4321</span></code>
+          </div>
+          <p style="font-size:0.875rem">
+            Local-first — no cloud, no telemetry, no accounts.
+            Session data is read from <span class="mono" style="font-size:0.8125rem">~/.claude/projects/</span>.
+            Debussy's own metadata lives in <span class="mono" style="font-size:0.8125rem">~/.debussy/</span>.
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="container">
+      <div class="inner">
+        <p>© 2025 Debussy · MIT License</p>
+        <p>
+          <a href="https://github.com/jcbianic/debussy" target="_blank" rel="noopener">
+            github.com/jcbianic/debussy
+          </a>
+        </p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Theme toggle
+    const html = document.documentElement;
+    const toggle = document.getElementById('themeToggle');
+    const iconSun = document.getElementById('iconSun');
+    const iconMoon = document.getElementById('iconMoon');
+
+    function getSystemTheme() {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+
+    function applyTheme(theme) {
+      html.setAttribute('data-theme', theme);
+      iconSun.style.display = theme === 'dark' ? 'block' : 'none';
+      iconMoon.style.display = theme === 'dark' ? 'none' : 'block';
+    }
+
+    const saved = localStorage.getItem('theme');
+    applyTheme(saved || getSystemTheme());
+
+    toggle.addEventListener('click', () => {
+      const current = html.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      applyTheme(next);
+      localStorage.setItem('theme', next);
+    });
+
+    // Copy button
+    const copyBtn = document.getElementById('copyBtn');
+    const copyIcon = document.getElementById('copyIcon');
+    const checkIcon = document.getElementById('checkIcon');
+
+    copyBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText('npx debussy').then(() => {
+        copyIcon.style.display = 'none';
+        checkIcon.style.display = 'block';
+        setTimeout(() => {
+          copyIcon.style.display = 'block';
+          checkIcon.style.display = 'none';
+        }, 1500);
+      });
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,525 @@
+{
+  "lastScanned": "2026-03-22T12:00:00.000Z",
+  "items": {
+    "ui/pages/architecture.vue": {
+      "tier": 2,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "All violations resolved; thin tier-2 orchestrator delegating to ArchPrinciplesIndex/Detail + ArchitectureDecisionsIndex/Detail; redundant imports removed (check 9); clickable divs fixed (check 10)"
+    },
+    "ui/pages/feature.vue": {
+      "tier": 2,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "All violations resolved; thin orchestrator delegating to FeatureListPanel + detail panel; redundant import removed (check 9); types and logic in useFeatureSpace()"
+    },
+    "ui/pages/feedback.vue": {
+      "tier": 2,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "Stub page only"
+    },
+    "ui/pages/inbox.vue": {
+      "tier": 2,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "All violations resolved; thin orchestrator delegating to InboxListPanel + ReviewItemDetail; correct tier-2 pattern"
+    },
+    "ui/pages/index.vue": {
+      "tier": 2,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "All violations resolved; nextReleaseName from useDashboard; activeLaneCount and totalPending from useMockData; no more hardcoded strings"
+    },
+    "ui/pages/lane/[id].vue": {
+      "tier": 2,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "Thin delegating page — correct pattern"
+    },
+    "ui/pages/lane/[id]/review/[reviewId].vue": {
+      "tier": 2,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "Refactored: Review interface + allReviews data moved to useMockData(); local statusColor removed (auto-imported util); now 14 lines"
+    },
+    "ui/pages/policy.vue": {
+      "tier": 2,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "All violations resolved; interfaces were already in usePolicy.ts (check 3 was stale); PolicyTopicDetail extracted for right panel (check 6)"
+    },
+    "ui/pages/product.vue": {
+      "tier": 2,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "All violations resolved; interfaces were already in useProduct.ts (check 3 was stale); ProductArtifactDetail extracted for right panel (check 6)"
+    },
+    "ui/pages/roadmap.vue": {
+      "tier": 2,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "All violations resolved; 90-line thin orchestrator delegating to RoadmapSummaryBar + RoadmapReleasesSection + IntentDetailPanel + SegmentedControl; accessibility fixed (check 10); standalone utility functions exported from useRoadmap.ts for Nuxt auto-import"
+    },
+    "ui/pages/setup.vue": {
+      "tier": 2,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "Template is 196 lines total but no single logical section exceeds 80 lines; accepted as borderline for a multi-section settings page; SetupItemDetail extracted for detail view"
+    },
+    "ui/pages/strategy.vue": {
+      "tier": 2,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "Stub page only"
+    },
+    "ui/pages/workflow.vue": {
+      "tier": 2,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "Stub page only"
+    },
+    "ui/pages/worktree/[id].vue": {
+      "tier": 2,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "Thin delegating page — correct pattern"
+    },
+    "ui/pages/worktree/[id]/review/[reviewId].vue": {
+      "tier": 2,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "Refactored: consolidated with lane review page; both now use useMockData().getReview() and auto-imported statusColor"
+    },
+    "ui/components/AppSidebar.vue": {
+      "tier": 2,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "All violations resolved; decomposed into SidebarNavLinks + SidebarLanesList; AppSidebar now ~65 lines (header + nav + lanes + bottom)"
+    },
+    "ui/components/SidebarNavLinks.vue": {
+      "tier": 3,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "New tier-3 presenter extracted from AppSidebar; renders NavItems with currentPath + totalPending props"
+    },
+    "ui/components/SidebarLanesList.vue": {
+      "tier": 3,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "New tier-3 presenter extracted from AppSidebar; renders lane list items with pending badges and stage button"
+    },
+    "ui/components/ArchitectureAdrDetail.vue": {
+      "tier": 3,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "All violations resolved; AdrSectionsList extracted for the sections loop; template now ~85 lines (check 1 resolved)"
+    },
+    "ui/components/AdrSectionsList.vue": {
+      "tier": 3,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "New tier-3 presenter; renders ADR sections with optional table; accepts sections: AdrSection[] prop"
+    },
+    "ui/components/ArchitectureDecisionsIndex.vue": {
+      "tier": 3,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "All violations resolved; check 10 fixed: clickable tr replaced by button in title cell; template compacted to ~75 lines (check 1 resolved)"
+    },
+    "ui/components/ArchitecturePrincipleDetail.vue": {
+      "tier": 3,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "All violations resolved; PrincipleRelatedAdrs extracted for the related decisions section; template now ~55 lines"
+    },
+    "ui/components/PrincipleRelatedAdrs.vue": {
+      "tier": 3,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "New tier-3 presenter; renders related ADR buttons with navigate emit; accepts relatedAdrKeys + adrs props"
+    },
+    "ui/components/ArchitecturePrinciplesIndex.vue": {
+      "tier": 3,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "Template ~79 lines (under limit); check 10 fixed: clickable div → <button type='button' w-full text-left>"
+    },
+    "ui/components/EmptyState.vue": {
+      "tier": 3,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "Clean tier-3 presenter — props in, slot out, no composable calls"
+    },
+    "ui/components/FeatureListPanel.vue": {
+      "tier": 3,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "All violations resolved; decomposed into FeatureSearchResults + FeatureGroupView + FeatureDetailPanel; check 10 fixed (buttons); now ~65 lines"
+    },
+    "ui/components/FeatureCard.vue": {
+      "tier": 3,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "New unified card presenter; used by FeatureSearchResults and FeatureGroupView; supports highlight, compact mode, conditional badge display; uses button (not div)"
+    },
+    "ui/components/FeatureDetailPanel.vue": {
+      "tier": 3,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "New tier-3 presenter extracted from FeatureListPanel; uses FeatureProblemRefs + FeatureRelatedItems sub-components; ~70 lines"
+    },
+    "ui/components/FeatureProblemRefs.vue": {
+      "tier": 3,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "New tier-3 presenter; problem cross-reference cards with icon + name + description; accepts problems: string[] prop"
+    },
+    "ui/components/FeatureRelatedItems.vue": {
+      "tier": 3,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "New tier-3 presenter; related features list with navigate-style buttons; accepts related: EnrichedFeature[] prop"
+    },
+    "ui/components/FeatureSearchResults.vue": {
+      "tier": 3,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "New tier-3 presenter; search results list using FeatureCard with highlight; ~35 lines"
+    },
+    "ui/components/FeatureGroupView.vue": {
+      "tier": 3,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "New tier-3 presenter; group header + FeatureCard list with conditional badge display; ~45 lines"
+    },
+    "ui/components/InboxListPanel.vue": {
+      "tier": 3,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "All violations resolved; InboxGroupSection extracted for group+item rendering; InboxListPanel now ~65 lines"
+    },
+    "ui/components/InboxGroupSection.vue": {
+      "tier": 3,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "New tier-3 presenter; renders groups + items for a lane; collapsible group header + item rows with quick action buttons"
+    },
+    "ui/components/IntentDetailPanel.vue": {
+      "tier": 3,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "All violations resolved; IntentMetadata extracted for priority/lane/issue rows; template now ~75 lines"
+    },
+    "ui/components/IntentMetadata.vue": {
+      "tier": 3,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "New tier-3 presenter; renders intent priority, lane link, and GitHub issue metadata rows"
+    },
+    "ui/components/LaneCommitsTab.vue": {
+      "tier": 3,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "Clean tier-3 presenter — ~39-line template, typed props, no composable calls"
+    },
+    "ui/components/LaneDetail.vue": {
+      "tier": 2,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "All violations resolved; thin orchestrator delegating to LaneInboxTab + LaneWorkflowTab + LaneCommitsTab"
+    },
+    "ui/components/LaneInboxTab.vue": {
+      "tier": 3,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "Clean tier-3 presenter — ~77-line template, typed props, uses useExpandable() (UI-utility allowed in tier-3), statusColor auto-imported"
+    },
+    "ui/components/LaneWorkflowTab.vue": {
+      "tier": 3,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "All violations resolved; WorkflowStepRow extracted for step rendering; LaneWorkflowTab now ~45 lines"
+    },
+    "ui/components/WorkflowStepRow.vue": {
+      "tier": 3,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "New tier-3 presenter; renders a single workflow step with state icon, name, detail, duration, and unblock button"
+    },
+    "ui/components/NavItem.vue": {
+      "tier": 3,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "Refactored: removed useRoute(), now accepts isActive as a prop; default.vue computes and passes it"
+    },
+    "ui/components/PolicyTopicDetail.vue": {
+      "tier": 3,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "New tier-3 presenter extracted from policy.vue; renders topic detail with sections (items list or text content)"
+    },
+    "ui/components/ProductArtifactDetail.vue": {
+      "tier": 3,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "New tier-3 presenter extracted from product.vue; renders artifact detail with name, file, status, sections"
+    },
+    "ui/components/ReviewItemDetail.vue": {
+      "tier": 3,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "All violations resolved; ReviewRoundSelector + ReviewFeedbackCard + ReviewActionBar extracted; template now ~165 lines"
+    },
+    "ui/components/ReviewRoundSelector.vue": {
+      "tier": 3,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "New tier-3 presenter; round tab selector with status dot; accepts rounds, activeRound, currentStatus"
+    },
+    "ui/components/ReviewFeedbackCard.vue": {
+      "tier": 3,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "New tier-3 presenter; renders a past-round feedback card with status-aware colors (approved/changes-requested/rejected)"
+    },
+    "ui/components/ReviewActionBar.vue": {
+      "tier": 3,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "New tier-3 presenter; comment textarea + Approve/Request changes/Reject buttons; uses defineModel for comment and commentError"
+    },
+    "ui/components/RoadmapReleasesSection.vue": {
+      "tier": 3,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "New tier-3 presenter extracted from roadmap.vue; typed props/emits; release header uses <button>; intent rows use role=button + keyboard handlers (can't be <button> due to interactive children); releaseStatus/releaseStatusColor/meaningfulCount auto-imported from useRoadmap.ts"
+    },
+    "ui/components/RoadmapSummaryBar.vue": {
+      "tier": 3,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "New tier-3 presenter extracted from roadmap.vue; typed props/emits; shipped/current/planned stats grid with progress bar; meaningfulCount auto-imported from useRoadmap.ts"
+    },
+    "ui/components/SegmentedControl.vue": {
+      "tier": 3,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "Removed export keyword from SegmentOption interface — now a local type; no external importers"
+    },
+    "ui/components/SetupItemDetail.vue": {
+      "tier": 3,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "New tier-3 presenter extracted from setup.vue; typed props/emits; covers all item types (plugin, command, skill, hook); typeIcon/typeColor auto-imported from useSetup.ts; import type { SetupItem } kept (types not auto-imported)"
+    },
+    "ui/components/TwoPanelLayout.vue": {
+      "tier": 3,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "Clean tier-3 structural layout — slot-based, no logic"
+    },
+    "ui/composables/useArchitecture.ts": {
+      "tier": 1,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "JSDoc added to useArchitecture(), principles, and adrs exports"
+    },
+    "ui/composables/useDashboard.ts": {
+      "tier": 1,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "partial",
+      "notes": "All violations resolved; nextReleaseName added to avoid hardcoded strings in index.vue"
+    },
+    "ui/composables/useExpandable.ts": {
+      "tier": 1,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "partial",
+      "notes": "JSDoc added"
+    },
+    "ui/composables/useFeatureSpace.ts": {
+      "tier": 1,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "JSDoc added to useFeatureSpace() and all 5 exported helper functions"
+    },
+    "ui/composables/useInbox.ts": {
+      "tier": 1,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "partial",
+      "notes": "Clean tier-1 — JSDoc on useInbox(), type-only imports, all state returned for testing"
+    },
+    "ui/composables/useMockData.ts": {
+      "tier": 1,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "JSDoc added to function; interface docs still minimal but function-level doc added"
+    },
+    "ui/composables/usePolicy.ts": {
+      "tier": 1,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "partial",
+      "notes": "Clean tier-1 — JSDoc on usePolicy(), typed interfaces; PolicyItem/PolicySection/PolicyTopic interfaces are here (not in component)"
+    },
+    "ui/composables/useProduct.ts": {
+      "tier": 1,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "Types-only file — ArtifactSection and Artifact interfaces both have JSDoc; clean"
+    },
+    "ui/composables/useRoadmap.ts": {
+      "tier": 1,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "Clean tier-1 — JSDoc on useRoadmap(), Intent, Release interfaces; releaseStatus/releaseStatusColor/meaningfulCount exported as module-level standalone functions (Nuxt auto-imports them for use in presenter components)"
+    },
+    "ui/composables/useSetup.ts": {
+      "tier": 1,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "Clean tier-1 — JSDoc on useSetup(), typeIcon(), typeColor(), SetupItem interface; large data arrays correctly in composable"
+    },
+    "ui/layouts/default.vue": {
+      "tier": 3,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "Extracted sidebar to AppSidebar.vue; now a clean 8-line slot-based shell"
+    },
+    "ui/utils/status.ts": {
+      "tier": 1,
+      "status": "healthy",
+      "lastReviewed": "2026-03-22",
+      "violations": [],
+      "testStatus": "untested",
+      "notes": "JSDoc added"
+    }
+  }
+}

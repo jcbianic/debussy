@@ -1,26 +1,27 @@
 ---
 description: >-
   Product discovery: research the space, produce structured artifacts under
-  .debussy/strategy/, and review them in a browser UI. Use when shaping product
-  direction, mapping the competitive landscape, or defining audiences and
-  problems before roadmap scoping.
+  .debussy/strategy/, and review them in a browser UI. Supports three depth
+  levels (pitch, foundation, full) as a progressive journey.
   Commands: /strategy | /strategy --refresh {type} | /strategy --review
 license: MIT
 metadata:
   author: jcbianic
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 # Strategy Skill
 
-Research-first product discovery. This skill actively investigates the product
-space — vision, problems, audiences, landscape, competitors, allies, feature
-space, and product positioning — and produces structured, machine-parseable
+Research-first product discovery with progressive depth. This skill actively
+investigates the product space and produces structured, machine-parseable
 artifacts under `.debussy/strategy/`.
 
-These artifacts feed `/debussy:roadmap`, which consumes them to produce intents
-and sync GitHub Issues. The two skills have different rhythms: strategy runs
-when you need to understand the space; roadmap runs when you need to scope work.
+The user progresses through three depth levels — **Pitch**, **Foundation**,
+**Full** — each building on the previous. The skill detects the current depth
+and proposes either refining the current level or deepening to the next.
+
+These artifacts feed `/debussy:product`, which consumes them to produce the
+product definition, intents, and sync GitHub Issues.
 
 Research comes first. The user validates and course-corrects — they are not the
 primary source of raw information.
@@ -34,10 +35,20 @@ primary source of raw information.
 ## Usage
 
 ```
-/strategy                          # Full run: research -> synthesize -> validate -> write
+/strategy                          # Detect depth, propose refine or deepen
 /strategy --refresh {type}         # Re-research and update one artifact type
 /strategy --review                 # Open browser review UI for existing artifacts
 ```
+
+---
+
+## Depth Levels
+
+| Level | Documents | Research Scope | Use Case |
+|---|---|---|---|
+| **Pitch** | `pitch.md` | 3-5 web queries, 1 agent | Side-project, hackathon, experiment |
+| **Foundation** | `vision.md`, `problem-space.md`, `landscape.md` | 8-12 queries, 2 agents | Startup, serious side-project |
+| **Full** | `vision.md`, `strategy.md`, `audiences.md`, `problems.md`, `landscape.md`, `competitors/*.md`, `allies/*.md`, `opportunities.md` | 15-25 queries, 4 agents | SaaS, enterprise, funded startup |
 
 ---
 
@@ -51,16 +62,64 @@ From `$ARGUMENTS`:
 
 ---
 
-## Step 2: Gather Context
+## Step 2: Detect Current Depth
+
+Read `.debussy/config.yaml` to get `strates.strategy.depth`.
+
+Also scan `.debussy/strategy/` to detect actual files present:
+
+```bash
+ls .debussy/strategy/*.md .debussy/strategy/competitors/*.md .debussy/strategy/allies/*.md 2>/dev/null || echo "EMPTY"
+```
+
+Determine current state:
+
+| Files present | Detected depth |
+|---|---|
+| Nothing or only stubs | `none` (never run) |
+| `pitch.md` with content | `pitch` |
+| `vision.md` + `problem-space.md` + `landscape.md` | `foundation` |
+| `audiences.md` + `problems.md` + `strategy.md` | `full` |
+
+The configured depth in `config.yaml` is the **target**. The detected depth
+from files is the **current state**.
+
+---
+
+## Step 3: Propose Action
+
+Based on current state and target depth:
+
+**If current = none (first run):**
+- Start at the configured depth (from config.yaml, default: foundation)
+- Jump to the appropriate research step
+
+**If current = configured depth (same level):**
+- Ask via AskUserQuestion:
+
+```
+Your strategy is at {depth} level ({N} documents).
+
+1. "refine"  — rework the current artifacts with fresh research
+2. "deepen"  — progress to {next level} ({M} documents, deeper research)
+
+What would you like to do?
+```
+
+Where next level is: pitch → foundation, foundation → full, full → (no deepen option).
+
+**If current < configured depth:**
+- The user has already configured a deeper level. Proceed to deepen.
+
+---
+
+## Step 4: Gather Context
 
 Read each of the following files if they exist (use Read tool; skip silently if missing):
 
 | File | Purpose |
 |---|---|
 | `.debussy/strategy/**/*.md` | Existing strategy artifacts |
-| `docs/vision.md` | Legacy vision artifact (fallback) |
-| `docs/landscape.md` | Legacy landscape artifact (fallback) |
-| `docs/product.md` | Legacy product artifact (fallback) |
 | `README.md` | Product name, one-liner, basic description |
 | `CLAUDE.md` | Project instructions, structure, next steps |
 | `.claude-plugin/plugin.json` | Plugin metadata (name, description, keywords) |
@@ -73,7 +132,7 @@ Also run:
 git log --oneline -15
 ```
 
-After gathering, build an internal summary:
+Build an internal summary:
 
 - **Product name** and one-liner
 - **Problem domain** the product operates in
@@ -81,141 +140,382 @@ After gathering, build an internal summary:
 - **Known competitors** (from existing artifacts)
 - **Current state** of each artifact type (missing / thin / solid)
 
-This summary drives the research queries in Step 4.
-
 ---
 
-## Step 3: Assess Gaps
+## Step 5: Research
 
-For each artifact type, classify as:
+Research scope adapts to the target depth level.
 
-| State | Meaning | Action |
-|---|---|---|
-| **Missing** | File doesn't exist | Full research |
-| **Thin** | File exists but key sections empty or vague | Targeted research |
-| **Solid** | File exists with substantive content | Validation research (lighter) |
+### Pitch Research (3-5 queries)
 
-Assessment criteria per artifact:
+**Goal**: Get a quick, grounded understanding of the product space.
 
-| Artifact | Solid if... | Thin if... |
-|---|---|---|
-| `vision.md` | Has narrative why + north star + 3+ success criteria | Missing or has fewer than 2 concrete criteria |
-| `problems.md` | Has 3+ named problems with evidence | Missing or problems lack evidence |
-| `audiences.md` | Has 2+ segments with size estimates and workflows | Missing or segments are vague |
-| `landscape.md` | Has market overview + 3+ competitor entries | Missing or only 1-2 vague entries |
-| `competitors/*.md` | Has strengths + weaknesses + gap with evidence | Missing key sections |
-| `allies/*.md` | Has relationship + integration opportunity | Missing key sections |
-| `feature-space.md` | Has table stakes + differentiators + gaps | Missing or only one category |
-| `product.md` | Has positioning + target user + non-goals | Missing or lacks key sections |
+1. Search: `"{problem domain}" challenges frustrations`
+2. Search: `"{product category}" alternatives tools`
+3. Search: `"{target user}" workflow {problem}`
+4. For the best 1-2 results, WebFetch and extract key findings
+5. Compile a brief research summary
 
-Flag thin/missing areas for deep research in Step 4.
-Flag solid areas for validation research (lighter touch — verify, enrich, don't replace).
+### Foundation Research (8-12 queries)
 
----
-
-## Step 4: Research
-
-Before asking the user anything, actively investigate the product space. Use
-WebSearch and WebFetch tools.
-
-**General approach**: formulate 2-4 search queries per research area, run them,
-read the most relevant results, and compile findings. Prefer concrete data
-(tool names, features, community sizes, user quotes) over generic summaries.
+**Goal**: Understand the problem space, who it affects, and the market context.
 
 Run research for different areas in parallel where possible (use Agent tool).
 
-### 4A — Vision & Problems Research
-
-**Goal**: Understand the problem space and validate pain points.
+**5A — Vision & Problem Space Research:**
 
 1. Search: `"{problem domain}" challenges frustrations {year}`
 2. Search: `"{product category}" pain points users`
-3. For relevant results, WebFetch and extract:
+3. Search: `"{target user}" "{problem}" workflow`
+4. For relevant results, WebFetch and extract:
    - Real problems users report (with quotes/links)
-   - Severity signals (how many people, how loud)
-   - Trends shaping the problem space
-4. Compile into draft problems with evidence
+   - Audience segments and how they work today
+   - Severity signals
+5. Compile into draft problem-space with audience-problem pairings
 
-### 4B — Audience Research
-
-**Goal**: Understand who the users are, how many, and how they work today.
-
-1. Search: `"{target user}" community size`
-2. Search: `"{target user}" "{problem}" workflow`
-3. Search: `"{target user}" tools survey {year}`
-4. Extract:
-   - Audience size estimates (GitHub stars, npm downloads, surveys)
-   - Current workflows (step by step)
-   - Where they congregate (subreddits, Discords, forums)
-   - Switching triggers
-
-### 4C — Competitive Landscape Research
-
-**Goal**: Map the competitive landscape with concrete data.
+**5B — Landscape Research:**
 
 1. Search: `"best {product category} tools" alternatives`
-2. For each known competitor: `"{competitor}" review frustrations`
-3. For each discovered competitor (up to 7): WebFetch homepage/README
-4. Extract per competitor: what it does, strengths, weaknesses, features
-5. Also search for complementary tools (allies)
-6. Identify market trends and opportunities
+2. Search: `"{closest competitor}" vs alternatives`
+3. For each discovered tool (up to 5), WebFetch homepage/README
+4. Extract: what it does, strengths, weaknesses
+5. Compile into landscape overview
 
-### 4D — Feature Space Research
+### Full Research (15-25 queries)
 
-**Goal**: Understand features across the market — what exists, what's missing.
+**Goal**: Comprehensive market map with competitor deep-dives and opportunity analysis.
+
+Run research for different areas in parallel (use Agent tool with 4 agents).
+
+**5A — Vision & Problems Research** (same as Foundation 5A, plus):
+
+6. Search: `"{problem domain}" trends {year}`
+7. Compile problems with evidence into separate problem entries with P{N} IDs
+
+**5B — Audience Research:**
+
+1. Search: `"{target user}" community size`
+2. Search: `"{target user}" tools survey {year}`
+3. Extract: audience size estimates, where they congregate, switching triggers
+4. Compile into separate audience entries with A{N} IDs
+
+**5C — Competitive Landscape Research:**
+
+1. Search: `"best {product category} tools" alternatives`
+2. For each competitor (up to 7): `"{competitor}" review frustrations`
+3. WebFetch each competitor homepage/README
+4. Also search for complementary tools (allies)
+5. Compile into landscape overview + individual competitor/ally files
+
+**5D — Opportunity & Strategy Research:**
 
 1. Search: `"{product category}" features comparison`
 2. Search: `"{closest competitor}" features list`
-3. Extract:
-   - Common features (table stakes)
-   - Differentiating features
-   - Gaps (features users request but nobody has)
-   - Anti-patterns (features that seem good but frustrate users)
+3. Extract: table stakes, differentiators, gaps, anti-patterns
+4. Compile into opportunities map
 
 ### Research Output
 
 Print a short summary to the terminal:
 
 ```
-Research complete. Key findings:
+Research complete ({depth} level). Key findings:
 
-Vision & problems: {1-2 sentences}
-Audiences: {1-2 sentences on size and current solutions}
-Landscape: Found {N} competitors/alternatives. Main gap: {gap}.
-Feature space: {1-2 sentences on patterns and gaps}
+{2-4 bullet points of key findings, adapted to depth}
 
 Proceeding to synthesize artifacts...
 ```
 
 ---
 
-## Step 5: Synthesize Draft Artifacts
+## Step 6: Synthesize Draft Artifacts
 
-Using research findings combined with existing docs, draft all artifacts.
+Using research findings combined with existing docs, draft artifacts appropriate
+to the depth level.
 
-For each artifact:
-- If **missing**: write from scratch using research
-- If **thin**: enrich with research findings, preserve user's existing content
-- If **solid**: add new findings, flag changes for review
+### Pitch Synthesis → 1 document
 
-**If `.debussy/strategy/` artifacts already exist, enrich them — don't replace.**
+Draft `pitch.md`:
 
-Draft artifacts must be grounded in research — cite specific tools, specific
-user frustrations, specific features. Avoid vague generalities.
+```markdown
+---
+name: Pitch
+icon: i-heroicons-rocket-launch
+status: draft
+---
+# {Product Name}
 
-All artifacts use the frontmatter schema defined in the Artifact Types Reference
-below. Set `status: draft` on new/updated files. Preserve `status: reviewed`
-on unchanged files.
+## Vision
+> {One-liner that captures the essence}
+
+{Why this project exists. What change it creates in the world. 2-3 sentences grounded in research.}
+
+## The Problem
+
+### P1: {Problem Name}
+**Affects:** {who}
+{2-3 sentences with evidence from research.}
+
+### P2: {Problem Name}
+**Affects:** {who}
+{2-3 sentences.}
+
+## The Product
+{What we build to solve this.}
+
+- **For:** {target audience}
+- **Nature:** {CLI / SaaS / lib / etc.}
+- **Distribution:** {npm / marketplace / self-hosted}
+
+## What We're NOT Doing
+- {Non-goal 1}
+- {Non-goal 2}
+
+## Landscape
+{2-3 sentences on alternatives and where we fit.}
+```
+
+### Foundation Synthesis → 3 documents
+
+Draft `vision.md`, `problem-space.md`, `landscape.md`.
+
+**vision.md:**
+```markdown
+---
+name: Vision
+icon: i-heroicons-eye
+status: draft
+---
+# Vision: {name}
+
+## Why We're Building This
+{Narrative paragraph grounded in research}
+
+## North Star
+{The one metric or outcome that matters most}
+
+## Success Criteria
+1. {Observable outcome}
+2. {Observable outcome}
+3. {Observable outcome}
+```
+
+**problem-space.md:**
+```markdown
+---
+name: Problem Space
+icon: i-heroicons-puzzle-piece
+status: draft
+---
+# Problem Space
+
+## A1: {Audience Segment}
+**Size:** {estimation}
+**Profile:** {description}
+
+### Problems
+- **P1: {Name}** — {description, severity}
+- **P2: {Name}** — {description, severity}
+
+### Current Workflow
+{How they solve the problem today}
 
 ---
 
-## Step 6: Validate with User
+## A2: {Audience Segment}
+**Size:** {estimation}
+**Profile:** {description}
+
+### Problems
+- **P3: {Name}** — {description, severity}
+
+### Current Workflow
+{How they solve the problem today}
+```
+
+**landscape.md:**
+```markdown
+---
+name: Landscape
+icon: i-heroicons-map
+status: draft
+---
+# Landscape
+
+## Market Overview
+{2-3 sentences on the market context and trends}
+
+## Competitors
+
+| Tool | What it does | Strengths | Gap we fill |
+|---|---|---|---|
+{rows from research}
+
+## Allies & Complements
+
+| Tool | Relationship | Integration opportunity |
+|---|---|---|
+{rows}
+```
+
+### Full Synthesis → 7+ documents
+
+Draft all documents from the full structure. Use the same templates as
+Foundation for shared documents (vision.md, landscape.md) but with
+richer content. Additionally draft:
+
+**strategy.md:**
+```markdown
+---
+name: Strategy
+icon: i-heroicons-adjustments-horizontal
+status: draft
+---
+# Strategy
+
+## Where We Play
+{Markets, segments, channels chosen — and those we exclude}
+
+## How We Win
+{Our competitive advantage. Why us and not the others.}
+
+## Strategic Intents
+### SI-1: {Name}
+{Business challenge blocking the vision. Stable over 6-12 months.}
+
+### SI-2: {Name}
+...
+
+## Key Bets
+{Testable hypotheses we're betting on}
+
+## What We're NOT Doing
+{Explicit exclusion choices}
+```
+
+**audiences.md** (split from problem-space):
+```markdown
+---
+name: Audiences
+icon: i-heroicons-users
+status: draft
+---
+# Audiences
+
+## A1: {Name}
+**Size:** {estimation}
+**Profile:** {description}
+### Current Workflow
+{step by step}
+### Pain Points
+{reference P{N}}
+### Where They Congregate
+{communities, forums}
+### Switching Trigger
+{what would make them switch}
+```
+
+**problems.md** (split from problem-space):
+```markdown
+---
+name: Problems
+icon: i-heroicons-exclamation-triangle
+status: draft
+---
+# Problems
+
+## P1: {Name}
+**Severity:** {critical / high / medium}
+**Affects:** A1, A2
+### Evidence
+{concrete data from research}
+### Current Workarounds
+{how people cope today}
+```
+
+**competitors/{slug}.md:**
+```markdown
+---
+type: competitor
+subject: {slug}
+updated: {YYYY-MM-DD}
+status: draft
+---
+# {Competitor Name}
+
+## What It Does
+{one paragraph}
+## Strengths
+{bulleted list}
+## Weaknesses & User Frustrations
+{bulleted list with evidence}
+## Gap We Fill
+{what we do that they don't}
+## Key Features
+| Feature | Them | Us |
+|---|---|---|
+```
+
+**allies/{slug}.md:**
+```markdown
+---
+type: ally
+subject: {slug}
+updated: {YYYY-MM-DD}
+status: draft
+---
+# {Ally Name}
+
+## What It Does
+{one paragraph}
+## Relationship
+{how we relate to them}
+## Integration Opportunity
+{what we could build together}
+## Synergies
+{bulleted list}
+```
+
+**opportunities.md:**
+```markdown
+---
+name: Opportunities
+icon: i-heroicons-light-bulb
+status: draft
+---
+# Opportunity Map
+
+## Table Stakes
+{What every tool in this market must have}
+
+| Capability | Us | Competitor A | Competitor B |
+|---|---|---|---|
+
+## Differentiators
+{Where we can stand out — cross-reference Landscape x Problems}
+
+## Gaps
+{Opportunities nobody covers — reference P{N}, A{N}}
+
+## Anti-Patterns
+{Features that seem good but frustrate users}
+```
+
+### Enrichment Rules
+
+For artifacts that already exist and are solid, preserve the user's content but
+enrich with research findings. Set `status: draft` on updated files. Preserve
+`status: reviewed` on unchanged files.
+
+---
+
+## Step 7: Validate with User
 
 Present findings and drafts to the user for validation. Ask a single
 AskUserQuestion:
 
 ```
-Here's what I found and drafted. Please review:
+Here's what I found and drafted at {depth} level. Please review:
 
 ## Research Highlights
 {2-4 bullet points of the most surprising or important findings}
@@ -241,16 +541,94 @@ sections. Ask once more for confirmation. Do not loop more than twice.
 
 ---
 
-## Step 7: Write Artifacts
+## Step 8: Write Artifacts
 
-Create directories:
+Create directories as needed:
 
 ```bash
 mkdir -p .debussy/strategy/competitors .debussy/strategy/allies
 ```
 
 Write all artifacts using the Write tool. Each file gets YAML frontmatter
-per the schema below.
+per the templates above.
+
+After writing all artifact files, create or update `.debussy/strategy/manifest.yaml`:
+
+1. Read the existing manifest if it exists (to preserve `createdAt`).
+2. Build the manifest from the actual files just written:
+   - `depth`: the depth level that was just produced
+   - `createdAt`: preserve from existing manifest, or set to today (`YYYY-MM-DD`)
+   - `updatedAt`: set to today (`YYYY-MM-DD`)
+   - `artifacts`: ordered list of top-level artifact keys, matching the depth's
+     document list (e.g., for full: vision, strategy, audiences, problems,
+     landscape, opportunities, product)
+   - `subdirectories.competitors`: list of slugs from `competitors/*.md`
+   - `subdirectories.allies`: list of slugs from `allies/*.md`
+   - `custom`: any `.md` files in the strategy directory that are NOT in the
+     depth's standard document list and are NOT in competitors/allies
+3. Write the manifest using the Write tool.
+
+Example manifest:
+
+```yaml
+depth: full
+createdAt: "2026-03-20"
+updatedAt: "2026-03-25"
+artifacts:
+  - key: vision
+  - key: strategy
+  - key: audiences
+  - key: problems
+  - key: landscape
+  - key: opportunities
+subdirectories:
+  competitors:
+    - gastown
+    - gsd
+  allies:
+    - iikit
+    - rpikit
+custom:
+  - key: feature-space
+```
+
+---
+
+## Step 9: Deepen (Escalation)
+
+When the user chooses "deepen" (Step 3), the skill splits existing documents
+into the next level's structure.
+
+### Pitch → Foundation
+
+1. Read `pitch.md`
+2. Extract sections into 3 files:
+   - Vision section → `vision.md`
+   - Problem + audience sections → `problem-space.md` (re-structured with A{N}/P{N} IDs)
+   - Landscape section → `landscape.md` (enriched with new research)
+3. Run Foundation-level research to fill gaps
+4. Archive: rename `pitch.md` → `.pitch.archived.md`
+5. Update `config.yaml`: set `depth: foundation`
+6. Update `manifest.yaml`: set `depth: foundation`, update `artifacts` to the
+   foundation document list, set `updatedAt` to today.
+
+### Foundation → Full
+
+1. Read `problem-space.md`
+2. Split into:
+   - `audiences.md` (A{N} entries)
+   - `problems.md` (P{N} entries)
+3. Scaffold new files: `strategy.md`, `opportunities.md`
+4. Run Full-level research to fill:
+   - Individual competitor files from landscape.md entries
+   - Individual ally files
+   - Opportunities from landscape × problems
+   - Strategy choices
+5. Archive: rename `problem-space.md` → `.problem-space.archived.md`
+6. Update `config.yaml`: set `depth: full`
+7. Update `manifest.yaml`: set the new depth, update `artifacts` to match the
+   new depth's document list, add any new competitor/ally slugs to
+   `subdirectories`, set `updatedAt` to today.
 
 ---
 
@@ -258,15 +636,22 @@ per the schema below.
 
 `/strategy --refresh {type}`
 
-Valid targets: `vision`, `problems`, `audiences`, `landscape`, `competitors`,
-`allies`, `feature-space`, `product`, or a specific slug like
-`competitors/cursor`.
+Valid targets depend on depth:
+
+| Depth | Valid targets |
+|---|---|
+| pitch | `pitch` |
+| foundation | `vision`, `problem-space`, `landscape` |
+| full | `vision`, `strategy`, `audiences`, `problems`, `landscape`, `competitors`, `allies`, `opportunities`, or a specific slug like `competitors/cursor` |
 
 1. Read existing artifact(s) of that type
-2. Run targeted research for that type only (the relevant subsection of Step 4)
+2. Run targeted research for that type only
 3. Draft updated artifact(s)
 4. Present diff for review via AskUserQuestion
 5. Write on approval
+6. Update `manifest.yaml`: set `updatedAt` to today. If a new competitor or ally
+   was added, add its slug to the `subdirectories` list. Do not remove entries
+   from the manifest during refresh.
 
 ---
 
@@ -278,8 +663,8 @@ Valid targets: `vision`, `problems`, `audiences`, `landscape`, `competitors`,
 
 Read all existing strategy artifacts from `.debussy/strategy/`. For each, extract
 frontmatter (type, status, updated). **Skip artifacts with `status: reviewed`
-in their frontmatter** — these were fully approved in a prior round and don't
-need re-review. Build a `request.json` with the remaining artifacts:
+in their frontmatter** — these were fully approved in a prior round. Build a
+`request.json` with the remaining artifacts:
 
 ```json
 {
@@ -293,40 +678,23 @@ need re-review. Build a `request.json` with the remaining artifacts:
       "type": "vision",
       "label": "Vision",
       "status": "draft",
-      "updated": "2026-03-18"
-    },
-    {
-      "slug": "competitors/cursor",
-      "path": ".debussy/strategy/competitors/cursor.md",
-      "type": "competitor",
-      "label": "Cursor",
-      "group": "Competitors",
-      "status": "draft",
-      "updated": "2026-03-18"
+      "updated": "2026-03-25"
     }
   ]
 }
 ```
 
 Artifact slug rules:
-- Top-level artifacts: slug = type name (e.g., `vision`, `problems`)
+- Top-level artifacts: slug = type name (e.g., `vision`, `problems`, `pitch`)
 - Competitor/ally files: slug = `competitors/{name}` or `allies/{name}`
 - Label = display name (title-cased type, or entity name for competitor/ally)
 - Group = `"Competitors"` or `"Allies"` for those types; omitted for others
 
-### B. Generate Session
+### B-J. Review UI Flow
 
-```bash
-SESSION_ID="strategy-$(date +%s)"
-WORKSPACE=".strategy-review/$SESSION_ID"
-mkdir -p "$WORKSPACE"
-```
-
-### C. Write Request File
-
-Write the built `request.json` to `{workspace}/request.json`.
-
-### D. Deploy Server and UI
+Follow the same review UI flow as before (generate session, deploy server and
+UI from templates, start server, open browser, wait for response, process
+response, archive round, cleanup).
 
 **Templates in `templates/` are NEVER regenerated at runtime — copy them verbatim.**
 
@@ -336,146 +704,30 @@ Write its content verbatim to `{workspace}/strategy-server.py` using the Write t
 Read `.claude/skills/strategy/templates/strategy-review.html` using the Read tool.
 Write its content verbatim to `{workspace}/strategy-review.html` using the Write tool.
 
-### E. Start Server
-
-```bash
-cd "{workspace}" && python3 strategy-server.py request.json 0 >> server.log 2>&1 &
-```
-
-Wait for startup and read port:
-
-```bash
-sleep 1 && cat "{workspace}/server.port" 2>/dev/null || echo "FAILED"
-```
-
-If FAILED, print error from `{workspace}/server.log` and EXIT.
-
-### F. Open Browser
-
-```bash
-open "http://127.0.0.1:{port}" 2>/dev/null || \
-xdg-open "http://127.0.0.1:{port}" 2>/dev/null || \
-echo "Open in browser: http://127.0.0.1:{port}"
-```
-
-### G. Print Status
-
-```
-STRATEGY REVIEW: {product-name}
-
-Review UI: http://127.0.0.1:{port}
-Session:   {SESSION_ID}
-
-Waiting for your review...
-(Review artifacts in the browser and click "Submit Review" when done)
-```
-
-### H. Wait for Response (Zero Token Consumption)
-
-Run a bash command that blocks until the response file exists:
-
-```bash
-RESPONSE="{workspace}/response.json"
-end=$((SECONDS + 600))
-while [ ! -f "$RESPONSE" ] && [ $SECONDS -lt $end ]; do
-  sleep 2
-done
-if [ -f "$RESPONSE" ]; then
-  cat "$RESPONSE"
-else
-  echo "__TIMEOUT__"
-fi
-```
-
-**Timeout**: 600 seconds (10 minutes). Use the Bash tool with `timeout: 610000`.
-
-### I. Process Response
-
-If the output is `__TIMEOUT__`:
-- Print: "Review not received within 10 minutes."
-- Print: "The review UI is still running. Submit when ready, then re-run `/strategy --review`."
-- EXIT
-
-Otherwise, parse the JSON response. For each artifact:
-
-1. Read the review data (section statuses and notes)
-2. If **all sections approved** (status `approved` or `done`): update artifact frontmatter `status: reviewed`
-3. If **any section flagged or discuss**: keep `status: draft`, preserve notes for next refresh
-4. Print summary:
-
-```
-## Strategy Review Results
-
-**Summary:** {done_count} done, {approved_count} approved, {flagged_count} flagged, {discuss_count} discuss, {pending_count} pending
-
-### Approved Artifacts
-- {artifact label}: all sections approved
-
-### Flagged Sections
-- {artifact label} > {section name}: {notes}
-
-### Pending
-- {artifact label}: not yet reviewed
-```
-
-### I-bis. Archive Round
-
-After processing, archive this round's review sidecar files so the next round
-starts clean but can reference prior feedback:
-
-```bash
-# Determine next round number
-ROUND=$(ls -d .debussy/strategy/.reviews/rounds/*/ 2>/dev/null | wc -l | tr -d ' ')
-ROUND=$((ROUND + 1))
-mkdir -p ".debussy/strategy/.reviews/rounds/$ROUND"
-# Move current review files (not rounds/ directory) into the archive
-find .debussy/strategy/.reviews -maxdepth 1 -name "*.review.json" -exec mv {} ".debussy/strategy/.reviews/rounds/$ROUND/" \;
-# Also archive grouped reviews (competitors/, allies/)
-for subdir in competitors allies; do
-  if [ -d ".debussy/strategy/.reviews/$subdir" ]; then
-    mkdir -p ".debussy/strategy/.reviews/rounds/$ROUND/$subdir"
-    find ".debussy/strategy/.reviews/$subdir" -name "*.review.json" -exec mv {} ".debussy/strategy/.reviews/rounds/$ROUND/$subdir/" \;
-  fi
-done
-```
-
-The review UI's `/api/rounds` endpoint serves archived rounds so the next
-review session can display prior feedback inline.
-
-### J. Cleanup Server
-
-```bash
-if [ -f "{workspace}/server.pid" ]; then
-  kill $(cat "{workspace}/server.pid") 2>/dev/null
-  rm -f "{workspace}/server.pid" "{workspace}/server.port"
-fi
-```
+Start server, open browser, wait for response (timeout 600s), process response,
+archive round, cleanup — same as before.
 
 ---
 
-## Artifact Directory Structure
+## Cross-References
 
-```
-.debussy/strategy/
-  vision.md                    # Why, north star, success criteria
-  problems.md                  # Named problems, severity, evidence
-  audiences.md                 # User segments, sizes, workflows
-  landscape.md                 # Market overview, trends, opportunity map
-  feature-space.md             # Table stakes, differentiators, gaps
-  product.md                   # Positioning, distribution, non-goals
-  competitors/
-    {slug}.md                  # One file per competitor
-  allies/
-    {slug}.md                  # One file per ally/complement
-  .reviews/
-    {slug}.review.json         # Review sidecar files (auto-generated)
-```
+Artifacts reference each other using stable IDs:
+
+| ID format | Example | Defined in |
+|---|---|---|
+| `P{N}` | P1, P2 | `problems.md` or `problem-space.md` or `pitch.md` |
+| `A{N}` | A1, A2 | `audiences.md` or `problem-space.md` or `pitch.md` |
+| `SI-{N}` | SI-1, SI-2 | `strategy.md` (full only) |
+| Competitor slug | `cursor`, `gastown` | `competitors/{slug}.md` |
+| Ally slug | `iikit`, `rpikit` | `allies/{slug}.md` |
+
+Cross-references are plain text (e.g., "Affects: A1, A2" or "See P3").
 
 ---
 
 ## Frontmatter Schema
 
-**Top-level artifacts** (vision, problems, audiences, landscape, feature-space, product):
+**Top-level artifacts** (pitch, vision, strategy, problem-space, audiences, problems, landscape, opportunities, product):
 
 ```yaml
 ---
@@ -496,102 +748,6 @@ status: draft | reviewed       # Tracks review state
 ---
 ```
 
-Rules:
-- `name` and `icon` are required on top-level artifacts (the UI gates on them).
-- `type` and `subject` are required on competitor/ally files.
-- `status` starts as `draft`. Set to `reviewed` by the review UI.
-- The server logs a warning and skips any file that fails validation.
-
----
-
-## Artifact Types Reference
-
-### Vision
-
-**File**: `.debussy/strategy/vision.md`
-**Purpose**: The "why" — motivations, direction, success definition.
-
-Key sections: `# Vision: {name}`, `## Why We're Building This`, `## North Star`,
-`## Success Criteria` (3-5 observable outcomes).
-
-See `specs/strategy-skill.md` Section 2.3 for the full template.
-
-### Problems
-
-**File**: `.debussy/strategy/problems.md`
-**Purpose**: Named problems with severity, evidence, and workarounds.
-
-Each problem gets a numbered section with a stable ID: `## P1: {Name}`.
-Include `**Severity:**`, `**Affects:**` (audience refs), `### Evidence`,
-`### Current Workarounds`. Never renumber — append new problems.
-
-### Audiences
-
-**File**: `.debussy/strategy/audiences.md`
-**Purpose**: User segments with size estimates, workflows, and pain points.
-
-Each segment gets a numbered section with a stable ID: `## A1: {Name}`.
-Include `**Size:**`, `**Profile:**`, `### Current Workflow`,
-`### Pain Points` (reference P{N}), `### Where They Congregate`,
-`### Switching Trigger`.
-
-### Landscape
-
-**File**: `.debussy/strategy/landscape.md`
-**Purpose**: High-level market map with links to competitor/ally detail files.
-
-Key sections: `## Market Overview`, `## Competitors` (table with links to
-detail files), `## Allies & Complements` (table), `## Trends`, `## Opportunities`.
-
-### Competitor
-
-**File**: `.debussy/strategy/competitors/{slug}.md`
-**Purpose**: Deep profile of a single competitor.
-
-Requires `subject: {slug}` in frontmatter. Key sections: `## What It Does`,
-`## Strengths`, `## Weaknesses & User Frustrations`, `## Gap We Fill`,
-`## Key Features` (comparison table).
-
-### Ally
-
-**File**: `.debussy/strategy/allies/{slug}.md`
-**Purpose**: Deep profile of a complementary tool.
-
-Requires `subject: {slug}` in frontmatter. Key sections: `## What It Does`,
-`## Relationship`, `## Integration Opportunity`, `## Synergies`.
-
-### Feature Space
-
-**File**: `.debussy/strategy/feature-space.md`
-**Purpose**: Feature map — what exists, what's missing, where we play.
-
-Key sections: `## Table Stakes`, `## Differentiators`, `## Gaps`,
-`## Anti-Patterns`, `## Our Position` (comparison table).
-
-### Product
-
-**File**: `.debussy/strategy/product.md`
-**Purpose**: What the product is, how it's positioned, what it's not.
-
-Key sections: `## One-Liner`, `## Positioning`, `## Target User` (reference A{N}),
-`## Nature` (license, distribution, hosting, source), `## Non-Goals`,
-`## Key Dependencies`.
-
----
-
-## Cross-References
-
-Artifacts reference each other using stable IDs:
-
-| ID format | Example | Defined in |
-|---|---|---|
-| `P{N}` | P1, P2 | `problems.md` |
-| `A{N}` | A1, A2 | `audiences.md` |
-| Competitor slug | `cursor`, `gastown` | `competitors/{slug}.md` |
-| Ally slug | `iikit`, `rpikit` | `allies/{slug}.md` |
-
-Cross-references are plain text (e.g., "Affects: A1, A2" or "See P3").
-
 ---
 
 ## Error Handling
@@ -599,23 +755,25 @@ Cross-references are plain text (e.g., "Affects: A1, A2" or "See P3").
 | Situation | Action |
 |---|---|
 | WebSearch/WebFetch unavailable | Fall back to elicitation — ask user directly; note that research was skipped |
-| `gh` not available | Not needed for this skill — strategy is local-only |
-| Research returns thin results | Use what's available, flag gaps in Step 6 validation |
-| No existing artifacts | Normal first run — proceed with full research |
+| Research returns thin results | Use what's available, flag gaps in validation |
+| No existing artifacts | Normal first run — proceed with configured depth |
 | `.debussy/strategy/` exists with content | Enrich, don't replace. Preserve user edits. |
 | Empty research for a specific area | Note the gap, ask user to fill in during validation |
 | Server fails to start in review mode | Print server.log content, EXIT |
 | Review timeout | Print check instructions, EXIT |
+| No config.yaml | Default to foundation depth |
 
 ---
 
-## Integration with Roadmap
+## Integration with Product
 
-After running `/debussy:strategy`, the user can run `/debussy:roadmap` which
-will read `.debussy/strategy/` artifacts as its primary input. The roadmap skill
-will:
+After running `/debussy:strategy`, the user can run `/debussy:product` which
+reads `.debussy/strategy/` artifacts as its primary input. The product skill
+adapts to whatever depth level is present:
 
-1. Read strategy artifacts to understand problems (P{N}), audiences (A{N}),
-   and feature gaps
-2. Produce intents with `Addresses: P{N}` and `Target audience: A{N}` cross-refs
-3. Skip its own research if strategy artifacts are solid
+- **Pitch**: extracts P{N} and audience info from the single `pitch.md`
+- **Foundation**: reads `problem-space.md` for combined A{N}/P{N} references
+- **Full**: reads `audiences.md` + `problems.md` separately
+
+The product skill produces `product.md` and `intents.md` under `.debussy/product/`
+with `Addresses: P{N}` and `Target audience: A{N}` cross-refs regardless of depth.

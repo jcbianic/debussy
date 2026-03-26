@@ -1,0 +1,49 @@
+{
+  "workflow": "smoke-test",
+  "run_id": "2026-03-14-smoke-test-1",
+  "status": "in_progress",
+  "created_at": "2026-03-14T00:00:00Z",
+  "updated_at": "2026-03-14T00:02:00Z",
+  "inputs": {
+    "topic": "jazz piano"
+  },
+  "current_step": "1-write",
+  "steps": {
+    "1-write": {
+      "name": "Write a note",
+      "status": "pending_review",
+      "started_at": "2026-03-14T00:01:00Z",
+      "completed_at": "2026-03-14T00:02:00Z",
+      "artifacts": {
+        "note.md": {
+          "path": "/Users/jcbianic/Projets/Libon-Data/debussy/.workflow-runs/2026-03-14-smoke-test-1/note.md",
+          "produced_at": "2026-03-14T00:02:00Z",
+          "description": "A short note about the topic",
+          "has_summary": true,
+          "has_cards": true
+        }
+      },
+      "verify": {
+        "command": null,
+        "expect": null,
+        "result": "skipped"
+      },
+      "review": {
+        "status": "pending",
+        "review_prompt": "Does this note make sense? Is it coherent?\nApprove to continue to the final step.\nRequest revision if you want a different angle.\n",
+        "decision": null,
+        "comments": null,
+        "decided_at": null
+      }
+    },
+    "2-done": {
+      "name": "Write completion marker",
+      "status": "not_started",
+      "started_at": null,
+      "completed_at": null,
+      "artifacts": {},
+      "review": null,
+      "verify": null
+    }
+  }
+}
