@@ -1,20 +1,21 @@
 ---
 description: >-
-  Bootstrap a new project with Debussy: configure which strates to manage
-  (strategy, engineering), scaffold the selected documentation hierarchy, and
-  start the Debussy UI. Run once when starting a new project.
+  Bootstrap a new project with Debussy: scaffold the documentation hierarchy
+  based on the selected strategy depth, engineering depth, and enabled strates,
+  then start the Debussy UI. Run once when starting a new project.
 license: MIT
 metadata:
   author: jcbianic
-  version: "0.2.0"
+  version: "0.4.0"
 ---
 
 # Init Skill
 
 Bootstrap a new project with Debussy. This skill starts the Debussy UI and opens
-a configuration page in the browser where the user chooses project info and which
-strates (layers) to manage. Once the user submits, the skill reads the saved
-config and scaffolds only the selected documentation stubs.
+a configuration page in the browser where the user chooses project info, strategy
+depth level, engineering depth level, and which strates to enable. Once the user
+submits, the skill reads the saved config and scaffolds the appropriate
+documentation stubs.
 
 ## When to Activate
 
@@ -99,8 +100,8 @@ DEBUSSY INIT
 
 Configuration UI: http://localhost:4321/configure
 
-Fill in the project name, description, and select which strates to manage.
-Click "Save configuration" when done.
+Fill in the project name, description, choose your strategy depth, engineering
+depth, and select which strates to enable. Click "Save configuration" when done.
 
 Waiting for configuration...
 ```
@@ -140,23 +141,39 @@ If the output is `__TIMEOUT__`:
 - Print: "The UI is still running at http://localhost:4321/configure. Submit when ready, then re-run `/debussy:init`."
 - EXIT
 
-Otherwise, parse the YAML output to extract project info and strate selection.
+Otherwise, parse the YAML output to extract project info, strategy depth,
+engineering depth, product enabled, and work enabled.
 
 ---
 
 ## Step 5: Create Directory Structure
 
-Based on the strates enabled in `.debussy/config.yaml`, create directories:
+Based on the config:
 
 ```bash
 # Always
 mkdir -p .debussy
 
-# If strategy enabled
-mkdir -p .debussy/strategy specs
+# Strategy (always -- depth determines what goes inside)
+mkdir -p .debussy/strategy
 
-# If engineering enabled
-mkdir -p docs/architecture docs/decisions
+# If strategy depth is full, also create subdirectories
+mkdir -p .debussy/strategy/competitors .debussy/strategy/allies
+
+# Product (if enabled)
+mkdir -p .debussy/product
+
+# Engineering (if enabled)
+mkdir -p .debussy/policies
+
+# Engineering standard or full
+mkdir -p docs/architecture
+
+# Engineering full
+mkdir -p docs/decisions
+
+# Intents (if product enabled)
+# (intents live inside .debussy/product/)
 ```
 
 ---
@@ -166,9 +183,47 @@ mkdir -p docs/architecture docs/decisions
 Write all files using the Write tool. Skip any file that already exists (when in
 re-configure mode).
 
-### If `strategy` strate is enabled:
+### Strategy stubs by depth
 
-#### `.debussy/strategy/vision.md`
+#### Pitch depth -> 1 file
+
+**`.debussy/strategy/pitch.md`**
+
+```yaml
+---
+name: Pitch
+icon: i-heroicons-rocket-launch
+status: draft
+---
+# {project name from config}
+
+## Vision
+> {project description from config}
+
+What change does this project create in the world?
+
+## The Problem
+
+### P1: First Problem
+**Affects:** A1
+Describe the first problem here.
+
+## The Product
+
+- **For:** Describe your target audience
+- **Nature:** CLI / SaaS / lib / etc.
+- **Distribution:** npm / marketplace / self-hosted
+
+## What We're NOT Doing
+- Define your non-goals
+
+## Landscape
+Describe alternatives and where you fit.
+```
+
+#### Foundation depth -> 3 files
+
+**`.debussy/strategy/vision.md`**
 
 ```yaml
 ---
@@ -178,29 +233,42 @@ status: draft
 ---
 # Vision
 
-> {One-line description from config.yaml project.description}
+> {project description from config}
 
-## What change does this project create in the world?
+## Why We're Building This
+_What change does this project create in the world?_
 
-_Edit this file to define your vision._
+## North Star
+_The one metric or outcome that matters most._
+
+## Success Criteria
+1. _Observable outcome 1_
+2. _Observable outcome 2_
+3. _Observable outcome 3_
 ```
 
-#### `.debussy/strategy/product.md`
+**`.debussy/strategy/problem-space.md`**
 
 ```yaml
 ---
-name: Product
-icon: i-heroicons-cube
+name: Problem Space
+icon: i-heroicons-puzzle-piece
 status: draft
 ---
-# Product
+# Problem Space
 
-## What is the product that creates that change?
+## A1: First Audience
+**Size:** _estimation_
+**Profile:** _description_
 
-_Edit this file to define your product._
+### Problems
+- **P1: First Problem** -- _description, severity_
+
+### Current Workflow
+_How they solve the problem today._
 ```
 
-#### `.debussy/strategy/landscape.md`
+**`.debussy/strategy/landscape.md`**
 
 ```yaml
 ---
@@ -210,12 +278,54 @@ status: draft
 ---
 # Landscape
 
-## Competitive Landscape
+## Market Overview
+_Describe the market context and trends._
 
-_Edit this file to map the landscape._
+## Competitors
+
+| Tool | What it does | Strengths | Gap we fill |
+|---|---|---|---|
+| _name_ | _description_ | _strengths_ | _gap_ |
+
+## Allies & Complements
+
+| Tool | Relationship | Integration opportunity |
+|---|---|---|
+| _name_ | _relationship_ | _opportunity_ |
 ```
 
-#### `.debussy/strategy/audiences.md`
+#### Full depth -> 7+ files
+
+All Foundation files (vision.md, landscape.md) PLUS:
+
+**`.debussy/strategy/strategy.md`** (replaces problem-space.md)
+
+```yaml
+---
+name: Strategy
+icon: i-heroicons-adjustments-horizontal
+status: draft
+---
+# Strategy
+
+## Where We Play
+_Markets, segments, channels chosen -- and those we exclude._
+
+## How We Win
+_Our competitive advantage._
+
+## Strategic Intents
+### SI-1: First Intent
+_Business challenge blocking the vision._
+
+## Key Bets
+_Testable hypotheses we're betting on._
+
+## What We're NOT Doing
+_Explicit exclusion choices._
+```
+
+**`.debussy/strategy/audiences.md`** (instead of problem-space.md)
 
 ```yaml
 ---
@@ -225,12 +335,24 @@ status: draft
 ---
 # Audiences
 
-## Who are the target audiences?
+## A1: First Audience
+**Size:** _estimation_
+**Profile:** _description_
 
-_Edit this file to define your audiences._
+### Current Workflow
+_Step by step._
+
+### Pain Points
+_Reference P{N}._
+
+### Where They Congregate
+_Communities, forums._
+
+### Switching Trigger
+_What would make them switch._
 ```
 
-#### `.debussy/strategy/problems.md`
+**`.debussy/strategy/problems.md`** (instead of problem-space.md)
 
 ```yaml
 ---
@@ -240,12 +362,74 @@ status: draft
 ---
 # Problems
 
-## What problems does this product solve?
+## P1: First Problem
+**Severity:** _critical / high / medium_
+**Affects:** A1
 
-_Edit this file to list your core problems._
+### Evidence
+_Concrete data._
+
+### Current Workarounds
+_How people cope today._
 ```
 
-#### `specs/intents.md`
+**`.debussy/strategy/opportunities.md`**
+
+```yaml
+---
+name: Opportunities
+icon: i-heroicons-light-bulb
+status: draft
+---
+# Opportunity Map
+
+## Table Stakes
+_What every tool in this market must have._
+
+## Differentiators
+_Where we can stand out._
+
+## Gaps
+_Opportunities nobody covers -- reference P{N}, A{N}._
+
+## Anti-Patterns
+_Features that seem good but frustrate users._
+```
+
+Note: At Full depth, do NOT create `problem-space.md`. Create `audiences.md`
+and `problems.md` instead.
+
+### Product stubs (if enabled)
+
+**`.debussy/product/product.md`**
+
+```yaml
+---
+name: Product
+icon: i-heroicons-cube
+status: draft
+---
+# Product
+
+## One-Liner
+_{project description from config}_
+
+## Positioning
+_How the product is positioned relative to alternatives._
+
+## Target User
+_Reference A{N} from strategy artifacts._
+
+## Nature
+- **License**: _license_
+- **Distribution**: _distribution method_
+- **Source**: _open / closed_
+
+## Non-Goals
+- _Define your non-goals_
+```
+
+**`.debussy/product/intents.md`**
 
 ```markdown
 ## 001 -- First Feature
@@ -254,27 +438,63 @@ Describe the first feature intent here.
 
 **Addresses:** P1: Problem name
 **Target audience:** A1: Audience name
-**Priority:** high
+**Priority:** now
 **Depends on:** none
 **Done when:** Describe acceptance criteria here.
 ```
 
-### If `engineering` strate is enabled:
+### Engineering stubs (if enabled, by depth)
 
-#### `docs/architecture/principles.md`
+#### Lite depth: policies only
+
+**`.debussy/policies/agent-behavior.md`**
+
+```yaml
+---
+name: Agent Behavior
+icon: i-heroicons-cpu-chip
+status: draft
+order: 1
+---
+# Agent Behavior
+
+## General Rules
+
+- **Read before writing** -- always read existing code before modifying
+- **Minimal changes** -- only change what is necessary for the task
+- **Preserve conventions** -- follow existing patterns in the codebase
+```
+
+#### Standard depth: policies + principles
+
+Everything from Lite, plus:
+
+**`docs/architecture/principles.md`**
 
 ```markdown
+---
+title: Architecture Principles
+---
+
 ## 1 -- First Principle
 
-**num:** P1
+**num:** 1
 
 Describe your first architectural principle here.
 ```
 
-#### `docs/decisions/001-initial-decision.md`
+#### Full depth: policies + principles + decisions
+
+Everything from Standard, plus:
+
+**`docs/decisions/001-initial-decision.md`**
 
 ```markdown
 # ADR 001 -- Initial Decision
+
+## Status
+
+Accepted
 
 ## Context
 
@@ -289,9 +509,6 @@ _What was decided?_
 _What are the consequences?_
 ```
 
-Note: Policy data is currently managed in the UI. Future versions will support
-file-based policy definitions under the engineering strate.
-
 ---
 
 ## Step 7: Summary
@@ -305,20 +522,23 @@ Project: {project-name}
 Description: {project-description}
 
 Strates:
-  strategy:     {enabled/disabled}
-  engineering:  {enabled/disabled}
+  Strategy:    {pitch / foundation / full}
+  Product:     {enabled / disabled}
+  Engineering: {lite / standard / full / disabled}
+  Work:        enabled
 
 Files created:
-{table of files created, grouped by strate -- only show enabled strates}
+{table of files created, grouped by strate}
 
 Debussy UI is running at:
   -> http://localhost:4321
 
 Next steps:
 1. Browse http://localhost:4321 to see your project
-2. Edit the artifacts for your enabled strates
-3. Use /debussy:strategy to research and enrich (if strategy enabled)
-4. Use /debussy:roadmap to shape your roadmap (if strategy enabled)
+2. Edit the strategy artifacts to shape your vision
+3. Run /debussy:strategy to research and enrich your artifacts
+4. Run /debussy:product to define your product and roadmap
+5. Run /debussy:engineering to set up governance
 ```
 
 ---
@@ -332,4 +552,4 @@ Next steps:
 | UI server not found | Print manual start instructions, EXIT |
 | Configuration timeout (10 min) | Print check instructions, EXIT |
 | File write fails | Print error, EXIT |
-| No strates selected | Warn user that at least one strate should be enabled, write config anyway |
+| Depth change during re-configure | Create new files for the new depth, do not delete old files |

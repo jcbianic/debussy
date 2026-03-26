@@ -1,15 +1,52 @@
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { parse as parseYaml } from 'yaml'
-import { DEFAULT_STRATES } from '~~/types/config'
-import type { StrateConfig } from '~~/types/config'
+import {
+  DEFAULT_STRATES,
+  DEFAULT_STRATEGY_DEPTH,
+  DEFAULT_ENGINEERING_DEPTH,
+} from '~~/types/config'
+import type {
+  StrateConfig,
+  StrategyDepth,
+  EngineeringDepth,
+} from '~~/types/config'
+
+function parseStrategyValue(raw: unknown): StrateConfig['strategy'] {
+  if (raw === false) return false
+  if (raw === true) return { depth: DEFAULT_STRATEGY_DEPTH }
+  if (raw && typeof raw === 'object' && 'depth' in raw) {
+    const d = (raw as Record<string, unknown>).depth
+    if (d === 'pitch' || d === 'foundation' || d === 'full')
+      return { depth: d as StrategyDepth }
+  }
+  return { depth: DEFAULT_STRATEGY_DEPTH }
+}
+
+function parseEngineeringValue(raw: unknown): StrateConfig['engineering'] {
+  if (raw === false) return false
+  if (raw === true) return { depth: DEFAULT_ENGINEERING_DEPTH }
+  if (raw && typeof raw === 'object' && 'depth' in raw) {
+    const d = (raw as Record<string, unknown>).depth
+    if (d === 'lite' || d === 'standard' || d === 'full')
+      return { depth: d as EngineeringDepth }
+  }
+  return { depth: DEFAULT_ENGINEERING_DEPTH }
+}
 
 export default defineEventHandler(async () => {
   const root = await resolveDebussyPath()
   let name = 'debussy'
   let description = ''
   let repoUrl = ''
-  const strates: StrateConfig = { ...DEFAULT_STRATES }
+  const strates: StrateConfig = {
+    strategy: { ...(DEFAULT_STRATES.strategy as { depth: StrategyDepth }) },
+    product: DEFAULT_STRATES.product,
+    engineering: {
+      ...(DEFAULT_STRATES.engineering as { depth: EngineeringDepth }),
+    },
+    work: DEFAULT_STRATES.work,
+  }
 
   // Read .debussy/config.yaml
   try {
@@ -21,22 +58,36 @@ export default defineEventHandler(async () => {
     if (cfg?.project?.name) name = cfg.project.name
     if (cfg?.project?.description) description = cfg.project.description
     if (cfg?.strates && typeof cfg.strates === 'object') {
-      // Detect legacy 4-strate format (presence of roadmap/architecture/policy keys)
-      const isLegacyFormat =
-        'roadmap' in cfg.strates ||
-        'architecture' in cfg.strates ||
-        'policy' in cfg.strates
+      // Detect legacy 2-strate format (no product/work keys, engineering is boolean)
+      const hasNewFormat = 'product' in cfg.strates || 'work' in cfg.strates
 
-      if (isLegacyFormat) {
-        strates.strategy =
-          cfg.strates.strategy === true || cfg.strates.roadmap === true
-        strates.engineering =
-          cfg.strates.architecture === true || cfg.strates.policy === true
+      if (!hasNewFormat) {
+        // Legacy: { strategy: bool|{depth}, engineering: bool }
+        if ('strategy' in cfg.strates) {
+          strates.strategy = parseStrategyValue(cfg.strates.strategy)
+        }
+        // Legacy engineering was a boolean — upgrade to depth config
+        if (typeof cfg.strates.engineering === 'boolean') {
+          strates.engineering = cfg.strates.engineering
+            ? { depth: DEFAULT_ENGINEERING_DEPTH }
+            : false
+        }
+        // Product defaults to true in legacy format
+        strates.product = true
+        strates.work = true
       } else {
-        for (const key of Object.keys(DEFAULT_STRATES)) {
-          if (typeof cfg.strates[key] === 'boolean') {
-            strates[key as keyof StrateConfig] = cfg.strates[key]
-          }
+        // New 4-strate format
+        if ('strategy' in cfg.strates) {
+          strates.strategy = parseStrategyValue(cfg.strates.strategy)
+        }
+        if (typeof cfg.strates.product === 'boolean') {
+          strates.product = cfg.strates.product
+        }
+        if ('engineering' in cfg.strates) {
+          strates.engineering = parseEngineeringValue(cfg.strates.engineering)
+        }
+        if (typeof cfg.strates.work === 'boolean') {
+          strates.work = cfg.strates.work
         }
       }
     }

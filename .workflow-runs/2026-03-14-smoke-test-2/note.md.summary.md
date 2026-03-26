@@ -1,0 +1,1 @@
+This note accurately and coherently describes jazz piano as a diverse, improvisation-driven style rooted in African American traditions, tracing its development from early stride piano through bebop, free jazz, and contemporary fusion styles.

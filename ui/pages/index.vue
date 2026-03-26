@@ -22,7 +22,7 @@
           <span class="text-content-faint text-xs">Shape what to build</span>
         </div>
         <div class="grid grid-cols-3 gap-4">
-          <!-- Product Vision -->
+          <!-- Strategy -->
           <div
             v-if="isStrateEnabled('strategy')"
             class="border-line overflow-hidden rounded-lg border"
@@ -32,13 +32,13 @@
             >
               <h3 class="flex items-center gap-2 text-sm font-semibold">
                 <UIcon
-                  name="i-heroicons-cube"
+                  name="i-heroicons-eye"
                   class="text-content-faint size-4"
                 />
-                Product
+                Strategy
               </h3>
               <NuxtLink
-                to="/product"
+                to="/strategy"
                 class="text-content-faint hover:text-content text-xs transition-colors"
               >
                 Explore →
@@ -49,7 +49,7 @@
                 <NuxtLink
                   v-for="artifact in artifacts"
                   :key="artifact.key"
-                  to="/product"
+                  to="/strategy"
                   class="border-line-subtle hover:border-line rounded-md border p-3 transition-colors"
                 >
                   <div class="mb-2 flex items-start justify-between">

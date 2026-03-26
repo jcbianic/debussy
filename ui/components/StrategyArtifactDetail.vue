@@ -1,6 +1,23 @@
 <template>
   <div class="flex-1 overflow-auto px-8 py-8">
-    <div v-if="artifact">
+    <div
+      v-if="artifact && artifact.presence === 'missing'"
+      class="flex flex-col items-center justify-center py-20"
+    >
+      <UIcon
+        name="i-heroicons-document-plus"
+        class="text-content-muted size-10"
+      />
+      <h3 class="text-content-secondary mt-3 text-sm font-medium">
+        Not yet generated
+      </h3>
+      <p class="text-content-muted mt-1 text-xs">
+        Run <code class="bg-surface rounded px-1 py-0.5">/strategy</code> to
+        generate this artifact.
+      </p>
+    </div>
+
+    <div v-else-if="artifact">
       <div class="mb-8 flex items-start justify-between">
         <div>
           <h2 class="text-xl font-semibold">

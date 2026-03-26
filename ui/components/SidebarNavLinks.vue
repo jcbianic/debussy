@@ -19,22 +19,35 @@
       </div>
       <div class="space-y-0.5">
         <NavItem
+          to="/strategy"
+          icon="i-heroicons-eye"
+          label="Strategy"
+          :is-active="currentPath === '/strategy'"
+        />
+      </div>
+    </div>
+
+    <!-- Product -->
+    <div
+      v-if="isStrateEnabled('product')"
+      class="mt-4"
+    >
+      <div
+        class="text-content-faint mb-1 px-2 text-[10px] font-semibold tracking-wider uppercase"
+      >
+        Product
+      </div>
+      <div class="space-y-0.5">
+        <NavItem
           to="/product"
           icon="i-heroicons-cube"
           label="Product"
           :is-active="currentPath === '/product'"
         />
         <NavItem
-          to="/feature"
-          icon="i-heroicons-light-bulb"
-          label="Feature Space"
-          :is-active="currentPath === '/feature'"
-        />
-        <NavItem
           to="/roadmap"
           icon="i-heroicons-flag"
           label="Roadmap"
-          tag="1.0"
           :is-active="currentPath === '/roadmap'"
         />
       </div>
@@ -66,12 +79,12 @@
       </div>
     </div>
 
-    <!-- Current Work -->
+    <!-- Work (always enabled) -->
     <div class="mt-4">
       <div
         class="text-content-faint mb-1 px-2 text-[10px] font-semibold tracking-wider uppercase"
       >
-        Current Work
+        Work
       </div>
       <div class="space-y-0.5">
         <NavItem

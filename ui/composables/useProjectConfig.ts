@@ -1,5 +1,17 @@
-import { DEFAULT_STRATES } from '~~/types/config'
-import type { StrateName, StrateConfig } from '~~/types/config'
+import {
+  DEFAULT_STRATES,
+  DEFAULT_STRATEGY_DEPTH,
+  DEFAULT_ENGINEERING_DEPTH,
+  isStrateEnabled as _isEnabled,
+  resolveStrategyDepth,
+  resolveEngineeringDepth,
+} from '~~/types/config'
+import type {
+  StrateName,
+  StrateConfig,
+  StrategyDepth,
+  EngineeringDepth,
+} from '~~/types/config'
 
 interface ProjectConfig {
   name: string
@@ -24,8 +36,32 @@ export function useProjectConfig() {
   )
 
   function isStrateEnabled(strate: StrateName): boolean {
-    return strates.value[strate] ?? true
+    const val = strates.value[strate]
+    if (val === undefined) return true
+    return _isEnabled(val)
   }
 
-  return { name, description, path, repoUrl, strates, isStrateEnabled, refresh }
+  const strategyDepth = computed<StrategyDepth>(() => {
+    const val = strates.value.strategy
+    if (!val) return DEFAULT_STRATEGY_DEPTH
+    return resolveStrategyDepth(val)
+  })
+
+  const engineeringDepth = computed<EngineeringDepth>(() => {
+    const val = strates.value.engineering
+    if (!val) return DEFAULT_ENGINEERING_DEPTH
+    return resolveEngineeringDepth(val)
+  })
+
+  return {
+    name,
+    description,
+    path,
+    repoUrl,
+    strates,
+    isStrateEnabled,
+    strategyDepth,
+    engineeringDepth,
+    refresh,
+  }
 }

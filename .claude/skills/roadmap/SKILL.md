@@ -55,7 +55,17 @@ Read each of the following files if they exist (use Read tool; skip silently if 
 
 | File | Purpose |
 |---|---|
-| `.debussy/strategy/**/*.md` | **Primary source** — strategy artifacts (vision, problems, audiences, landscape, competitors, allies, feature-space, product) |
+| `.debussy/strategy/pitch.md` | **Pitch depth** — combined vision + audience + problems + product |
+| `.debussy/strategy/vision.md` | Vision (Foundation/Full) |
+| `.debussy/strategy/problem-space.md` | **Foundation depth** — audiences AND problems interleaved |
+| `.debussy/strategy/audiences.md` | **Full depth** — standalone audience segments |
+| `.debussy/strategy/problems.md` | **Full depth** — standalone problems with evidence |
+| `.debussy/strategy/strategy.md` | **Full depth** — strategic choices (where to play, how to win) |
+| `.debussy/strategy/landscape.md` | Market overview (Foundation/Full) |
+| `.debussy/strategy/competitors/*.md` | Individual competitor profiles (Full) |
+| `.debussy/strategy/allies/*.md` | Individual ally profiles (Full) |
+| `.debussy/strategy/opportunities.md` | Opportunity map (Full) |
+| `.debussy/strategy/product.md` | Product definition (Foundation/Full) |
 | `README.md` | Product name, one-liner, basic description |
 | `CLAUDE.md` | Project instructions, structure, next steps |
 | `INTENT.md` or `PREMISE.md` | Vision, pain points, architecture decisions |
@@ -81,10 +91,10 @@ After gathering, build an internal summary:
 - **Product name** and one-liner
 - **Problem domain** the product operates in (e.g., "CLI plugin for AI coding assistants")
 - **Target user** segment (if known)
-- **Existing pain points** — from `.debussy/strategy/problems.md` (P{N} refs) or `docs/vision.md`
-- **Known competitors** — from `.debussy/strategy/competitors/*.md` or `docs/landscape.md`
-- **Audiences** — from `.debussy/strategy/audiences.md` (A{N} refs) if available
-- **Strategy readiness** — whether `.debussy/strategy/` has 3+ artifacts
+- **Existing pain points** — from `problems.md` (Full), `problem-space.md` (Foundation), or `pitch.md` (Pitch)
+- **Known competitors** — from `competitors/*.md` (Full), `landscape.md`, or `docs/landscape.md`
+- **Audiences** — from `audiences.md` (Full), `problem-space.md` (Foundation), or `pitch.md` (Pitch)
+- **Strategy depth** — detected from files: pitch (1 file), foundation (4 files), full (8+ files)
 
 This summary drives the research queries in Step 4.
 
@@ -94,17 +104,27 @@ This summary drives the research queries in Step 4.
 
 Determine which artifact areas are **thin or missing** and which are **solid**:
 
-**Strategy readiness check**: If `.debussy/strategy/problems.md` and
-`.debussy/strategy/audiences.md` both exist, strategy artifacts are the primary
-source. Print: "Using strategy artifacts from .debussy/strategy/."
+**Strategy depth detection**: Scan `.debussy/strategy/` to determine the depth level:
 
-If they don't exist, suggest:
+| Detected depth | Condition | Action |
+|---|---|---|
+| **Full** | `audiences.md` + `problems.md` exist | Use as primary input — skip own research |
+| **Foundation** | `problem-space.md` exists | Use as primary input — extract P{N}/A{N} from combined doc |
+| **Pitch** | `pitch.md` exists | Use as primary input — extract P{N}/A{N} from single doc |
+| **None** | No strategy files | Suggest `/debussy:strategy` first, then fall back to own research |
+
+If strategy artifacts exist at any depth, print:
+"Using strategy artifacts from .debussy/strategy/ ({depth} depth)."
+
+If none exist, suggest:
 "Consider running `/debussy:strategy` first to build strategy artifacts.
 Proceeding with standalone research..."
 
 | Artifact | Solid if... | Thin if... |
 |---|---|---|
-| `.debussy/strategy/` (3+ files) | Strategy skill has run; use as primary input | Skip own research for covered areas |
+| `.debussy/strategy/pitch.md` | Has P{N} and audience info with content | Exists but sections are empty |
+| `.debussy/strategy/problem-space.md` | Has 2+ A{N} segments with P{N} refs | Missing or only 1 vague segment |
+| `.debussy/strategy/audiences.md` + `problems.md` | Have 2+ segments and 3+ problems | Missing or incomplete |
 | `docs/product.md` | Contains target user, nature, distribution, non-goals | Missing or lacks key sections |
 | `docs/vision.md` | Contains pain points + north star + success criteria | Missing or has fewer than 2 pain points |
 | `docs/landscape.md` | Contains 3+ competitor entries with strengths and gaps | Missing or has only 1-2 vague entries |

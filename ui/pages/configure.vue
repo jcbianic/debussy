@@ -33,10 +33,6 @@
               variant="subtle"
               size="sm"
             />
-            <span
-              v-if="enabledStrates.length === 0"
-              class="text-content-faint text-xs"
-            >None selected</span>
           </div>
         </div>
       </div>
@@ -45,7 +41,7 @@
     <!-- Form state -->
     <div
       v-else
-      class="w-full max-w-lg"
+      class="w-full max-w-2xl"
     >
       <div class="mb-6 flex items-center gap-3">
         <div
@@ -98,40 +94,152 @@
 
         <div class="border-line border-t" />
 
-        <!-- Strate selection -->
+        <!-- Strategy depth selection -->
         <div>
           <div class="mb-1 text-sm font-medium">
-            Strates
+            Strategy depth
           </div>
           <p class="text-content-subtle mb-3 text-xs">
-            Choose which strates Debussy should manage for this project.
+            How deep should your strategy documentation go? You can always
+            deepen later.
           </p>
-          <div class="space-y-2">
+          <div class="grid grid-cols-3 gap-3">
             <button
-              v-for="strate in strateOptions"
-              :key="strate.key"
+              v-for="depth in strategyDepthOptions"
+              :key="depth.key"
               type="button"
-              class="border-line-subtle hover:border-line flex w-full cursor-pointer items-center gap-3 rounded-lg border px-4 py-3 transition-colors"
+              class="border-line-subtle hover:border-line flex cursor-pointer flex-col rounded-lg border p-4 text-left transition-colors"
               :class="
-                form.strates[strate.key]
-                  ? 'border-primary-400/50 bg-primary-50/5'
+                form.strategyDepth === depth.key
+                  ? 'border-primary-400/50 bg-primary-50/5 ring-primary-400/30 ring-1'
                   : ''
               "
-              @click="form.strates[strate.key] = !form.strates[strate.key]"
+              @click="form.strategyDepth = depth.key"
             >
-              <UCheckbox
-                :id="`strate-${strate.key}`"
-                :model-value="form.strates[strate.key]"
-              />
-              <UIcon
-                :name="strate.icon"
-                class="text-content-faint size-4 flex-shrink-0"
-              />
-              <div class="min-w-0 flex-1 text-left">
-                <span class="text-sm font-medium">{{ strate.label }}</span>
-                <span class="text-content-subtle ml-2 text-xs">{{
-                  strate.description
-                }}</span>
+              <div class="mb-2 flex items-center gap-2">
+                <UIcon
+                  :name="depth.icon"
+                  class="size-4"
+                  :class="
+                    form.strategyDepth === depth.key
+                      ? 'text-primary-500'
+                      : 'text-content-faint'
+                  "
+                />
+                <span class="text-sm font-semibold">{{ depth.label }}</span>
+              </div>
+              <p class="text-content-subtle mb-3 text-xs leading-relaxed">
+                {{ depth.description }}
+              </p>
+              <div class="mt-auto space-y-1">
+                <div
+                  v-for="doc in depth.documents"
+                  :key="doc"
+                  class="text-content-faint flex items-center gap-1.5 font-mono text-[10px]"
+                >
+                  <span class="text-content-subtle">&#8226;</span>
+                  {{ doc }}
+                </div>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <div class="border-line border-t" />
+
+        <!-- Product strate toggle -->
+        <div>
+          <div class="mb-1 text-sm font-medium">
+            Product
+          </div>
+          <p class="text-content-subtle mb-3 text-xs">
+            Product definition, positioning, and roadmap intents.
+          </p>
+          <button
+            type="button"
+            class="border-line-subtle hover:border-line flex w-full cursor-pointer items-center gap-3 rounded-lg border px-4 py-3 transition-colors"
+            :class="form.product ? 'border-primary-400/50 bg-primary-50/5' : ''"
+            @click="form.product = !form.product"
+          >
+            <UCheckbox
+              id="strate-product"
+              :model-value="form.product"
+            />
+            <UIcon
+              name="i-heroicons-cube"
+              class="text-content-faint size-4 flex-shrink-0"
+            />
+            <div class="min-w-0 flex-1 text-left">
+              <span class="text-sm font-medium">Enable product strate</span>
+            </div>
+          </button>
+        </div>
+
+        <div class="border-line border-t" />
+
+        <!-- Engineering depth selection -->
+        <div>
+          <div class="mb-1 text-sm font-medium">
+            Engineering depth
+          </div>
+          <p class="text-content-subtle mb-3 text-xs">
+            How much engineering governance do you need? You can always deepen
+            later.
+          </p>
+          <div class="mb-3 flex items-center gap-2">
+            <UCheckbox
+              id="strate-engineering-toggle"
+              :model-value="form.engineeringEnabled"
+              @update:model-value="form.engineeringEnabled = Boolean($event)"
+            />
+            <!-- eslint-disable-next-line vuejs-accessibility/label-has-for -->
+            <label
+              for="strate-engineering-toggle"
+              class="cursor-pointer text-sm font-medium"
+            >
+              Enable engineering strate
+            </label>
+          </div>
+          <div
+            v-if="form.engineeringEnabled"
+            class="grid grid-cols-3 gap-3"
+          >
+            <button
+              v-for="depth in engineeringDepthOptions"
+              :key="depth.key"
+              type="button"
+              class="border-line-subtle hover:border-line flex cursor-pointer flex-col rounded-lg border p-4 text-left transition-colors"
+              :class="
+                form.engineeringDepth === depth.key
+                  ? 'border-primary-400/50 bg-primary-50/5 ring-primary-400/30 ring-1'
+                  : ''
+              "
+              @click="form.engineeringDepth = depth.key"
+            >
+              <div class="mb-2 flex items-center gap-2">
+                <UIcon
+                  :name="depth.icon"
+                  class="size-4"
+                  :class="
+                    form.engineeringDepth === depth.key
+                      ? 'text-primary-500'
+                      : 'text-content-faint'
+                  "
+                />
+                <span class="text-sm font-semibold">{{ depth.label }}</span>
+              </div>
+              <p class="text-content-subtle mb-3 text-xs leading-relaxed">
+                {{ depth.description }}
+              </p>
+              <div class="mt-auto space-y-1">
+                <div
+                  v-for="doc in depth.documents"
+                  :key="doc"
+                  class="text-content-faint flex items-center gap-1.5 font-mono text-[10px]"
+                >
+                  <span class="text-content-subtle">&#8226;</span>
+                  {{ doc }}
+                </div>
               </div>
             </button>
           </div>
@@ -159,55 +267,133 @@
 </template>
 
 <script setup lang="ts">
-import type { StrateName, StrateConfig } from '~~/types/config'
-import { DEFAULT_STRATES } from '~~/types/config'
+import type { StrategyDepth, EngineeringDepth } from '~~/types/config'
+import {
+  DEFAULT_STRATEGY_DEPTH,
+  DEFAULT_ENGINEERING_DEPTH,
+  resolveStrategyDepth,
+  resolveEngineeringDepth,
+} from '~~/types/config'
 
 const {
   name: existingName,
   description: existingDesc,
   strates: existingStrates,
+  strategyDepth: existingStrategyDepth,
+  engineeringDepth: existingEngineeringDepth,
   refresh: refreshConfig,
 } = useProjectConfig()
 
-const strateOptions: Array<{
-  key: StrateName
+const strategyDepthOptions: Array<{
+  key: StrategyDepth
   label: string
   icon: string
   description: string
+  documents: string[]
 }> = [
   {
-    key: 'strategy',
-    label: 'Strategy',
-    icon: 'i-heroicons-eye',
+    key: 'pitch',
+    label: 'Pitch',
+    icon: 'i-heroicons-bolt',
     description:
-      'What to build: vision, problems, product, landscape, feature space, and roadmap.',
+      'One document that tells the whole story. For side-projects and hackathons.',
+    documents: ['pitch.md'],
   },
   {
-    key: 'engineering',
-    label: 'Engineering',
-    icon: 'i-heroicons-wrench-screwdriver',
+    key: 'foundation',
+    label: 'Foundation',
+    icon: 'i-heroicons-building-office',
     description:
-      'How to build it: policies, architectural principles, and decision records.',
+      'Separate vision, problem space, and landscape. For serious projects.',
+    documents: ['vision.md', 'problem-space.md', 'landscape.md'],
+  },
+  {
+    key: 'full',
+    label: 'Full',
+    icon: 'i-heroicons-globe-alt',
+    description:
+      'Complete strategy with competitive analysis and opportunity mapping.',
+    documents: [
+      'vision.md',
+      'strategy.md',
+      'audiences.md',
+      'problems.md',
+      'landscape.md',
+      'competitors/',
+      'allies/',
+      'opportunities.md',
+    ],
+  },
+]
+
+const engineeringDepthOptions: Array<{
+  key: EngineeringDepth
+  label: string
+  icon: string
+  description: string
+  documents: string[]
+}> = [
+  {
+    key: 'lite',
+    label: 'Lite',
+    icon: 'i-heroicons-shield-check',
+    description:
+      'Agent policies only. Guide agent behavior with lightweight rules.',
+    documents: ['policies/'],
+  },
+  {
+    key: 'standard',
+    label: 'Standard',
+    icon: 'i-heroicons-building-library',
+    description:
+      'Policies plus architectural principles. For serious projects.',
+    documents: ['policies/', 'principles.md'],
+  },
+  {
+    key: 'full',
+    label: 'Full',
+    icon: 'i-heroicons-document-magnifying-glass',
+    description: 'Full governance with decision records. For team projects.',
+    documents: ['policies/', 'principles.md', 'decisions/'],
   },
 ]
 
 const form = reactive({
   name: '',
   description: '',
-  strates: { ...DEFAULT_STRATES } as StrateConfig,
+  strategyDepth: DEFAULT_STRATEGY_DEPTH as StrategyDepth,
+  product: true,
+  engineeringEnabled: true,
+  engineeringDepth: DEFAULT_ENGINEERING_DEPTH as EngineeringDepth,
 })
 
 // Pre-fill from existing config once loaded
 watch(
-  [existingName, existingDesc, existingStrates],
-  ([n, d, s]) => {
+  [
+    existingName,
+    existingDesc,
+    existingStrates,
+    existingStrategyDepth,
+    existingEngineeringDepth,
+  ],
+  ([n, d, s, sDepth, eDepth]) => {
     if (n && !form.name) form.name = n
     if (d && !form.description) form.description = d
     if (s) {
-      for (const key of Object.keys(DEFAULT_STRATES) as StrateName[]) {
-        if (typeof s[key] === 'boolean') form.strates[key] = s[key]
+      if (s.strategy !== undefined) {
+        form.strategyDepth = resolveStrategyDepth(s.strategy)
+      }
+      if (typeof s.product === 'boolean') {
+        form.product = s.product
+      }
+      if (s.engineering !== undefined) {
+        form.engineeringEnabled =
+          typeof s.engineering === 'boolean' ? s.engineering : true
+        form.engineeringDepth = resolveEngineeringDepth(s.engineering)
       }
     }
+    if (sDepth) form.strategyDepth = sDepth
+    if (eDepth) form.engineeringDepth = eDepth
   },
   { immediate: true }
 )
@@ -216,9 +402,14 @@ const saving = ref(false)
 const submitted = ref(false)
 const error = ref('')
 
-const enabledStrates = computed(() =>
-  (Object.keys(form.strates) as StrateName[]).filter((k) => form.strates[k])
-)
+const enabledStrates = computed(() => {
+  const result: string[] = [`strategy (${form.strategyDepth})`]
+  if (form.product) result.push('product')
+  if (form.engineeringEnabled)
+    result.push(`engineering (${form.engineeringDepth})`)
+  result.push('work')
+  return result
+})
 
 async function handleSubmit() {
   saving.value = true
@@ -228,7 +419,14 @@ async function handleSubmit() {
       method: 'POST',
       body: {
         project: { name: form.name, description: form.description },
-        strates: form.strates,
+        strates: {
+          strategy: { depth: form.strategyDepth },
+          product: form.product,
+          engineering: form.engineeringEnabled
+            ? { depth: form.engineeringDepth }
+            : false,
+          work: true,
+        },
       },
     })
     await refreshConfig()
