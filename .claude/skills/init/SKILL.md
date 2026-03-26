@@ -33,26 +33,38 @@ documentation stubs.
 
 ## Step 1: Detect Context
 
-Check if `.debussy/` already exists in the project root.
+Check if a previous init has been completed by looking for `.debussy/config.yaml`.
 
 ```bash
-if [ -d ".debussy" ]; then
-  echo "FOUND"
+if [ -f ".debussy/config.yaml" ]; then
+  echo "CONFIGURED"
+elif [ -d ".debussy" ]; then
+  echo "DIR_ONLY"
 else
   echo "NOTFOUND"
 fi
 ```
 
-If found, ask via AskUserQuestion:
+### CONFIGURED — previous init completed
+
+Ask via AskUserQuestion:
 
 ```
-.debussy/ already exists. Would you like to:
+.debussy/ already exists with a saved configuration. Would you like to:
 - "re-configure" -- open the configuration UI to update strate selection, then create missing stubs
 - "abort" -- stop without making changes
 ```
 
 If "abort", print a message and EXIT.
-If "re-configure" or "NOTFOUND", proceed with Step 2.
+If "re-configure", proceed with Step 2.
+
+### DIR_ONLY — directory exists but no config (interrupted init or manual creation)
+
+Treat as a fresh start — proceed with Step 2.
+
+### NOTFOUND — clean slate
+
+Proceed with Step 2.
 
 ---
 
@@ -100,8 +112,8 @@ DEBUSSY INIT
 
 Configuration UI: http://localhost:4321/configure
 
-Fill in the project name, description, choose your strategy depth, engineering
-depth, and select which strates to enable. Click "Save configuration" when done.
+Fill in the project name, description, and select which strates to enable.
+Click "Save configuration" when done.
 
 Waiting for configuration...
 ```
@@ -141,8 +153,10 @@ If the output is `__TIMEOUT__`:
 - Print: "The UI is still running at http://localhost:4321/configure. Submit when ready, then re-run `/debussy:init`."
 - EXIT
 
-Otherwise, parse the YAML output to extract project info, strategy depth,
-engineering depth, product enabled, and work enabled.
+Otherwise, parse the YAML output to extract project info, product enabled,
+engineering enabled, and work enabled. Depth is NOT configured here — each
+strate starts at its shallowest level (pitch for strategy, lite for
+engineering) and deepens progressively when the user runs the strate skill.
 
 ---
 
@@ -511,6 +525,41 @@ _What are the consequences?_
 
 ---
 
+## Step 6b: Install Status Line (if enabled)
+
+If the parsed config has `options.statusline` set to `true` (or absent — default is true):
+
+1. **Locate the template**: find `templates/statusline.sh` relative to this
+   skill file. Search paths in order:
+   - `{skill-dir}/templates/statusline.sh` (where skill-dir is the directory
+     containing this SKILL.md)
+   - `~/.claude/plugins/debussy/.claude/skills/init/templates/statusline.sh`
+
+2. **Copy to project**: copy the template to `.claude/statusline.sh` in the
+   project root. Make it executable:
+
+   ```bash
+   cp "{found-template}" .claude/statusline.sh
+   chmod +x .claude/statusline.sh
+   ```
+
+3. **Configure settings.local.json**: read `.claude/settings.local.json` (create
+   if missing). Merge in the `statusLine` key, preserving any existing settings:
+
+   ```bash
+   SETTINGS=".claude/settings.local.json"
+   if [ -f "$SETTINGS" ]; then
+     EXISTING=$(cat "$SETTINGS")
+   else
+     EXISTING="{}"
+   fi
+   echo "$EXISTING" | jq '. + {"statusLine": {"type": "command", "command": ".claude/statusline.sh"}}' > "$SETTINGS"
+   ```
+
+If `options.statusline` is `false`, skip this step entirely.
+
+---
+
 ## Step 7: Summary
 
 Print a formatted summary of what was created:
@@ -526,6 +575,9 @@ Strates:
   Product:     {enabled / disabled}
   Engineering: {lite / standard / full / disabled}
   Work:        enabled
+
+Options:
+  Status line: {enabled / disabled}
 
 Files created:
 {table of files created, grouped by strate}

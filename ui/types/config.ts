@@ -23,8 +23,12 @@ export type StrateConfig = {
   work: boolean
 }
 
-export const DEFAULT_STRATEGY_DEPTH: StrategyDepth = 'foundation'
-export const DEFAULT_ENGINEERING_DEPTH: EngineeringDepth = 'standard'
+export interface OptionsConfig {
+  statusline: boolean
+}
+
+export const DEFAULT_STRATEGY_DEPTH: StrategyDepth = 'pitch'
+export const DEFAULT_ENGINEERING_DEPTH: EngineeringDepth = 'lite'
 
 export const DEFAULT_STRATES: StrateConfig = {
   strategy: { depth: DEFAULT_STRATEGY_DEPTH },
