@@ -1,0 +1,19 @@
+{
+  "sections": {
+    "market-overview": {
+      "status": "approved"
+    },
+    "competitors": {
+      "status": "approved"
+    },
+    "allies-complements": {
+      "status": "approved"
+    },
+    "trends": {
+      "status": "approved"
+    },
+    "opportunities": {
+      "status": "approved"
+    }
+  }
+}
