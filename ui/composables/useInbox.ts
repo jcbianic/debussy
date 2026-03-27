@@ -200,8 +200,8 @@ export const useInbox = () => {
       submitting.value = true
       try {
         // The item id in the inbox is prefixed with sessionId/ — strip it
-        const inboxItemId = item.id.startsWith(group.inboxSessionId + '/')
-          ? item.id.slice(group.inboxSessionId.length + 1)
+        const inboxItemId = item.id.startsWith(group.inboxSessionId + '::')
+          ? item.id.slice(group.inboxSessionId.length + 2)
           : item.id
 
         await $fetch(`/api/inbox/${group.inboxSessionId}`, {

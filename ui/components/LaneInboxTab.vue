@@ -52,7 +52,7 @@
           <NuxtLink
             v-for="(item, i) in group.items"
             :key="item.id"
-            :to="`/${basePath}/${laneId}/review/${item.id}`"
+            :to="`/${basePath}/${laneId}/review/${encodeURIComponent(item.id)}`"
             class="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/50"
             :class="
               i < group.items.length - 1 ? 'border-line-subtle border-b' : ''

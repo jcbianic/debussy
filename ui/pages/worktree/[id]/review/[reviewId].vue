@@ -92,7 +92,7 @@
 <script setup lang="ts">
 const route = useRoute()
 const worktreeId = route.params.id as string
-const reviewId = route.params.reviewId as string
+const reviewId = decodeURIComponent(route.params.reviewId as string)
 
 const { getReview } = useLanes()
 const review = computed(() => getReview(reviewId))
