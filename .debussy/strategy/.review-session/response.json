@@ -1,0 +1,36 @@
+{
+  "submitted_at": "2026-03-27T10:34:10.363801+00:00",
+  "reviews": {
+    "pitch": {
+      "sections": {
+        "vision": {
+          "status": "done",
+          "notes": ""
+        },
+        "the-problem": {
+          "status": "discuss",
+          "notes": "P1 should ba tiny bit rephrased. It doesn't make you focyus on the wrong thing, but it's open which is what make it great, also scatters your attention accross many things. P2 is about right. P3 should be a tiny bit rephrased. it's not the absence of tech lead or product manager, it's just that solo builders have to do it all. And as Claude is fast but get's you waiting, you do a lot of things all at once. You need discipline, you need to organize the team somehow."
+        },
+        "the-product": {
+          "status": "done"
+        },
+        "what-were-not-doing": {
+          "status": "done"
+        },
+        "landscape": {
+          "status": "discuss",
+          "notes": "Dial it down a bit. Debussy is also an experiment at this stage."
+        }
+      }
+    }
+  },
+  "summary": {
+    "total_sections": 5,
+    "approved": 0,
+    "flagged": 0,
+    "discuss": 2,
+    "done": 3,
+    "later": 0,
+    "pending": 0
+  }
+}

@@ -177,7 +177,17 @@
               }}</span>
             </div>
             <div class="p-5">
-              <p class="text-content-secondary text-sm leading-relaxed">
+              <!-- eslint-disable vue/no-v-html -->
+              <div
+                v-if="isMarkdown(activeRoundData.content)"
+                class="text-content-secondary"
+                v-html="renderMarkdown(activeRoundData.content)"
+              />
+              <!-- eslint-enable vue/no-v-html -->
+              <p
+                v-else
+                class="text-content-secondary text-sm leading-relaxed"
+              >
                 {{ activeRoundData.content }}
               </p>
               <pre

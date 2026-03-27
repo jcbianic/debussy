@@ -6,10 +6,12 @@ export default defineEventHandler(async (event) => {
 
   const watchPaths = await Promise.all([
     resolveStrategyPath(),
+    resolveDebussyPath('.debussy', 'product'),
     resolveDebussyPath('docs', 'decisions'),
     resolveDebussyPath('docs', 'architecture'),
     resolveDebussyPath('specs'),
     resolveDebussyPath('.workflow-runs'),
+    resolveDebussyPath('.debussy', 'inbox'),
   ])
 
   const watcher = chokidar.watch(watchPaths, { ignoreInitial: true })

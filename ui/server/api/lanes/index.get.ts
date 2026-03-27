@@ -4,6 +4,11 @@ import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { parseLanesFromWorktrees } from '../../utils/lanes'
 import type { Lane, ReviewGroup, ReviewItem } from '../../utils/lanes'
+import {
+  resolveInboxPath,
+  scanInboxSessions,
+  inboxSessionToReviewGroup,
+} from '../../utils/inbox'
 
 const execAsync = promisify(exec)
 
@@ -110,6 +115,20 @@ export default defineEventHandler(async () => {
       }
     })
   )
+
+  // Attach pending inbox review sessions to the root lane
+  try {
+    const inboxDir = await resolveInboxPath()
+    const sessions = await scanInboxSessions(inboxDir)
+    const rootLane = lanes.find((l) => l.id === 'root') ?? lanes[0]
+    if (rootLane) {
+      for (const session of sessions) {
+        rootLane.groups.push(inboxSessionToReviewGroup(session))
+      }
+    }
+  } catch {
+    // .debussy/inbox/ missing — skip
+  }
 
   return lanes
 })

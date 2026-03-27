@@ -144,14 +144,14 @@ describe('useInbox', () => {
       expect(activeRound.value).toBe(1)
     })
 
-    it('exposes the static typeFilters list with at least one entry', () => {
+    it('exposes the dynamic typeFilters list with at least one entry', () => {
       const { typeFilters } = useInbox()
-      expect(typeFilters.length).toBeGreaterThan(0)
+      expect(typeFilters.value.length).toBeGreaterThan(0)
     })
 
     it('typeFilters includes an "all" option', () => {
       const { typeFilters } = useInbox()
-      expect(typeFilters.some((f) => f.value === 'all')).toBe(true)
+      expect(typeFilters.value.some((f) => f.value === 'all')).toBe(true)
     })
 
     it('starts with comment as an empty string', () => {

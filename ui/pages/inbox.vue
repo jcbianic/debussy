@@ -16,6 +16,8 @@
       @update-filter="activeTypeFilter = $event"
     />
     <ReviewItemDetail
+      v-model:comment="comment"
+      v-model:comment-error="commentError"
       :selected-item="selectedItem"
       :selected-group="selectedGroup"
       :selected-lane="selectedLane"
@@ -25,8 +27,6 @@
       :active-round="activeRound"
       :active-round-data="activeRoundData"
       :pending-in-lane="pendingInLane"
-      v-model:comment="comment"
-      v-model:comment-error="commentError"
       :comment-placeholder="commentPlaceholder"
       @navigate="navigateBy"
       @set-round="activeRound = $event"
@@ -63,10 +63,20 @@ const {
   commentError,
   commentPlaceholder,
   submitAction,
+  refreshLanes,
 } = useInbox()
 
-onMounted(() => window.addEventListener('keydown', onKey))
-onUnmounted(() => window.removeEventListener('keydown', onKey))
+// Live reload when inbox files change
+let es: EventSource | null = null
+onMounted(() => {
+  window.addEventListener('keydown', onKey)
+  es = new EventSource('/api/watch')
+  es.onmessage = () => refreshLanes()
+})
+onUnmounted(() => {
+  window.removeEventListener('keydown', onKey)
+  es?.close()
+})
 
 const onKey = (e: KeyboardEvent) => {
   if (

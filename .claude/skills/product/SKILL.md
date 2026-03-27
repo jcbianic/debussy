@@ -2,8 +2,9 @@
 description: >-
   Define the product and shape the roadmap. Consumes strategy artifacts from
   .debussy/strategy/, synthesizes product definition and intents under
-  .debussy/product/, and syncs each intent to a GitHub Issue.
-  Commands: /product | /product --sync-issues | /product --update-intent <NNN>
+  .debussy/product/, syncs each intent to a GitHub Issue, and reviews
+  artifacts in the Debussy UI Inbox.
+  Commands: /product | /product --sync-issues | /product --update-intent <NNN> | /product --review
 license: MIT
 metadata:
   author: jcbianic
@@ -32,6 +33,7 @@ Issues are derived from them.
 /product                          # Full run: synthesize -> validate -> write -> sync
 /product --sync-issues            # Skip synthesis, sync .debussy/product/intents.md -> GH Issues
 /product --update-intent <NNN>    # Re-elicit and update a single intent + its GH Issue
+/product --review                 # Review product artifacts in the Debussy UI Inbox
 ```
 
 ---
@@ -42,7 +44,8 @@ From `$ARGUMENTS`:
 
 1. If `--sync-issues` -> jump to **Sync Issues Mode**
 2. If `--update-intent <NNN>` -> extract NNN, jump to **Update Intent Mode**
-3. Otherwise -> **Full Run Mode**
+3. If `--review` -> jump to **Review Mode**
+4. Otherwise -> **Full Run Mode**
 
 ---
 
@@ -205,11 +208,73 @@ Reply:
 - "go" to write as-is and sync issues
 - Corrections to revise (I'll re-draft changed sections)
 - Answers to the open questions above
-- "review" to open the browser review UI
+- "review" to review in the Debussy UI Inbox
 ```
+
+If the user replies "review", follow the **Review via Inbox** flow below, then
+resume at Step 6.
 
 If corrections are provided, apply them and re-draft. Show only the changed
 sections. Ask once more for confirmation. Do not loop more than twice.
+
+### Review via Inbox
+
+When the user asks for review (either via "review" reply in Step 5 or via
+`/product --review` which jumps here after writing draft artifacts):
+
+1. **Parse sections** from both draft artifacts (`product.md` and `intents.md`).
+   Split each file on `## ` headings. Each section becomes a review item.
+   Section ID = artifact slug + "/" + slugified heading (e.g., `product/positioning`,
+   `intents/001-intent-name`). Slugify: lowercase, remove non-alphanumeric chars
+   except spaces/dashes, replace spaces with dashes, collapse multiple dashes.
+
+2. **Write inbox request.** Generate session ID: `product-{unix-timestamp}`.
+   Create `.debussy/inbox/{session-id}/request.json`:
+
+   ```json
+   {
+     "session_id": "product-{timestamp}",
+     "source": "product",
+     "title": "Product Review: {product-name}",
+     "icon": "i-heroicons-cube",
+     "created_at": "{ISO 8601 timestamp}",
+     "items": [
+       {
+         "id": "product/positioning",
+         "title": "Positioning",
+         "subtitle": "Product Definition",
+         "content": "## Positioning\n\n(full section markdown)"
+       },
+       {
+         "id": "intents/001-feature-name",
+         "title": "001 -- Feature Name",
+         "subtitle": "Intents",
+         "content": "## 001 -- Feature Name\n\n(full section markdown)"
+       }
+     ]
+   }
+   ```
+
+3. **Wait for response.** Print:
+
+   > Review items are ready in the Debussy UI Inbox. Open http://localhost:4321/inbox to review.
+
+   Wait for `response.json`:
+
+   ```bash
+   RESPONSE=".debussy/inbox/{session-id}/response.json"
+   while [ ! -f "$RESPONSE" ]; do sleep 1; done
+   cat "$RESPONSE"
+   ```
+
+   Timeout: 600 seconds.
+
+4. **Process response.** Read `response.json`. For items with
+   `action: "changes-requested"`, apply the comment as feedback and re-draft
+   those sections. For items with `action: "rejected"`, remove them from the
+   draft. For items with `action: "approved"`, keep as-is.
+
+5. **Cleanup.** Delete `.debussy/inbox/{session-id}/`. Resume at Step 6.
 
 ---
 
@@ -348,6 +413,24 @@ Intent {NNN} -- {Name} updated.
   .debussy/product/intents.md written.
   GitHub Issue -> #{gh-issue-number} (created / updated)
 ```
+
+---
+
+## Review Mode
+
+`/product --review`
+
+Review existing product artifacts in the Debussy UI Inbox. Requires that
+`.debussy/product/product.md` and/or `.debussy/product/intents.md` exist.
+If neither exists, print an error and suggest running full `/product` first,
+then EXIT.
+
+1. Read existing product artifacts from `.debussy/product/`. Skip artifacts
+   with `status: reviewed` in their frontmatter.
+2. Follow the **Review via Inbox** flow from Step 5 (parse sections, write
+   inbox request, wait for response, process response, cleanup).
+3. Update frontmatter `status: reviewed` on artifacts where ALL sections were
+   approved.
 
 ---
 

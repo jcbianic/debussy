@@ -12,7 +12,7 @@
 
     <div class="space-y-8">
       <!-- ═══ Strategy — Shape what to build ═══ -->
-      <section>
+      <section v-if="isStrateEnabled('strategy')">
         <div class="mb-3 flex items-center gap-2">
           <h2
             class="text-content-subtle text-xs font-semibold tracking-wider uppercase"
@@ -21,12 +21,9 @@
           </h2>
           <span class="text-content-faint text-xs">Shape what to build</span>
         </div>
-        <div class="grid grid-cols-3 gap-4">
+        <div class="grid grid-cols-2 gap-4">
           <!-- Strategy -->
-          <div
-            v-if="isStrateEnabled('strategy')"
-            class="border-line overflow-hidden rounded-lg border"
-          >
+          <div class="border-line overflow-hidden rounded-lg border">
             <div
               class="border-line-subtle bg-surface flex items-center justify-between border-b px-5 py-4"
             >
@@ -75,10 +72,7 @@
           </div>
 
           <!-- Feature Space -->
-          <div
-            v-if="isStrateEnabled('strategy')"
-            class="border-line overflow-hidden rounded-lg border"
-          >
+          <div class="border-line overflow-hidden rounded-lg border">
             <div
               class="border-line-subtle bg-surface flex items-center justify-between border-b px-5 py-4"
             >
@@ -120,12 +114,76 @@
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      <!-- ═══ Product — Define what to ship ═══ -->
+      <section v-if="isStrateEnabled('product')">
+        <div class="mb-3 flex items-center gap-2">
+          <h2
+            class="text-content-subtle text-xs font-semibold tracking-wider uppercase"
+          >
+            Product
+          </h2>
+          <span class="text-content-faint text-xs">Define what to ship</span>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <!-- Product Definition -->
+          <div class="border-line overflow-hidden rounded-lg border">
+            <div
+              class="border-line-subtle bg-surface flex items-center justify-between border-b px-5 py-4"
+            >
+              <h3 class="flex items-center gap-2 text-sm font-semibold">
+                <UIcon
+                  name="i-heroicons-cube"
+                  class="text-content-faint size-4"
+                />
+                Product
+              </h3>
+              <NuxtLink
+                to="/product"
+                class="text-content-faint hover:text-content text-xs transition-colors"
+              >
+                Details →
+              </NuxtLink>
+            </div>
+            <div class="bg-surface p-5">
+              <div class="space-y-2">
+                <div
+                  v-for="pa in productArtifacts"
+                  :key="pa.key"
+                  class="flex items-center justify-between"
+                >
+                  <div class="flex items-center gap-2">
+                    <UIcon
+                      :name="pa.icon"
+                      class="text-content-faint size-3.5"
+                    />
+                    <span class="text-content-secondary text-xs">{{
+                      pa.name
+                    }}</span>
+                  </div>
+                  <UBadge
+                    v-if="pa.presence === 'missing'"
+                    label="missing"
+                    color="neutral"
+                    variant="subtle"
+                    size="xs"
+                  />
+                  <UBadge
+                    v-else
+                    :label="pa.status"
+                    :color="pa.status === 'reviewed' ? 'success' : 'warning'"
+                    variant="subtle"
+                    size="xs"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
 
           <!-- Roadmap -->
-          <div
-            v-if="isStrateEnabled('strategy')"
-            class="border-line overflow-hidden rounded-lg border"
-          >
+          <div class="border-line overflow-hidden rounded-lg border">
             <div
               class="border-line-subtle bg-surface flex items-center justify-between border-b px-5 py-4"
             >
@@ -437,6 +495,16 @@ const {
 const { nextRelease, nextReleaseName, artifacts } = useDashboard()
 const { principles, adrs, proposedCount } = useArchitecture()
 const { topics: policyTopics } = usePolicy()
+const { data: productData } = await useFetch<{
+  artifacts: {
+    key: string
+    name: string
+    icon: string
+    status: string
+    presence: string
+  }[]
+}>('/api/product')
+const productArtifacts = computed(() => productData.value?.artifacts ?? [])
 
 const featureCategories = categoryDefs.map((c) => ({
   key: c.key,

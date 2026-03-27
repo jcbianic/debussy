@@ -1,8 +1,8 @@
 ---
 description: >-
   Product discovery: research the space, produce structured artifacts under
-  .debussy/strategy/, and review them in a browser UI. Supports three depth
-  levels (pitch, foundation, full) as a progressive journey.
+  .debussy/strategy/, and review them in the Debussy UI Inbox. Supports three
+  depth levels (pitch, foundation, full) as a progressive journey.
   Commands: /strategy | /strategy --refresh {type} | /strategy --review
 license: MIT
 metadata:
@@ -659,53 +659,117 @@ Valid targets depend on depth:
 
 `/strategy --review`
 
-### A. Build Request Manifest
+### A. Scan Artifacts
 
 Read all existing strategy artifacts from `.debussy/strategy/`. For each, extract
 frontmatter (type, status, updated). **Skip artifacts with `status: reviewed`
-in their frontmatter** — these were fully approved in a prior round. Build a
-`request.json` with the remaining artifacts:
-
-```json
-{
-  "title": "Strategy Review: {product-name}",
-  "project_root": "{absolute path to repo root}",
-  "reviews_dir": ".debussy/strategy/.reviews",
-  "artifacts": [
-    {
-      "slug": "vision",
-      "path": ".debussy/strategy/vision.md",
-      "type": "vision",
-      "label": "Vision",
-      "status": "draft",
-      "updated": "2026-03-25"
-    }
-  ]
-}
-```
+in their frontmatter** — these were fully approved in a prior round.
 
 Artifact slug rules:
 - Top-level artifacts: slug = type name (e.g., `vision`, `problems`, `pitch`)
 - Competitor/ally files: slug = `competitors/{name}` or `allies/{name}`
 - Label = display name (title-cased type, or entity name for competitor/ally)
-- Group = `"Competitors"` or `"Allies"` for those types; omitted for others
 
-### B-J. Review UI Flow
+### B. Parse Sections
 
-Follow the same review UI flow as before (generate session, deploy server and
-UI from templates, start server, open browser, wait for response, process
-response, archive round, cleanup).
+For each artifact, read the markdown file and split on `## ` headings. Each
+section becomes a review item. If the file has introductory text before the
+first heading, create an "Introduction" item.
 
-**Templates in `templates/` are NEVER regenerated at runtime — copy them verbatim.**
+Section ID = artifact slug + "/" + slugified heading (e.g., `pitch/vision`,
+`pitch/the-problem`). Slugify: lowercase, remove non-alphanumeric chars
+except spaces/dashes, replace spaces with dashes, collapse multiple dashes.
 
-Read `.claude/skills/strategy/templates/strategy-server.py` using the Read tool.
-Write its content verbatim to `{workspace}/strategy-server.py` using the Write tool.
+### C. Write Inbox Request
 
-Read `.claude/skills/strategy/templates/strategy-review.html` using the Read tool.
-Write its content verbatim to `{workspace}/strategy-review.html` using the Write tool.
+Generate a session ID: `strategy-{unix-timestamp}`.
 
-Start server, open browser, wait for response (timeout 600s), process response,
-archive round, cleanup — same as before.
+Create the directory `.debussy/inbox/{session-id}/` and write `request.json`:
+
+```json
+{
+  "session_id": "strategy-{timestamp}",
+  "source": "strategy",
+  "title": "Strategy Review: {product-name}",
+  "icon": "i-heroicons-adjustments-horizontal",
+  "created_at": "{ISO 8601 timestamp}",
+  "items": [
+    {
+      "id": "pitch/vision",
+      "title": "Vision",
+      "subtitle": "Pitch",
+      "content": "## Vision\n> One-liner...\n\n(full section markdown)"
+    },
+    {
+      "id": "pitch/the-problem",
+      "title": "The Problem",
+      "subtitle": "Pitch",
+      "content": "## The Problem\n### P1: ...\n\n(full section markdown)"
+    }
+  ]
+}
+```
+
+### D. Wait for User Review
+
+The user reviews in the Debussy UI Inbox at `localhost:4321/inbox`.
+
+Print a message:
+
+> Review items are ready in the Debussy UI Inbox. Open http://localhost:4321/inbox to review.
+
+Wait for the response file using bash filewatch:
+
+```bash
+RESPONSE=".debussy/inbox/{session-id}/response.json"
+while [ ! -f "$RESPONSE" ]; do sleep 1; done
+cat "$RESPONSE"
+```
+
+Timeout: 600 seconds.
+
+### E. Process Response
+
+Read `response.json`. The format is:
+
+```json
+{
+  "submitted_at": "...",
+  "session_id": "strategy-{timestamp}",
+  "decisions": {
+    "pitch/vision": { "action": "approved", "comment": "" },
+    "pitch/the-problem": { "action": "changes-requested", "comment": "Reframe P1..." }
+  },
+  "summary": { "total": 5, "approved": 3, "changes_requested": 1, "rejected": 1 }
+}
+```
+
+Map each decision back to the strategy review format and write to
+`.debussy/strategy/.reviews/{artifact-slug}.review.json`:
+
+```json
+{
+  "sections": {
+    "vision": { "status": "done", "notes": "" },
+    "the-problem": { "status": "discuss", "notes": "Reframe P1..." }
+  }
+}
+```
+
+Action mapping:
+- `approved` → status `done`
+- `changes-requested` → status `discuss` (with comment as notes)
+- `rejected` → status `flagged` (with comment as notes)
+
+### F. Archive Round and Cleanup
+
+If prior round files exist in `.debussy/strategy/.reviews/`, move them to
+`.debussy/strategy/.reviews/rounds/{N+1}/` before writing the new reviews.
+
+Update frontmatter `status: reviewed` on artifacts where ALL sections were
+approved.
+
+Clean up the inbox session directory (delete `.debussy/inbox/{session-id}/`).
 
 ---
 
