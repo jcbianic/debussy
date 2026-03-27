@@ -64,6 +64,17 @@ export interface Commit {
   pr?: string
 }
 
+export interface LaneStatus {
+  changes: {
+    modified: number
+    added: number
+    deleted: number
+    total: number
+    files: string[]
+  }
+  sync: { ahead: number; behind: number; remote: string | null }
+}
+
 export interface ReviewDetail {
   id: string
   title: string
@@ -110,6 +121,9 @@ export function useLanes() {
   const getCommits = (laneId: string): Promise<Commit[]> =>
     $fetch<Commit[]>(`/api/lanes/${laneId}/commits`).catch(() => [])
 
+  const getStatus = (laneId: string): Promise<LaneStatus | null> =>
+    $fetch<LaneStatus | null>(`/api/lanes/${laneId}/status`).catch(() => null)
+
   const getReview = (id: string): ReviewDetail | null => {
     for (const lane of lanes.value) {
       for (const group of lane.groups) {
@@ -136,6 +150,7 @@ export function useLanes() {
     getLane,
     getWorkflow,
     getCommits,
+    getStatus,
     getReview,
     pendingCount,
     refresh,

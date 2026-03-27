@@ -20,8 +20,29 @@
               size="xs"
             />
           </div>
-          <div class="mt-0.5 text-xs text-neutral-400">
-            {{ lane.path }}
+          <div class="mt-0.5 flex items-center gap-2 text-xs text-neutral-400">
+            <span>{{ lane.path }}</span>
+            <template v-if="status">
+              <span class="text-neutral-600">&middot;</span>
+              <template v-if="status.sync.remote">
+                <span
+                  v-if="status.sync.ahead === 0 && status.sync.behind === 0"
+                  class="text-green-400"
+                >in sync</span>
+                <span
+                  v-if="status.sync.ahead"
+                  class="text-blue-400"
+                >&uarr;{{ status.sync.ahead }}</span>
+                <span
+                  v-if="status.sync.behind"
+                  class="text-orange-400"
+                >&darr;{{ status.sync.behind }}</span>
+              </template>
+              <span
+                v-else
+                class="text-neutral-500"
+              >no remote</span>
+            </template>
           </div>
         </div>
       </div>
@@ -90,6 +111,7 @@
       <LaneCommitsTab
         v-else-if="activeTab === 'commits'"
         :commits="commits"
+        :changes="status?.changes ?? null"
       />
     </div>
   </div>
@@ -101,12 +123,29 @@ const props = defineProps<{
   basePath: 'lane' | 'worktree'
 }>()
 
-const { getLane, getWorkflow, getCommits } = useLanes()
+const { getLane, getWorkflow, getCommits, getStatus } = useLanes()
 
 const lane = computed(() => getLane(props.laneId))
 const reviewGroups = computed(() => lane.value.groups)
-const workflow = computed(() => getWorkflow(props.laneId))
-const commits = computed(() => getCommits(props.laneId))
+
+const workflow = ref<Awaited<ReturnType<typeof getWorkflow>>>(null)
+const commits = ref<Commit[]>([])
+const status = ref<LaneStatus | null>(null)
+
+watch(
+  () => props.laneId,
+  async (id) => {
+    const [c, w, s] = await Promise.all([
+      getCommits(id),
+      getWorkflow(id),
+      getStatus(id),
+    ])
+    commits.value = c
+    workflow.value = w
+    status.value = s
+  },
+  { immediate: true }
+)
 
 const totalPending = computed(
   () =>

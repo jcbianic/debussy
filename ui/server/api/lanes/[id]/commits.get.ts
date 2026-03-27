@@ -21,8 +21,21 @@ export default defineEventHandler(async (event) => {
   if (!lane) return []
 
   try {
+    // Detect default branch (main or master)
+    let defaultBranch = 'main'
+    try {
+      const { stdout: symRef } = await execAsync(
+        `git -C "${lane.path}" symbolic-ref refs/remotes/origin/HEAD 2>/dev/null`
+      )
+      defaultBranch = symRef.trim().replace('refs/remotes/origin/', '')
+    } catch {
+      // fallback to main
+    }
+
+    // Show only branch-specific commits; for the default branch show recent history
+    const range = lane.branch === defaultBranch ? '' : `${defaultBranch}..HEAD`
     const { stdout: logOut } = await execAsync(
-      `git -C "${lane.path}" log --pretty=format:"%H|%s|%an|%ar" --max-count=20`
+      `git -C "${lane.path}" log ${range} --pretty=format:"%H|%s|%an|%ar" --max-count=20`
     )
     const commits: Commit[] = logOut
       .split('\n')
