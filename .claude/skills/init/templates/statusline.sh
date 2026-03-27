@@ -20,6 +20,37 @@ else
 fi
 left_len=${#left_raw}
 
+# --- PR detection (cached for 60s to avoid gh latency) ---
+pr_segment=""
+pr_segment_len=0
+cache_file="/tmp/.debussy-pr-cache-$(printf '%s' "$cwd" | cksum | cut -d' ' -f1)"
+cache_ttl=60
+
+pr_num=""
+pr_url=""
+if [ -f "$cache_file" ] && [ "$(( $(date +%s) - $(stat -f %m "$cache_file" 2>/dev/null || stat -c %Y "$cache_file" 2>/dev/null) ))" -lt "$cache_ttl" ]; then
+  pr_data=$(cat "$cache_file")
+  pr_num=$(echo "$pr_data" | cut -d' ' -f1)
+  pr_url=$(echo "$pr_data" | cut -d' ' -f2)
+else
+  if command -v gh > /dev/null 2>&1; then
+    pr_json=$(gh pr view --json number,url 2>/dev/null)
+    if [ $? -eq 0 ] && [ -n "$pr_json" ]; then
+      pr_num=$(echo "$pr_json" | jq -r '.number')
+      pr_url=$(echo "$pr_json" | jq -r '.url')
+      echo "$pr_num $pr_url" > "$cache_file"
+    else
+      echo "" > "$cache_file"
+    fi
+  fi
+fi
+
+if [ -n "$pr_num" ]; then
+  pr_label="PR#${pr_num}"
+  pr_segment=" ${cyan}\e]8;;${pr_url}\a${pr_label}\e]8;;\a${reset}"
+  pr_segment_len=$(( ${#pr_label} + 1 ))  # +1 for leading space
+fi
+
 # --- Center: model + context progress bar ---
 model=$(echo "$DATA" | jq -r '.model.display_name // .model.id // "?"')
 ctx=$(echo "$DATA" | jq -r '.context_window.used_percentage // 0')
@@ -47,8 +78,8 @@ center_len=$(( ${#model} + 1 + ${#ctx} + 2 + bar_width + 2 ))
 green="\e[32m"
 dim="\e[2m"
 if curl -s --max-time 0.3 http://localhost:4321 > /dev/null 2>&1; then
-  link="${green}\e]8;;http://localhost:4321\e\\♪ Debussy UI\e]8;;\e\\${reset}"
-  right_len=14  # "♪ Debussy UI"
+  link="${green}\e]8;;http://localhost:4321\a♪ Debussy UI\e]8;;\a${reset}"
+  right_len=14  # "♪ Debussy UI" (icon counts as 2 cols)
 else
   link="${dim}♪ UI offline${reset}"
   right_len=14  # "♪ UI offline"
@@ -56,14 +87,14 @@ fi
 
 # --- Layout ---
 cols=$(tput cols 2>/dev/null || echo 120)
-total=$((left_len + center_len + right_len))
+total=$((left_len + pr_segment_len + center_len + right_len))
 remaining=$((cols - total))
 [ "$remaining" -lt 2 ] && remaining=2
 gap1=$((remaining / 2))
 gap2=$((remaining - gap1))
 
-printf '%b%*s%s %b%s%% [%b%s%b%s%b]%*s%b' \
-  "$left" "$gap1" "" \
+printf '%b%b%*s%s %b%s%% [%b%s%b%s%b]%*s%b' \
+  "$left" "$pr_segment" "$gap1" "" \
   "$model" "$bar_color" "$ctx" \
   "$bar_color" "$bar_filled" "$reset" "$bar_empty" "$reset" \
   "$gap2" "" \
