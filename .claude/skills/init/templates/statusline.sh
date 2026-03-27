@@ -43,9 +43,16 @@ bar_empty=$(printf '░%.0s' $(seq 1 $empty 2>/dev/null))
 
 center_len=$(( ${#model} + 1 + ${#ctx} + 2 + bar_width + 2 ))
 
-# --- Right: Debussy UI link ---
-link="\e]8;;http://localhost:4321\e\\♪ Debussy UI\e]8;;\e\\"
-right_len=14  # "♪ Debussy UI"
+# --- Right: Debussy UI status ---
+green="\e[32m"
+dim="\e[2m"
+if curl -s --max-time 0.3 http://localhost:4321 > /dev/null 2>&1; then
+  link="${green}\e]8;;http://localhost:4321\e\\♪ Debussy UI\e]8;;\e\\${reset}"
+  right_len=14  # "♪ Debussy UI"
+else
+  link="${dim}♪ UI offline${reset}"
+  right_len=14  # "♪ UI offline"
+fi
 
 # --- Layout ---
 cols=$(tput cols 2>/dev/null || echo 120)
