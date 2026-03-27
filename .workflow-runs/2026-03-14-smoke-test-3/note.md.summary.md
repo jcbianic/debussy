@@ -1,1 +1,0 @@
-This note accurately and coherently covers jazz piano as a historically rooted keyboard style, precisely characterizing Thelonious Monk's angular, dissonance-driven approach distinct from bebop convention, and tracing Bill Evans's well-documented influence on contemporary pianists such as Keith Jarrett, Brad Mehldau, and Hiromi Uehara.

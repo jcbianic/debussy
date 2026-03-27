@@ -15,7 +15,7 @@ export interface ReviewItem {
   title: string
   subtitle: string
   status: 'pending' | 'approved' | 'rejected'
-  type: 'feedback' | 'code-review' | 'workflow'
+  type: string
   createdAt: string
   rounds: Round[]
 }
@@ -26,6 +26,7 @@ export interface ReviewGroup {
   icon: string
   source: string
   type: string
+  inboxSessionId?: string
   items: ReviewItem[]
 }
 
@@ -78,7 +79,7 @@ export interface ReviewDetail {
  * Provide reactive access to lane, review, workflow, and commit data via API.
  */
 export function useLanes() {
-  const { data: lanesData } = useFetch<Lane[]>('/api/lanes')
+  const { data: lanesData, refresh } = useFetch<Lane[]>('/api/lanes')
 
   const lanes = computed(() => lanesData.value ?? [])
 
@@ -137,5 +138,6 @@ export function useLanes() {
     getCommits,
     getReview,
     pendingCount,
+    refresh,
   }
 }

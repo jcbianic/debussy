@@ -1,23 +1,35 @@
 import type { ReviewItem, ReviewGroup, Lane } from '~/composables/useLanes'
 
+const TYPE_ICONS: Record<string, string> = {
+  feedback: 'i-heroicons-document-text',
+  review: 'i-heroicons-document-magnifying-glass',
+  workflow: 'i-heroicons-arrow-path',
+  strategy: 'i-heroicons-adjustments-horizontal',
+}
+
 /** Provide all state and logic for the inbox page. */
 export const useInbox = () => {
-  const { lanes: allLanes } = useLanes()
+  const { lanes: allLanes, refresh } = useLanes()
 
-  const typeFilters = [
-    { value: 'all', label: 'All', icon: 'i-heroicons-funnel' },
-    {
-      value: 'feedback',
-      label: 'Feedback',
-      icon: 'i-heroicons-document-text',
-    },
-    {
-      value: 'code-review',
-      label: 'Code',
-      icon: 'i-heroicons-code-bracket',
-    },
-    { value: 'workflow', label: 'Workflow', icon: 'i-heroicons-arrow-path' },
-  ]
+  const typeFilters = computed(() => {
+    const seen = new Set<string>()
+    for (const lane of allLanes.value) {
+      for (const group of lane.groups) {
+        for (const item of group.items) {
+          seen.add(item.type)
+        }
+      }
+    }
+    const dynamic = [...seen].sort().map((t) => ({
+      value: t,
+      label: t.charAt(0).toUpperCase() + t.slice(1).replace(/-/g, ' '),
+      icon: TYPE_ICONS[t] ?? 'i-heroicons-inbox',
+    }))
+    return [
+      { value: 'all', label: 'All', icon: 'i-heroicons-funnel' },
+      ...dynamic,
+    ]
+  })
 
   const activeTypeFilter = ref('all')
   const selectedId = ref<string | null>(null)
@@ -168,7 +180,9 @@ export const useInbox = () => {
     }
   }
 
-  const submitAction = (
+  const submitting = ref(false)
+
+  const submitAction = async (
     action: 'approved' | 'changes-requested' | 'rejected'
   ) => {
     commentError.value = ''
@@ -176,6 +190,39 @@ export const useInbox = () => {
       commentError.value = 'A comment is required when requesting changes.'
       return
     }
+
+    const item = selectedItem.value
+    const group = selectedGroup.value
+    if (!item || !group) return
+
+    // POST to inbox endpoint if this is an inbox session
+    if (group.inboxSessionId) {
+      submitting.value = true
+      try {
+        // The item id in the inbox is prefixed with sessionId/ — strip it
+        const inboxItemId = item.id.startsWith(group.inboxSessionId + '/')
+          ? item.id.slice(group.inboxSessionId.length + 1)
+          : item.id
+
+        await $fetch(`/api/inbox/${group.inboxSessionId}`, {
+          method: 'POST',
+          body: {
+            itemId: inboxItemId,
+            action,
+            comment: comment.value.trim() || undefined,
+          },
+        })
+
+        // Update local state optimistically
+        item.status = action === 'changes-requested' ? 'rejected' : action
+      } catch {
+        commentError.value = 'Failed to submit review. Try again.'
+        submitting.value = false
+        return
+      }
+      submitting.value = false
+    }
+
     comment.value = ''
     navigateToNextPending()
   }
@@ -206,6 +253,8 @@ export const useInbox = () => {
     comment,
     commentError,
     commentPlaceholder,
+    submitting,
     submitAction,
+    refreshLanes: refresh,
   }
 }

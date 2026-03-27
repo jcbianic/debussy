@@ -17,3 +17,5 @@ coverage/
 __pycache__/
 .strategy-review/
 .debussy/strategy/.reviews/
+.debussy/inbox/
+.workflow-runs/

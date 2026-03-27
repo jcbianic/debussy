@@ -17,7 +17,7 @@ export interface ReviewItem {
   title: string
   subtitle: string
   status: 'pending' | 'approved' | 'rejected'
-  type: 'feedback' | 'code-review' | 'workflow'
+  type: string
   createdAt: string
   rounds: Round[]
 }
@@ -28,6 +28,7 @@ export interface ReviewGroup {
   icon: string
   source: string
   type: string
+  inboxSessionId?: string
   items: ReviewItem[]
 }
 
