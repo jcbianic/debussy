@@ -16,6 +16,10 @@ export default defineEventHandler(async (event) => {
 
   const watcher = chokidar.watch(watchPaths, { ignoreInitial: true })
 
+  watcher.on('error', (err) => {
+    console.warn('[watch] chokidar error (non-fatal):', err.message)
+  })
+
   watcher.on('all', (eventName, filePath) => {
     stream.push(JSON.stringify({ event: eventName, path: filePath }))
   })

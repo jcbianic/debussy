@@ -67,16 +67,10 @@ const {
 } = useInbox()
 
 // Live reload when review files change
-let es: EventSource | null = null
-onMounted(() => {
-  window.addEventListener('keydown', onKey)
-  es = new EventSource('/api/watch')
-  es.onmessage = () => refreshLanes()
-})
-onUnmounted(() => {
-  window.removeEventListener('keydown', onKey)
-  es?.close()
-})
+useWatchSSE(() => refreshLanes())
+
+onMounted(() => window.addEventListener('keydown', onKey))
+onUnmounted(() => window.removeEventListener('keydown', onKey))
 
 const onKey = (e: KeyboardEvent) => {
   if (

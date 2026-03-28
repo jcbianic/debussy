@@ -9,6 +9,7 @@ import {
   isCleanWorktree,
   pushBranch,
   checkoutBranch,
+  createWorktree,
   markPRReady,
   mergePR,
   removeWorktree,
@@ -97,12 +98,27 @@ export default defineEventHandler(async (event) => {
             'Root worktree has uncommitted changes. Commit or stash before staging.',
         })
       }
-      // 1. Push branch to remote
-      await pushBranch(record.branch)
-      // 2. Remove worktree (frees the branch for checkout)
-      await removeWorktree(absWorktree)
-      // 3. Checkout branch on root
-      await checkoutBranch(root, record.branch)
+
+      const rollback: (() => Promise<void>)[] = []
+      try {
+        // 1. Push branch to remote
+        await pushBranch(record.branch)
+        // 2. Remove worktree (frees the branch for checkout)
+        await removeWorktree(absWorktree)
+        rollback.push(() => createWorktree(record.worktreePath, record.branch))
+        // 3. Checkout branch on root
+        await checkoutBranch(root, record.branch)
+      } catch (err) {
+        for (const undo of rollback.reverse()) {
+          try {
+            await undo()
+          } catch {
+            /* best-effort */
+          }
+        }
+        const msg = err instanceof Error ? err.message : 'Stage failed'
+        throw createError({ statusCode: 422, statusMessage: msg })
+      }
       break
     }
 

@@ -123,10 +123,5 @@ function progressBarClass(artifact: Artifact) {
 }
 
 // Live reload when markdown files change
-let es: EventSource | null = null
-onMounted(() => {
-  es = new EventSource('/api/watch')
-  es.onmessage = () => refresh()
-})
-onUnmounted(() => es?.close())
+useWatchSSE(() => refresh())
 </script>

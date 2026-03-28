@@ -104,10 +104,5 @@ const {
 } = useRoadmap()
 
 // Live reload when intents.md changes
-let es: EventSource | null = null
-onMounted(() => {
-  es = new EventSource('/api/watch')
-  es.onmessage = () => refresh()
-})
-onUnmounted(() => es?.close())
+useWatchSSE(() => refresh())
 </script>
