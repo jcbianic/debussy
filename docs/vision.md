@@ -1,7 +1,7 @@
 # Vision: Debussy
 
 ## Why We're Building This
-Claude Code is the most-used AI coding agent on the market — $2.5B run-rate, 75% adoption at startups, 73% of engineering teams using AI tools daily. But its raw capability creates a trap that solo builders fall into daily: the monster branch. Debussy exists to break that loop — from scoping work upstream with full context, to making parallel execution visible and manageable.
+Claude Code is the most-used AI coding agent on the market — $2.5B run-rate, 75% adoption at startups, 73% of engineering teams using AI tools daily. But its raw capability creates a trap that solo builders can easily fall into while pushing the limits of Claude Code: the monster branch. Debussy exists to break that loop — from scoping work upstream with full context, to making parallel execution visible and manageable.
 
 ## The Core Problem: The Monster Branch
 
