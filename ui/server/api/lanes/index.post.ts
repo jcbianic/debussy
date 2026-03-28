@@ -9,6 +9,7 @@ import {
   createBranch,
   createWorktree,
   createDraftPR,
+  initialCommit,
   removeWorktree,
   deleteBranch,
   slugify,
@@ -62,14 +63,27 @@ export default defineEventHandler(async (event) => {
     const absPath = await createWorktree(worktreeRelPath, branch)
     rollback.push(() => removeWorktree(absPath))
 
-    // 3. Create draft PR
+    // 3. Build scope content
+    const scopeContent = [
+      `# ${issue.title}`,
+      '',
+      `> Issue #${body.issueNumber}`,
+      '',
+      issue.body || '_No description provided._',
+      '',
+    ].join('\n')
+
+    // 4. Initial commit in worktree so the branch diverges from main
+    await initialCommit(absPath, scopeContent)
+
+    // 5. Create draft PR (pushes branch first)
     const prNumber = await createDraftPR(
       branch,
       issue.title,
       `Closes #${body.issueNumber}\n\n${issue.body}`
     )
 
-    // 4. Write lane record
+    // 6. Write lane record
     const now = new Date().toISOString()
     const record: LaneRecord = {
       id,
@@ -84,15 +98,7 @@ export default defineEventHandler(async (event) => {
     }
     await writeLaneRecord(record)
 
-    // 5. Write scope.md
-    const scopeContent = [
-      `# ${issue.title}`,
-      '',
-      `> Issue #${body.issueNumber}`,
-      '',
-      issue.body || '_No description provided._',
-      '',
-    ].join('\n')
+    // 7. Write scope.md to lane metadata
     await writeScopeMd(id, scopeContent)
 
     return record

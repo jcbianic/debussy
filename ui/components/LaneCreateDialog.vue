@@ -16,13 +16,17 @@
           class="space-y-4"
           @submit.prevent="submit"
         >
-          <UFormField label="GitHub Issue Number">
-            <UInput
-              v-model="issueNumber"
-              type="number"
-              placeholder="e.g. 58"
-              min="1"
+          <UFormField label="GitHub Issue">
+            <USelectMenu
+              v-model="selectedIssue"
+              :items="issueItems"
+              value-key="value"
+              :loading="loadingIssues"
+              placeholder="Select an issue..."
+              searchable
+              :search-input="{ placeholder: 'Search issues...' }"
               :disabled="loading"
+              class="w-full"
             />
           </UFormField>
 
@@ -48,7 +52,7 @@
               color="primary"
               size="sm"
               :loading="loading"
-              :disabled="!issueNumber"
+              :disabled="!selectedIssue"
               @click="submit"
             />
           </div>
@@ -59,24 +63,52 @@
 </template>
 
 <script setup lang="ts">
+interface IssueSummary {
+  number: number
+  title: string
+  labels: string[]
+}
+
 const open = defineModel<boolean>('open', { default: false })
 
-const { createLane } = useLanes()
+const { createLane, lanes } = useLanes()
 
-const issueNumber = ref<number | undefined>()
+const selectedIssue = ref<string | undefined>()
 const loading = ref(false)
 const error = ref('')
 
+const { data: issues, status: fetchStatus } = useFetch<IssueSummary[]>(
+  '/api/issues',
+  {
+    lazy: true,
+    default: () => [],
+  }
+)
+const loadingIssues = computed(() => fetchStatus.value === 'pending')
+
+const existingIssueNumbers = computed(
+  () => new Set(lanes.value.map((l) => l.issueNumber).filter(Boolean))
+)
+
+const issueItems = computed(() =>
+  (issues.value ?? [])
+    .filter((i) => !existingIssueNumbers.value.has(i.number))
+    .map((i) => ({
+      label: `#${i.number} — ${i.title}`,
+      value: String(i.number),
+    }))
+)
+
 async function submit() {
-  if (!issueNumber.value) return
+  if (!selectedIssue.value) return
 
   loading.value = true
   error.value = ''
 
   try {
-    const record = await createLane(issueNumber.value)
+    const record = await createLane(Number(selectedIssue.value))
     open.value = false
-    issueNumber.value = undefined
+    selectedIssue.value = undefined
     navigateTo(`/lane/${record.id}`)
   } catch (err: unknown) {
     const msg =
@@ -91,7 +123,7 @@ async function submit() {
 
 watch(open, (val) => {
   if (!val) {
-    issueNumber.value = undefined
+    selectedIssue.value = undefined
     error.value = ''
   }
 })

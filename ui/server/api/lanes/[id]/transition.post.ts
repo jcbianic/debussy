@@ -1,9 +1,14 @@
 import { LANE_TRANSITIONS, LANE_ACTION_TARGET } from '~/shared/types/lanes'
 import type { LaneAction } from '~/shared/types/lanes'
-import { readLaneRecord, writeLaneRecord } from '../../../utils/lane-store'
+import {
+  readLaneRecord,
+  writeLaneRecord,
+  listLaneRecords,
+} from '../../../utils/lane-store'
 import {
   isCleanWorktree,
   pushBranch,
+  checkoutBranch,
   markPRReady,
   mergePR,
   removeWorktree,
@@ -63,6 +68,17 @@ export default defineEventHandler(async (event) => {
       break
 
     case 'stage': {
+      // Guard: only one lane can be staged (root is on that branch)
+      const allRecords = await listLaneRecords()
+      const alreadyStaged = allRecords.find(
+        (r) => r.id !== record.id && r.state === 'staged'
+      )
+      if (alreadyStaged) {
+        throw createError({
+          statusCode: 422,
+          statusMessage: `Lane "${alreadyStaged.issueTitle}" is already staged. Rework it first.`,
+        })
+      }
       // Guard: worktree must be clean
       const clean = await isCleanWorktree(absWorktree)
       if (!clean) {
@@ -72,7 +88,21 @@ export default defineEventHandler(async (event) => {
             'Worktree has uncommitted changes. Commit or stash before staging.',
         })
       }
+      // Guard: root must be clean to allow checkout
+      const rootClean = await isCleanWorktree(root)
+      if (!rootClean) {
+        throw createError({
+          statusCode: 422,
+          statusMessage:
+            'Root worktree has uncommitted changes. Commit or stash before staging.',
+        })
+      }
+      // 1. Push branch to remote
       await pushBranch(record.branch)
+      // 2. Remove worktree (frees the branch for checkout)
+      await removeWorktree(absWorktree)
+      // 3. Checkout branch on root
+      await checkoutBranch(root, record.branch)
       break
     }
 

@@ -1,8 +1,9 @@
-import { exec } from 'node:child_process'
+import { exec, execFile } from 'node:child_process'
 import { promisify } from 'node:util'
 import { resolveDebussyPath } from './debussy'
 
 const execAsync = promisify(exec)
+const execFileAsync = promisify(execFile)
 
 // ─── GitHub Issue ────────────────────────────────────────────────────────────
 
@@ -24,6 +25,28 @@ export async function fetchIssue(num: number): Promise<IssueData> {
   }
 }
 
+export interface IssueSummary {
+  number: number
+  title: string
+  labels: string[]
+}
+
+export async function fetchOpenIssues(): Promise<IssueSummary[]> {
+  const { stdout } = await execAsync(
+    'gh issue list --state open --json number,title,labels --limit 100'
+  )
+  const data = JSON.parse(stdout) as Array<{
+    number: number
+    title: string
+    labels: { name: string }[]
+  }>
+  return data.map((d) => ({
+    number: d.number,
+    title: d.title,
+    labels: d.labels.map((l) => l.name),
+  }))
+}
+
 // ─── Branch ──────────────────────────────────────────────────────────────────
 
 export async function createBranch(
@@ -39,6 +62,22 @@ export async function deleteBranch(name: string): Promise<void> {
 
 export async function pushBranch(branch: string): Promise<void> {
   await execAsync(`git push -u origin "${branch}"`)
+}
+
+export async function pullBranch(lanePath: string): Promise<void> {
+  await execAsync(`git -C "${lanePath}" pull`)
+}
+
+export async function checkoutBranch(
+  lanePath: string,
+  branch: string
+): Promise<void> {
+  await execAsync(`git -C "${lanePath}" checkout "${branch}"`)
+}
+
+export function parseIssueNumberFromBranch(branch: string): number | null {
+  const match = branch.match(/^feature\/(\d+)-/)
+  return match ? parseInt(match[1]!, 10) : null
 }
 
 // ─── Worktree ────────────────────────────────────────────────────────────────
@@ -66,9 +105,18 @@ export async function createDraftPR(
 ): Promise<number> {
   // Push first so the remote branch exists
   await pushBranch(branch)
-  const { stdout } = await execAsync(
-    `gh pr create --head "${branch}" --draft --title "${title.replace(/"/g, '\\"')}" --body "${body.replace(/"/g, '\\"')}"`
-  )
+  // Use execFile to avoid shell interpretation of backticks/special chars
+  const { stdout } = await execFileAsync('gh', [
+    'pr',
+    'create',
+    '--head',
+    branch,
+    '--draft',
+    '--title',
+    title,
+    '--body',
+    body,
+  ])
   // gh pr create prints the PR URL; extract the number
   const match = stdout.trim().match(/\/pull\/(\d+)/)
   if (!match) throw new Error(`Could not parse PR number from: ${stdout}`)
@@ -85,6 +133,21 @@ export async function mergePR(prNum: number): Promise<void> {
 
 export async function closePR(prNum: number): Promise<void> {
   await execAsync(`gh pr close ${prNum}`)
+}
+
+// ─── Initial commit ─────────────────────────────────────────────────────────
+
+export async function initialCommit(
+  worktreePath: string,
+  scopeContent: string
+): Promise<void> {
+  const { writeFile, mkdir } = await import('node:fs/promises')
+  const path = await import('node:path')
+  const scopeDir = path.join(worktreePath, '.debussy')
+  await mkdir(scopeDir, { recursive: true })
+  await writeFile(path.join(scopeDir, 'scope.md'), scopeContent, 'utf8')
+  await execAsync(`git -C "${worktreePath}" add .debussy/scope.md`)
+  await execAsync(`git -C "${worktreePath}" commit -m "chore: initialize lane"`)
 }
 
 // ─── Working tree status ─────────────────────────────────────────────────────

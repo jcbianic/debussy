@@ -18,13 +18,11 @@ Additional skills:
 
 ## Distribution
 
-Install as a Claude Code plugin via marketplace or GitHub:
+Inside Claude Code, add the marketplace and install the plugin:
 
-```bash
-# Via Claude Code plugin system
-npx claude code --install-plugin jcbianic/debussy
-
-# Or copy .claude-plugin/plugin.json to Claude's plugin directory
+```
+/plugin marketplace add jcbianic/debussy
+/plugin install debussy@jcbianic-debussy
 ```
 
 ## Structure

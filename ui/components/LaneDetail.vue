@@ -1,5 +1,17 @@
 <template>
-  <div class="flex h-full flex-col">
+  <div
+    v-if="!lane"
+    class="flex h-full items-center justify-center"
+  >
+    <UIcon
+      name="i-heroicons-arrow-path"
+      class="text-content-muted size-5 animate-spin"
+    />
+  </div>
+  <div
+    v-else
+    class="flex h-full flex-col"
+  >
     <!-- Lane header -->
     <div
       class="border-line bg-surface-tinted flex flex-shrink-0 items-center justify-between border-b px-8 py-4"
@@ -21,7 +33,7 @@
             />
             <UBadge
               v-else-if="lane.isActive"
-              label="staged"
+              label="active"
               color="primary"
               variant="subtle"
               size="xs"
@@ -56,6 +68,21 @@
         </div>
       </div>
       <div class="flex items-center gap-2">
+        <UButton
+          v-for="action in availableGitActions"
+          :key="action"
+          :label="gitActionLabelMap[action]"
+          :icon="gitActionIconMap[action]"
+          size="sm"
+          color="neutral"
+          variant="soft"
+          :loading="gitActioning"
+          @click="doGitAction(action)"
+        />
+        <div
+          v-if="availableGitActions.length && availableActions.length"
+          class="bg-line mx-1 h-5 w-px"
+        />
         <UButton
           v-for="action in availableActions"
           :key="action"
@@ -123,18 +150,27 @@
 
 <script setup lang="ts">
 import { LANE_TRANSITIONS } from '~/shared/types/lanes'
-import type { LaneState, LaneAction } from '~/shared/types/lanes'
+import type { LaneState, LaneAction, GitAction } from '~/shared/types/lanes'
 
 const props = defineProps<{
   laneId: string
   basePath: 'lane' | 'worktree'
 }>()
 
-const { getLane, getWorkflow, getCommits, getStatus, transitionLane } =
-  useLanes()
+const router = useRouter()
+const toast = useToast()
+
+const {
+  getLane,
+  getWorkflow,
+  getCommits,
+  getStatus,
+  transitionLane,
+  gitAction,
+} = useLanes()
 
 const lane = computed(() => getLane(props.laneId))
-const reviews = computed(() => lane.value.reviews)
+const reviews = computed(() => lane.value?.reviews ?? [])
 
 const transitioning = ref(false)
 
@@ -144,7 +180,16 @@ const availableActions = computed(() => {
   return LANE_TRANSITIONS[state] ?? []
 })
 
-const stateColorMap: Record<LaneState, string> = {
+type UColor =
+  | 'primary'
+  | 'secondary'
+  | 'success'
+  | 'info'
+  | 'warning'
+  | 'error'
+  | 'neutral'
+
+const stateColorMap: Record<LaneState, UColor> = {
   created: 'neutral',
   working: 'primary',
   staged: 'warning',
@@ -171,7 +216,7 @@ const actionIconMap: Record<LaneAction, string> = {
   merge: 'i-heroicons-code-bracket-square',
 }
 
-function stateColor(state: LaneState): string {
+function stateColor(state: LaneState): UColor {
   return stateColorMap[state]
 }
 
@@ -183,7 +228,7 @@ function actionIcon(action: LaneAction): string {
   return actionIconMap[action]
 }
 
-function actionColor(action: LaneAction): string {
+function actionColor(action: LaneAction): UColor {
   if (action === 'merge' || action === 'ready') return 'success'
   if (action === 'rework') return 'warning'
   return 'primary'
@@ -193,8 +238,78 @@ async function doTransition(action: LaneAction) {
   transitioning.value = true
   try {
     await transitionLane(props.laneId, action)
+    // Stage moves the branch to root — navigate there
+    if (action === 'stage') {
+      await router.push('/lane/root')
+    }
+  } catch (err: unknown) {
+    const msg =
+      err && typeof err === 'object' && 'statusMessage' in err
+        ? String((err as { statusMessage: string }).statusMessage)
+        : 'Action failed'
+    toast.add({ title: msg, color: 'error' })
   } finally {
     transitioning.value = false
+  }
+}
+
+// ─── Git actions ──────────────────────────────────────────────────────────────
+
+const gitActioning = ref(false)
+
+const gitActionLabelMap: Record<GitAction, string> = {
+  push: 'Push',
+  pull: 'Pull',
+  'to-worktree': 'To worktree',
+}
+
+const gitActionIconMap: Record<GitAction, string> = {
+  push: 'i-heroicons-arrow-up-tray',
+  pull: 'i-heroicons-arrow-down-tray',
+  'to-worktree': 'i-heroicons-arrow-top-right-on-square',
+}
+
+const availableGitActions = computed(() => {
+  const actions: GitAction[] = []
+  const s = status.value
+  if (s) {
+    if (s.sync.ahead > 0 || !s.sync.remote) {
+      actions.push('push')
+    }
+    if (s.sync.behind > 0) {
+      actions.push('pull')
+    }
+  }
+  const l = lane.value
+  if (l && l.id === 'root' && l.branch !== 'main' && l.branch !== 'master') {
+    actions.push('to-worktree')
+  }
+  return actions
+})
+
+async function doGitAction(action: GitAction) {
+  gitActioning.value = true
+  try {
+    const result = await gitAction(props.laneId, action)
+    // Refresh status after git operation
+    status.value = (await getStatus(props.laneId)) ?? null
+    // Navigate to new lane after to-worktree
+    if (
+      action === 'to-worktree' &&
+      result &&
+      typeof result === 'object' &&
+      'id' in result
+    ) {
+      await router.push(`/lane/${(result as { id: string }).id}`)
+    }
+  } catch (err: unknown) {
+    const msg =
+      err && typeof err === 'object' && 'statusMessage' in err
+        ? String((err as { statusMessage: string }).statusMessage)
+        : 'Action failed'
+    toast.add({ title: msg, color: 'error' })
+  } finally {
+    gitActioning.value = false
   }
 }
 
@@ -211,8 +326,8 @@ watch(
       getStatus(id),
     ])
     commits.value = c
-    workflow.value = w
-    status.value = s
+    workflow.value = w ?? null
+    status.value = s ?? null
   },
   { immediate: true }
 )

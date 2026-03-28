@@ -1,6 +1,11 @@
 import type { Item, Review } from '~/shared/types/reviews'
 import { itemStatus } from '~/shared/types/reviews'
-import type { LaneState, LaneAction, LaneRecord } from '~/shared/types/lanes'
+import type {
+  LaneState,
+  LaneAction,
+  LaneRecord,
+  GitAction,
+} from '~/shared/types/lanes'
 
 export interface Lane {
   id: string
@@ -139,6 +144,15 @@ export function useLanes() {
     return record
   }
 
+  const gitAction = async (id: string, action: GitAction): Promise<unknown> => {
+    const result = await $fetch(`/api/lanes/${id}/git-action`, {
+      method: 'POST',
+      body: { action },
+    })
+    await refresh()
+    return result
+  }
+
   const deleteLane = async (id: string): Promise<void> => {
     await $fetch(`/api/lanes/${id}`, { method: 'DELETE' })
     await refresh()
@@ -157,6 +171,7 @@ export function useLanes() {
     refresh,
     createLane,
     transitionLane,
+    gitAction,
     deleteLane,
   }
 }
