@@ -1,27 +1,9 @@
-depth: full
-createdAt: "2026-03-20"
-updatedAt: "2026-03-25"
-
+depth: pitch
+createdAt: "2026-03-27"
+updatedAt: "2026-03-27"
 artifacts:
-  - key: vision
-  - key: strategy
-  - key: audiences
-  - key: problems
-  - key: landscape
-  - key: opportunities
-  - key: product
-
+  - key: pitch
 subdirectories:
-  competitors:
-    - gastown
-    - gsd
-    - plannotator
-    - ralph
-    - superpowers
-  allies:
-    - claude-mem
-    - iikit
-    - rpikit
-
-custom:
-  - key: feature-space
+  competitors: []
+  allies: []
+custom: []

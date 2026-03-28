@@ -65,7 +65,7 @@
         <!-- Breadcrumb + navigation -->
         <div class="mb-6 flex items-center justify-between">
           <div class="text-content-faint flex items-center gap-1.5 text-xs">
-            <span>{{ selectedGroup?.title }}</span>
+            <span>{{ selectedReview?.title }}</span>
           </div>
           <div class="flex items-center gap-1">
             <button
@@ -100,8 +100,8 @@
             {{ selectedItem.title }}
           </h2>
           <UBadge
-            :label="selectedItem.status"
-            :color="statusColor(selectedItem.status)"
+            :label="derivedStatus"
+            :color="statusColor(derivedStatus)"
             variant="subtle"
             size="sm"
             class="mt-1 flex-shrink-0"
@@ -114,10 +114,10 @@
         >
           <div class="flex items-center gap-1.5">
             <UIcon
-              :name="selectedGroup?.icon || 'i-heroicons-document-text'"
+              :name="selectedReview?.icon || 'i-heroicons-document-text'"
               class="size-3.5"
             />
-            <span>{{ selectedGroup?.source }}</span>
+            <span>{{ selectedReview?.source }}</span>
           </div>
           <span class="text-content-placeholder">·</span>
           <div class="flex items-center gap-1.5">
@@ -133,31 +133,31 @@
               name="i-heroicons-clock"
               class="size-3.5"
             />
-            <span>{{ selectedItem.createdAt }}</span>
+            <span>{{ selectedReview?.createdAt }}</span>
           </div>
-          <template v-if="selectedItem.rounds.length > 1">
+          <template v-if="selectedItem.iterations.length > 1">
             <span class="text-content-placeholder">·</span>
             <div class="flex items-center gap-1.5 text-blue-500">
               <UIcon
                 name="i-heroicons-arrow-path"
                 class="size-3.5"
               />
-              <span>{{ selectedItem.rounds.length }} rounds</span>
+              <span>{{ selectedItem.iterations.length }} iterations</span>
             </div>
           </template>
         </div>
 
-        <!-- Round selector -->
-        <ReviewRoundSelector
-          v-if="selectedItem.rounds.length > 1"
-          :rounds="selectedItem.rounds"
-          :active-round="activeRound"
-          :current-status="selectedItem.status"
-          @set-round="emit('setRound', $event)"
+        <!-- Iteration selector -->
+        <ReviewIterationSelector
+          v-if="selectedItem.iterations.length > 1"
+          :iterations="selectedItem.iterations"
+          :active-iteration="activeIteration"
+          :current-status="derivedStatus"
+          @set-iteration="emit('setIteration', $event)"
         />
 
-        <!-- Round content -->
-        <template v-if="activeRoundData">
+        <!-- Iteration content -->
+        <template v-if="activeIterationData">
           <!-- Proposed content -->
           <div
             class="border-line bg-surface mb-4 overflow-hidden rounded-lg border"
@@ -167,38 +167,48 @@
             >
               <span class="text-content-subtle text-xs font-medium">
                 {{
-                  selectedItem.rounds.length > 1
-                    ? `Proposal — Round ${activeRoundData.roundNumber}`
+                  selectedItem.iterations.length > 1
+                    ? `Proposal — Iteration ${activeIterationData.number}`
                     : 'Proposal'
                 }}
               </span>
               <span class="text-content-faint font-mono text-xs">{{
-                activeRoundData.proposedAt
+                activeIterationData.proposedAt
               }}</span>
             </div>
             <div class="p-5">
-              <p class="text-content-secondary text-sm leading-relaxed">
-                {{ activeRoundData.content }}
+              <!-- eslint-disable vue/no-v-html -->
+              <div
+                v-if="isMarkdown(activeIterationData.content)"
+                class="text-content-secondary"
+                v-html="renderMarkdown(activeIterationData.content)"
+              />
+              <!-- eslint-enable vue/no-v-html -->
+              <p
+                v-else
+                class="text-content-secondary text-sm leading-relaxed"
+              >
+                {{ activeIterationData.content }}
               </p>
               <pre
-                v-if="activeRoundData.code"
+                v-if="activeIterationData.code"
                 class="bg-surface-page border-line-subtle mt-4 overflow-auto rounded-md border p-4 font-mono text-xs leading-relaxed"
-              ><code>{{ activeRoundData.code }}</code></pre>
+              ><code>{{ activeIterationData.code }}</code></pre>
             </div>
           </div>
 
-          <!-- Feedback from past round -->
+          <!-- Feedback from past iteration -->
           <ReviewFeedbackCard
-            v-if="activeRoundData.feedback"
-            :round-data="activeRoundData"
+            v-if="activeIterationData.feedback"
+            :feedback="activeIterationData.feedback"
           />
         </template>
 
         <!-- Comment + actions -->
         <ReviewActionBar
           v-if="
-            selectedItem.status === 'pending' &&
-              activeRound === selectedItem.rounds.length
+            derivedStatus === 'pending' &&
+              activeIteration === selectedItem.iterations.length
           "
           v-model:comment="comment"
           v-model:comment-error="commentError"
@@ -211,17 +221,18 @@
 </template>
 
 <script setup lang="ts">
-import type { ReviewItem, ReviewGroup, Lane } from '~/composables/useLanes'
+import type { Item, Review, Iteration } from '~/shared/types/reviews'
+import type { Lane } from '~/composables/useLanes'
 
-defineProps<{
-  selectedItem: ReviewItem | null
-  selectedGroup: ReviewGroup | null
+const props = defineProps<{
+  selectedItem: Item | null
+  selectedReview: Review | null
   selectedLane: Lane | null
   selectedLaneId: string | null
   selectedIndex: number
   flatItemsLength: number
-  activeRound: number
-  activeRoundData: ReviewItem['rounds'][number] | null
+  activeIteration: number
+  activeIterationData: Iteration | null
   pendingInLane: number
   commentPlaceholder: string
 }>()
@@ -231,7 +242,11 @@ const commentError = defineModel<string>('commentError', { required: true })
 
 const emit = defineEmits<{
   navigate: [delta: number]
-  setRound: [n: number]
+  setIteration: [n: number]
   submit: [action: 'approved' | 'changes-requested' | 'rejected']
 }>()
+
+const derivedStatus = computed(() =>
+  props.selectedItem ? itemStatus(props.selectedItem) : 'pending'
+)
 </script>

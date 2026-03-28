@@ -23,6 +23,9 @@ interface ConfigureBody {
     engineering?: boolean | { depth?: string }
     work?: boolean
   }
+  options?: {
+    statusline?: boolean
+  }
 }
 
 export default defineEventHandler(async (event) => {
@@ -84,12 +87,17 @@ export default defineEventHandler(async (event) => {
     }
   }
 
+  const options = {
+    statusline: body.options?.statusline !== false,
+  }
+
   const config = {
     project: {
       name: body.project.name,
       description: body.project.description || '',
     },
     strates,
+    options,
   }
 
   await mkdir(debussyDir, { recursive: true })

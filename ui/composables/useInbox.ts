@@ -1,64 +1,75 @@
-import type { ReviewItem, ReviewGroup, Lane } from '~/composables/useLanes'
+import type { Item, Review, Lane } from '~/shared/types/reviews'
+
+const TYPE_ICONS: Record<string, string> = {
+  feedback: 'i-heroicons-document-text',
+  review: 'i-heroicons-document-magnifying-glass',
+  workflow: 'i-heroicons-arrow-path',
+  strategy: 'i-heroicons-adjustments-horizontal',
+}
 
 /** Provide all state and logic for the inbox page. */
 export const useInbox = () => {
-  const { lanes: allLanes } = useLanes()
+  const { lanes: allLanes, refresh } = useLanes()
 
-  const typeFilters = [
-    { value: 'all', label: 'All', icon: 'i-heroicons-funnel' },
-    {
-      value: 'feedback',
-      label: 'Feedback',
-      icon: 'i-heroicons-document-text',
-    },
-    {
-      value: 'code-review',
-      label: 'Code',
-      icon: 'i-heroicons-code-bracket',
-    },
-    { value: 'workflow', label: 'Workflow', icon: 'i-heroicons-arrow-path' },
-  ]
+  const typeFilters = computed(() => {
+    const seen = new Set<string>()
+    for (const lane of allLanes.value) {
+      for (const review of lane.reviews) {
+        if (review.items.length > 0) {
+          seen.add(review.type)
+        }
+      }
+    }
+    const dynamic = [...seen].sort().map((t) => ({
+      value: t,
+      label: t.charAt(0).toUpperCase() + t.slice(1).replace(/-/g, ' '),
+      icon: TYPE_ICONS[t] ?? 'i-heroicons-inbox',
+    }))
+    return [
+      { value: 'all', label: 'All', icon: 'i-heroicons-funnel' },
+      ...dynamic,
+    ]
+  })
 
   const activeTypeFilter = ref('all')
   const selectedId = ref<string | null>(null)
   const selectedLaneId = ref<string | null>(null)
-  const activeRound = ref(1)
+  const activeIteration = ref(1)
 
-  const filteredItems = (group: ReviewGroup) =>
-    activeTypeFilter.value === 'all'
-      ? group.items
-      : group.items.filter((i) => i.type === activeTypeFilter.value)
+  const filteredItems = (review: Review): Item[] => {
+    if (activeTypeFilter.value === 'all') return review.items
+    if (review.type !== activeTypeFilter.value) return []
+    return review.items
+  }
 
   const visibleLanes = computed(() =>
     allLanes.value.filter((l: Lane) =>
-      l.groups.some((g: ReviewGroup) => filteredItems(g).length > 0)
+      l.reviews.some((r: Review) => filteredItems(r).length > 0)
     )
   )
 
   const totalPending = computed(
     () =>
       allLanes.value
-        .flatMap((l: Lane) => l.groups.flatMap((g: ReviewGroup) => g.items))
-        .filter((i: ReviewItem) => i.status === 'pending').length
+        .flatMap((l: Lane) => l.reviews.flatMap((r: Review) => r.items))
+        .filter((i: Item) => itemStatus(i) === 'pending').length
   )
   const totalItems = computed(
     () =>
       allLanes.value.flatMap((l: Lane) =>
-        l.groups.flatMap((g: ReviewGroup) => g.items)
+        l.reviews.flatMap((r: Review) => r.items)
       ).length
   )
   const lanePendingCount = (lane: Lane) =>
-    lane.groups
-      .flatMap((g: ReviewGroup) => g.items)
-      .filter((i: ReviewItem) => i.status === 'pending').length
+    lane.reviews
+      .flatMap((r: Review) => r.items)
+      .filter((i: Item) => itemStatus(i) === 'pending').length
 
-  // Start with empty set; expand new group IDs as data loads
+  // Start with empty set; expand new review IDs as data loads
   const { expanded, toggle: toggleGroup } = useExpandable([])
   watch(
     () =>
-      allLanes.value.flatMap((l: Lane) =>
-        l.groups.map((g: ReviewGroup) => g.id)
-      ),
+      allLanes.value.flatMap((l: Lane) => l.reviews.map((r: Review) => r.id)),
     (ids: string[]) => {
       let changed = false
       for (const id of ids) {
@@ -72,15 +83,15 @@ export const useInbox = () => {
     { immediate: true }
   )
 
-  const pendingCount = (g: ReviewGroup) =>
-    g.items.filter((i: ReviewItem) => i.status === 'pending').length
+  const pendingCount = (r: Review) =>
+    r.items.filter((i: Item) => itemStatus(i) === 'pending').length
 
   const flatItems = computed(() => {
-    const result: Array<{ item: ReviewItem; laneId: string }> = []
+    const result: Array<{ item: Item; laneId: string }> = []
     for (const lane of visibleLanes.value) {
-      for (const group of lane.groups) {
-        if (!expanded.value.has(group.id)) continue
-        for (const item of filteredItems(group)) {
+      for (const review of lane.reviews) {
+        if (!expanded.value.has(review.id)) continue
+        for (const item of filteredItems(review)) {
           result.push({ item, laneId: lane.id })
         }
       }
@@ -94,7 +105,7 @@ export const useInbox = () => {
 
   const allItems = computed(() =>
     allLanes.value.flatMap((l: Lane) =>
-      l.groups.flatMap((g: ReviewGroup) => g.items)
+      l.reviews.flatMap((r: Review) => r.items)
     )
   )
 
@@ -103,8 +114,8 @@ export const useInbox = () => {
     selectedLaneId.value = laneId
     comment.value = ''
     commentError.value = ''
-    const item = allItems.value.find((i: ReviewItem) => i.id === id)
-    if (item) activeRound.value = item.rounds.length
+    const item = allItems.value.find((i: Item) => i.id === id)
+    if (item) activeIteration.value = item.iterations.length
   }
 
   const navigateBy = (delta: number) => {
@@ -116,15 +127,14 @@ export const useInbox = () => {
   }
 
   const selectedItem = computed(
-    () =>
-      allItems.value.find((i: ReviewItem) => i.id === selectedId.value) ?? null
+    () => allItems.value.find((i: Item) => i.id === selectedId.value) ?? null
   )
-  const selectedGroup = computed(
+  const selectedReview = computed(
     () =>
       allLanes.value
-        .flatMap((l: Lane) => l.groups)
-        .find((g: ReviewGroup) =>
-          g.items.some((i: ReviewItem) => i.id === selectedId.value)
+        .flatMap((l: Lane) => l.reviews)
+        .find((r: Review) =>
+          r.items.some((i: Item) => i.id === selectedId.value)
         ) ?? null
   )
   const selectedLane = computed(
@@ -133,14 +143,14 @@ export const useInbox = () => {
   )
   const pendingInLane = computed(
     () =>
-      selectedLane.value?.groups
-        .flatMap((g: ReviewGroup) => g.items)
-        .filter((i: ReviewItem) => i.status === 'pending').length ?? 0
+      selectedLane.value?.reviews
+        .flatMap((r: Review) => r.items)
+        .filter((i: Item) => itemStatus(i) === 'pending').length ?? 0
   )
-  const activeRoundData = computed(
+  const activeIterationData = computed(
     () =>
-      selectedItem.value?.rounds.find(
-        (r) => r.roundNumber === activeRound.value
+      selectedItem.value?.iterations.find(
+        (it) => it.number === activeIteration.value
       ) ?? null
   )
 
@@ -154,21 +164,23 @@ export const useInbox = () => {
     const start = selectedIndex.value
     for (let i = start + 1; i < flatItems.value.length; i++) {
       const fwd = flatItems.value[i]
-      if (fwd?.item.status === 'pending') {
+      if (fwd && itemStatus(fwd.item) === 'pending') {
         selectItem(fwd.item.id, fwd.laneId)
         return
       }
     }
     for (let i = 0; i < start; i++) {
       const fwd = flatItems.value[i]
-      if (fwd?.item.status === 'pending') {
+      if (fwd && itemStatus(fwd.item) === 'pending') {
         selectItem(fwd.item.id, fwd.laneId)
         return
       }
     }
   }
 
-  const submitAction = (
+  const submitting = ref(false)
+
+  const submitAction = async (
     action: 'approved' | 'changes-requested' | 'rejected'
   ) => {
     commentError.value = ''
@@ -176,6 +188,38 @@ export const useInbox = () => {
       commentError.value = 'A comment is required when requesting changes.'
       return
     }
+
+    const item = selectedItem.value
+    const review = selectedReview.value
+    if (!item || !review) return
+
+    submitting.value = true
+    try {
+      await $fetch(`/api/reviews/${review.id}`, {
+        method: 'POST',
+        body: {
+          itemId: item.id,
+          action,
+          comment: comment.value.trim() || undefined,
+        },
+      })
+
+      // Update local state optimistically — add feedback to last iteration
+      const lastIteration = item.iterations.at(-1)
+      if (lastIteration) {
+        lastIteration.feedback = {
+          decision: action,
+          comment: comment.value.trim() || undefined,
+          decidedAt: new Date().toISOString(),
+        }
+      }
+    } catch {
+      commentError.value = 'Failed to submit review. Try again.'
+      submitting.value = false
+      return
+    }
+    submitting.value = false
+
     comment.value = ''
     navigateToNextPending()
   }
@@ -185,7 +229,7 @@ export const useInbox = () => {
     activeTypeFilter,
     selectedId,
     selectedLaneId,
-    activeRound,
+    activeIteration,
     filteredItems,
     visibleLanes,
     totalPending,
@@ -199,13 +243,15 @@ export const useInbox = () => {
     selectItem,
     navigateBy,
     selectedItem,
-    selectedGroup,
+    selectedReview,
     selectedLane,
     pendingInLane,
-    activeRoundData,
+    activeIterationData,
     comment,
     commentError,
     commentPlaceholder,
+    submitting,
     submitAction,
+    refreshLanes: refresh,
   }
 }

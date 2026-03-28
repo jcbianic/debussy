@@ -77,9 +77,9 @@ describe('parseLanesFromWorktrees', () => {
     expect(result[1]!.branch).toBe('detached')
   })
 
-  it('initialises groups as empty array', () => {
+  it('initialises reviews as empty array', () => {
     const result = parseLanesFromWorktrees(SINGLE_WORKTREE, '/repo')
-    expect(result[0]!.groups).toEqual([])
+    expect(result[0]!.reviews).toEqual([])
   })
 
   it('extracts path for each worktree', () => {

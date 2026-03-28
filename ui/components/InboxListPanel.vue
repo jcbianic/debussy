@@ -56,7 +56,7 @@
         </div>
 
         <InboxGroupSection
-          :groups="lane.groups"
+          :reviews="lane.reviews"
           :lane-id="lane.id"
           :selected-id="selectedId"
           :expanded="expanded"
@@ -71,7 +71,7 @@
 </template>
 
 <script setup lang="ts">
-import type { ReviewGroup, Lane } from '~/composables/useLanes'
+import type { Review, Lane } from '~/composables/useLanes'
 
 const { name: projectName } = useProjectConfig()
 
@@ -81,9 +81,9 @@ defineProps<{
   expanded: Set<string>
   activeTypeFilter: string
   typeFilters: { value: string; label: string; icon: string }[]
-  filteredItems: (group: ReviewGroup) => typeof group.items
+  filteredItems: (review: Review) => typeof review.items
   lanePendingCount: (lane: Lane) => number
-  pendingCount: (group: ReviewGroup) => number
+  pendingCount: (review: Review) => number
   totalPending: number
   totalItems: number
 }>()

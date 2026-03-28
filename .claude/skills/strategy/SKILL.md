@@ -1,8 +1,8 @@
 ---
 description: >-
   Product discovery: research the space, produce structured artifacts under
-  .debussy/strategy/, and review them in a browser UI. Supports three depth
-  levels (pitch, foundation, full) as a progressive journey.
+  .debussy/strategy/, and review them in the Debussy UI Inbox. Supports three
+  depth levels (pitch, foundation, full) as a progressive journey.
   Commands: /strategy | /strategy --refresh {type} | /strategy --review
 license: MIT
 metadata:
@@ -659,53 +659,16 @@ Valid targets depend on depth:
 
 `/strategy --review`
 
-### A. Build Request Manifest
+Delegate to the review-gate skill to open the Debussy UI Inbox for all
+existing strategy artifacts:
 
-Read all existing strategy artifacts from `.debussy/strategy/`. For each, extract
-frontmatter (type, status, updated). **Skip artifacts with `status: reviewed`
-in their frontmatter** — these were fully approved in a prior round. Build a
-`request.json` with the remaining artifacts:
-
-```json
-{
-  "title": "Strategy Review: {product-name}",
-  "project_root": "{absolute path to repo root}",
-  "reviews_dir": ".debussy/strategy/.reviews",
-  "artifacts": [
-    {
-      "slug": "vision",
-      "path": ".debussy/strategy/vision.md",
-      "type": "vision",
-      "label": "Vision",
-      "status": "draft",
-      "updated": "2026-03-25"
-    }
-  ]
-}
+```
+/review-gate --source strategy --title "Strategy Review: {product-name}" --icon i-heroicons-adjustments-horizontal --sidecars .debussy/strategy/*.md .debussy/strategy/competitors/*.md .debussy/strategy/allies/*.md
 ```
 
-Artifact slug rules:
-- Top-level artifacts: slug = type name (e.g., `vision`, `problems`, `pitch`)
-- Competitor/ally files: slug = `competitors/{name}` or `allies/{name}`
-- Label = display name (title-cased type, or entity name for competitor/ally)
-- Group = `"Competitors"` or `"Allies"` for those types; omitted for others
-
-### B-J. Review UI Flow
-
-Follow the same review UI flow as before (generate session, deploy server and
-UI from templates, start server, open browser, wait for response, process
-response, archive round, cleanup).
-
-**Templates in `templates/` are NEVER regenerated at runtime — copy them verbatim.**
-
-Read `.claude/skills/strategy/templates/strategy-server.py` using the Read tool.
-Write its content verbatim to `{workspace}/strategy-server.py` using the Write tool.
-
-Read `.claude/skills/strategy/templates/strategy-review.html` using the Read tool.
-Write its content verbatim to `{workspace}/strategy-review.html` using the Write tool.
-
-Start server, open browser, wait for response (timeout 600s), process response,
-archive round, cleanup — same as before.
+After the review-gate completes, for items with `changes-requested`: revise
+the affected sections based on the user's comments and rewrite artifact files.
+For items `rejected`: remove or rework the section entirely.
 
 ---
 

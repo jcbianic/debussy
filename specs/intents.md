@@ -1,251 +1,111 @@
----
-title: Debussy — Roadmap Intents
----
+# Debussy — Intents
 
-## — Plugin scaffold and distribution model
-
-**id:** —
-**release:** r0
-**releaseName:** Release 0.x
-**releaseTheme:** Early exploration
-**state:** done
-**addresses:** Foundation
-**issue:** 29
-
-Strip repo to plugin-only core, define distribution model via .claude-plugin/.
-
-**doneWhen:** Plugin installs cleanly via npx claude code --install-plugin.
+Intents are ordered implementation milestones. Each builds on the previous.
 
 ---
 
-## — Strategy skill — research + artifact generation
+## 001 — Product Strate
 
-**id:** —
-**release:** r0
-**releaseName:** Release 0.x
-**releaseTheme:** Early exploration
-**state:** done
-**addresses:** P1: Review Friction
-**issue:** 30
+Define the product and shape the roadmap. Consumes strategy artifacts produced by the strategy strate (currently at pitch depth).
 
-First end-to-end skill: research the landscape and audiences, generate vision/landscape/product artifacts, serve a browser review UI.
-
-**doneWhen:** Running /strategy produces all three artifacts without manual prompting.
+**Addresses:** P1: Feedback lost, attention scattered
+**Target audience:** A1: solo builders
+**Priority:** now
+**Depends on:** none
+**Done when:** /product synthesizes from strategy artifacts, validates with user, and writes product definition artifacts.
 
 ---
 
-## — Roadmap skill — intents + GitHub Issue sync
+## 002 — Inbox Review UX
 
-**id:** —
-**release:** r0
-**releaseName:** Release 0.x
-**releaseTheme:** Early exploration
-**state:** done
-**addresses:** P1: Review Friction
-**issue:** 32
+A unified inbox where all lanes submit review items and the user approves, requests changes, or rejects each section from the browser UI.
 
-**doneWhen:** Running /roadmap produces intents.md and syncs each intent to a GitHub Issue.
+**Addresses:** P1: Feedback lost, attention scattered
+**Target audience:** A1: solo builders
+**Priority:** now
+**Depends on:** none
+**Done when:** Any skill can submit items to the inbox, the user reviews in the Debussy UI, and structured decisions flow back to the skill.
 
 ---
 
-## — GitHub Pages project site
+## 003 — Workflow Monitoring
 
-**id:** —
-**release:** r0
-**releaseName:** Release 0.x
-**releaseTheme:** Early exploration
-**state:** done
-**addresses:** Distribution
-**issue:** 33
+Track multi-step workflow runs in the Debussy UI. Show progress, surface blockers, allow user to intervene from the browser.
 
-**doneWhen:** docs/ site live at jcbianic.github.io/debussy.
+**Addresses:** P3: Solo builders do it all — and Claude doesn't wait
+**Target audience:** A1: solo builders
+**Priority:** next
+**Depends on:** 002
+**Done when:** Active workflows appear in the UI with step-by-step progress and the user can review/unblock from the browser.
 
 ---
 
-## 001 — Roadmap Skill Iteration
+## 004 — Parallel Lanes
 
-**id:** 001
-**release:** r1
-**releaseName:** Release 1.0
-**releaseTheme:** Foundation
-**state:** done
-**priority:** now
-**addresses:** P1: Documentation Artifact Review Friction
-**issue:** 34
+Manage parallel branches to work on multiple intents simultaneously. Each lane is a git branch with its own worktree, visible in the Debussy UI.
 
-Dogfood the roadmap skill on debussy, fix known bugs, validate the full loop works without manual workarounds.
-
-**doneWhen:** The skill runs end-to-end on debussy with no manual workarounds.
+**Addresses:** P3: Solo builders do it all — and Claude doesn't wait
+**Target audience:** A1: solo builders
+**Priority:** next
+**Depends on:** 003
+**Done when:** User sees active lanes in the UI, each with its current intent. Lanes share a consistent view of project artifacts.
 
 ---
 
-## 002 — Feedback UI Enhancement
+## 005 — Engineering Strate
 
-**id:** 002
-**release:** r1
-**releaseName:** Release 1.0
-**releaseTheme:** Foundation
-**state:** in-progress
-**priority:** next
-**addresses:** P1: Documentation Artifact Review Friction
-**issue:** 38
-**lane:** feat/feedback-ui
-**laneId:** wt-feedback
+Manage engineering governance — agent policies, architectural principles, and decision records. Three depth levels (lite, standard, full).
 
-Faster startup, keyboard navigation, no manual port management. Reduce a 20-item review to under 2 minutes.
-
-**doneWhen:** A 20-item review session takes under 2 minutes. Keyboard shortcuts handle approve/reject/discuss.
+**Addresses:** P2: Documentation that agents need but humans can't maintain
+**Target audience:** A1: solo builders
+**Priority:** next
+**Depends on:** 001
+**Done when:** /engineering runs end-to-end at lite depth — produces AGENTS.md and architecture.md under .debussy/engineering/.
 
 ---
 
-## 003 — Workflow Progress Monitoring
+## 006 — Status Line
 
-**id:** 003
-**release:** r1
-**releaseName:** Release 1.0
-**releaseTheme:** Foundation
-**state:** open
-**priority:** next
-**addresses:** P2: Workflow Observability
-**issue:** 40
+Surface Debussy state in the Claude Code status line — current model, active intent, lane, and pending review count.
 
-Add live progress visibility: current step, elapsed time, what it's waiting on — without tailing a log file.
-
-**doneWhen:** During any workflow run, a status display shows current step and completed steps. Works for runs over 10 minutes.
+**Addresses:** P3: Solo builders do it all — and Claude doesn't wait
+**Target audience:** A1: solo builders
+**Priority:** later
+**Depends on:** none
+**Done when:** Status line shows model, active intent, and pending review count.
 
 ---
 
-## 004 — Unified UI
+## 007 — Unified Debussy UI
 
-**id:** 004
-**release:** r1
-**releaseName:** Release 1.0
-**releaseTheme:** Foundation
-**state:** in-progress
-**priority:** next
-**addresses:** P1–P3: All friction points
-**issue:** 42
-**lane:** feat/42-unified-ui
-**laneId:** root
+A single Nuxt app at localhost:4321 that serves all Debussy pages — inbox, lanes, workflow runs, product artifacts.
 
-Replace per-skill browser UIs with a single Nuxt 4 app. Consolidates feedback review, workflow monitoring, roadmap, and product views.
-
-**doneWhen:** All existing skill UIs are replaced by routes in the unified app. Per-skill HTML files removed.
+**Addresses:** P1: Feedback lost, attention scattered
+**Target audience:** A1: solo builders
+**Priority:** later
+**Depends on:** none
+**Done when:** All Debussy pages are served from a single Nuxt app with consistent design.
 
 ---
 
-## 005 — Parallel Lanes
+## 008 — Strategy Depth Progression
 
-**id:** 005
-**release:** r2
-**releaseName:** Release 2.0
-**releaseTheme:** Parallel Work
-**state:** open
-**priority:** later
-**addresses:** P3: Worktree Staging and Session Tracking
-**issue:** 43
+Extend the strategy strate from pitch depth to foundation and full.
 
-Worktree-aware task management: launch independent work in isolated git worktrees, switch between them, merge cleanly.
-
-**doneWhen:** Two independent tasks run in separate worktrees. Switching requires one command. No git conflicts at merge.
+**Addresses:** P2: Documentation that agents need but humans can't maintain
+**Target audience:** A1: solo builders
+**Priority:** next
+**Depends on:** none
+**Done when:** /strategy at foundation depth produces vision.md, landscape.md, and problem-space.md from web research and user validation.
 
 ---
 
-## 006 — Structured Project Documentation
+## 009 — Claude Setup Explorer
 
-**id:** 006
-**release:** r2
-**releaseName:** Release 2.0
-**releaseTheme:** Parallel Work
-**state:** open
-**priority:** later
-**addresses:** P4: Structured Project Documentation
+A UI page to explore your Claude Code setup — installed skills, active hooks, MCP servers, permissions.
 
-Standardized documentation structure covering features, architecture decisions, and testing strategy.
-
-**doneWhen:** After context compaction, Claude resumes correctly from the docs alone — no re-briefing required.
-
----
-
-## 007 — Claude Setup Observability
-
-**id:** 007
-**release:** r2
-**releaseName:** Release 2.0
-**releaseTheme:** Parallel Work
-**state:** open
-**priority:** later
-**addresses:** P5: Claude Setup Observability
-
-Single command listing all loaded plugins, skills, agents, hooks, and their active status. Detects conflicts.
-
-**doneWhen:** Running the command lists all active Claude Code extensions with context footprint. Conflicts detected and reported.
-
----
-
-## 008 — Plugin compatibility management
-
-**id:** 008
-**release:** r2
-**releaseName:** Release 2.0
-**releaseTheme:** Parallel Work
-**state:** open
-**priority:** later
-**addresses:** Gap: Plugin conflicts
-
-Detect and report conflicts between installed plugins. Suggest resolutions for common incompatibilities.
-
----
-
-## — Persistent preference learning from feedback loops
-
-**id:** —
-**release:** backlog
-**releaseName:** Backlog
-**releaseTheme:** Not yet scoped
-**state:** out-of-scope
-**addresses:** Gap: Human-to-agent feedback
-
----
-
-## — Cost predictability and budget controls
-
-**id:** —
-**release:** backlog
-**releaseName:** Backlog
-**releaseTheme:** Not yet scoped
-**state:** out-of-scope
-**addresses:** Gap: Cost opacity
-
----
-
-## — Plugin update mechanism
-
-**id:** —
-**release:** backlog
-**releaseName:** Backlog
-**releaseTheme:** Not yet scoped
-**state:** out-of-scope
-**addresses:** Gap: Plugin updates
-
----
-
-## — Workflow audit trails
-
-**id:** —
-**release:** backlog
-**releaseName:** Backlog
-**releaseTheme:** Not yet scoped
-**state:** out-of-scope
-**addresses:** Gap: Observability
-
----
-
-## — Collaborative multi-user workflows
-
-**id:** —
-**release:** backlog
-**releaseName:** Backlog
-**releaseTheme:** Not yet scoped
-**state:** out-of-scope
-**addresses:** Gap: Collaboration
+**Addresses:** P3: Solo builders do it all — and Claude doesn't wait
+**Target audience:** A1: solo builders
+**Priority:** later
+**Depends on:** 007
+**Done when:** Setup page in the Debussy UI shows installed skills, hooks, and configuration.

@@ -16,20 +16,20 @@
       @update-filter="activeTypeFilter = $event"
     />
     <ReviewItemDetail
+      v-model:comment="comment"
+      v-model:comment-error="commentError"
       :selected-item="selectedItem"
-      :selected-group="selectedGroup"
+      :selected-review="selectedReview"
       :selected-lane="selectedLane"
       :selected-lane-id="selectedLaneId"
       :selected-index="selectedIndex"
       :flat-items-length="flatItems.length"
-      :active-round="activeRound"
-      :active-round-data="activeRoundData"
+      :active-iteration="activeIteration"
+      :active-iteration-data="activeIterationData"
       :pending-in-lane="pendingInLane"
-      v-model:comment="comment"
-      v-model:comment-error="commentError"
       :comment-placeholder="commentPlaceholder"
       @navigate="navigateBy"
-      @set-round="activeRound = $event"
+      @set-iteration="activeIteration = $event"
       @submit="submitAction"
     />
   </div>
@@ -41,7 +41,7 @@ const {
   activeTypeFilter,
   selectedId,
   selectedLaneId,
-  activeRound,
+  activeIteration,
   filteredItems,
   visibleLanes,
   totalPending,
@@ -55,18 +55,28 @@ const {
   selectItem,
   navigateBy,
   selectedItem,
-  selectedGroup,
+  selectedReview,
   selectedLane,
   pendingInLane,
-  activeRoundData,
+  activeIterationData,
   comment,
   commentError,
   commentPlaceholder,
   submitAction,
+  refreshLanes,
 } = useInbox()
 
-onMounted(() => window.addEventListener('keydown', onKey))
-onUnmounted(() => window.removeEventListener('keydown', onKey))
+// Live reload when review files change
+let es: EventSource | null = null
+onMounted(() => {
+  window.addEventListener('keydown', onKey)
+  es = new EventSource('/api/watch')
+  es.onmessage = () => refreshLanes()
+})
+onUnmounted(() => {
+  window.removeEventListener('keydown', onKey)
+  es?.close()
+})
 
 const onKey = (e: KeyboardEvent) => {
   if (

@@ -1,0 +1,27 @@
+depth: full
+createdAt: "2026-03-20"
+updatedAt: "2026-03-25"
+
+artifacts:
+  - key: vision
+  - key: strategy
+  - key: audiences
+  - key: problems
+  - key: landscape
+  - key: opportunities
+  - key: product
+
+subdirectories:
+  competitors:
+    - gastown
+    - gsd
+    - plannotator
+    - ralph
+    - superpowers
+  allies:
+    - claude-mem
+    - iikit
+    - rpikit
+
+custom:
+  - key: feature-space

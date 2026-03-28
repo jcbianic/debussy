@@ -9,6 +9,7 @@ import {
 import type {
   StrateName,
   StrateConfig,
+  OptionsConfig,
   StrategyDepth,
   EngineeringDepth,
 } from '~~/types/config'
@@ -19,6 +20,7 @@ interface ProjectConfig {
   path: string
   repoUrl: string
   strates: StrateConfig
+  options: OptionsConfig
 }
 
 /**
@@ -33,6 +35,9 @@ export function useProjectConfig() {
   const repoUrl = computed(() => data.value?.repoUrl ?? '')
   const strates = computed<StrateConfig>(
     () => data.value?.strates ?? { ...DEFAULT_STRATES }
+  )
+  const options = computed<OptionsConfig>(
+    () => data.value?.options ?? { statusline: true }
   )
 
   function isStrateEnabled(strate: StrateName): boolean {
@@ -59,6 +64,7 @@ export function useProjectConfig() {
     path,
     repoUrl,
     strates,
+    options,
     isStrateEnabled,
     strategyDepth,
     engineeringDepth,

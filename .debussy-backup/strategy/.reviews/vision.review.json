@@ -1,0 +1,15 @@
+{
+  "sections": {
+    "why-were-building-this": {
+      "status": "discuss",
+      "notes": "Claude Code is awesome. Aiming at complementing it is a little bit overstated for the scope of the project (solo experiment for now). I think the goal is that as I starting using it more and more, you face some difficulties organising, because you start pulling multiple thread all at once, and the velocity of the tool, make you want to tackle everything at once. You need a a structure workflow and meta workflow. Making review and observalbility first class citizeen with a simple UI that completment Claude Code by surfacing all you need to know about what is going on in your project and what require your attention."
+    },
+    "north-star": {
+      "status": "discuss",
+      "notes": "Keep veolcity high while managing the cognitive debt of using these tools (you can research the concept of cognitive debt)"
+    },
+    "success-criteria": {
+      "status": "approved"
+    }
+  }
+}

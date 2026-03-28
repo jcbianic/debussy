@@ -234,29 +234,7 @@ ADR numbers are three-digit, zero-padded. Never renumber existing ADRs.
 
 ---
 
-## Step 6: Validate with User
-
-Present drafts to the user. Ask a single AskUserQuestion:
-
-```
-Here's the engineering governance at {depth} level.
-
-## Draft Artifacts
-
-{For each artifact: show the full draft}
-
----
-
-Reply:
-- "go" to write as-is
-- Corrections to revise
-```
-
-If corrections are provided, apply them and re-draft. Do not loop more than twice.
-
----
-
-## Step 7: Write Artifacts
+## Step 6: Write Draft Artifacts
 
 Create directories as needed:
 
@@ -264,8 +242,24 @@ Create directories as needed:
 mkdir -p .debussy/policies docs/architecture docs/decisions
 ```
 
-Write all artifact files using the Write tool. Skip files that already exist
-and were not changed.
+Write all draft artifact files using the Write tool. Set frontmatter
+`status: draft` on every new or changed artifact. Skip files that already
+exist and were not changed.
+
+---
+
+## Step 7: Send to Inbox for Review
+
+Delegate to the review-gate skill to send drafted artifacts for user review:
+
+```
+/review-gate --source engineering --title "Engineering Review: {depth} level" --icon i-heroicons-cog-6-tooth --sidecars .debussy/policies/*.md docs/architecture/principles.md docs/decisions/*.md
+```
+
+After the review-gate completes, check its summary output. For items with
+`changes-requested`: revise the affected sections based on the user's comments
+and rewrite the artifact files. For items `rejected`: remove or rework the
+section entirely.
 
 ---
 
@@ -302,9 +296,14 @@ Valid targets depend on depth:
 
 1. Read existing artifact(s) of that type
 2. Analyze current codebase state
-3. Draft updated artifact(s)
-4. Present diff for review via AskUserQuestion
-5. Write on approval
+3. Draft updated artifact(s) and write them with `status: draft`
+4. Delegate to review-gate, scoped to the refreshed artifacts only:
+
+```
+/review-gate --source engineering --title "Engineering Refresh: {type}" --icon i-heroicons-cog-6-tooth --sidecars {glob for refreshed artifacts}
+```
+
+5. Apply feedback from the review-gate summary
 
 ---
 
@@ -312,14 +311,16 @@ Valid targets depend on depth:
 
 `/engineering --review`
 
-Open the browser review UI for existing engineering artifacts. Follow the same
-review UI flow as the strategy skill:
+Delegate to the review-gate skill to open the Debussy UI Inbox for all
+existing engineering artifacts:
 
-1. Build request manifest from `.debussy/policies/*.md`, `docs/architecture/principles.md`,
-   and `docs/decisions/*.md`
-2. Deploy review server from templates
-3. Wait for user response
-4. Process response and update artifacts
+```
+/review-gate --source engineering --title "Engineering Review" --icon i-heroicons-cog-6-tooth --sidecars .debussy/policies/*.md docs/architecture/principles.md docs/decisions/*.md
+```
+
+After the review-gate completes, for items with `changes-requested`: revise
+the affected sections and rewrite artifact files. For items `rejected`: remove
+or rework entirely.
 
 ---
 
@@ -342,6 +343,5 @@ when a decision implements or constrains a principle.
 |---|---|
 | No existing governance artifacts | Normal first run -- proceed with configured depth |
 | Existing artifacts at deeper depth than configured | Preserve all existing artifacts, note the mismatch |
-| Server fails to start in review mode | Print server.log content, EXIT |
-| Review timeout | Print check instructions, EXIT |
+| Review-gate timeout | Re-run the review-gate when ready |
 | No config.yaml | Default to standard depth |

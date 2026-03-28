@@ -1,0 +1,22 @@
+{
+  "sections": {
+    "table-stakes": {
+      "status": "approved"
+    },
+    "differentiators": {
+      "status": "discuss",
+      "notes": "ok but we'll have to pick some from the list ?"
+    },
+    "gaps": {
+      "status": "discuss",
+      "notes": "not entirely sure abouth them.x"
+    },
+    "our-position": {
+      "status": "approved"
+    },
+    "anti-patterns": {
+      "status": "discuss",
+      "notes": "ok not really sure how this applies to us..."
+    }
+  }
+}

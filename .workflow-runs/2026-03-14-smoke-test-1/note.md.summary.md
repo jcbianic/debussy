@@ -1,1 +1,0 @@
-This note accurately and coherently covers the topic of jazz piano, summarizing its African American origins, major substyles (stride, bebop, modal jazz), key historical figures (Jelly Roll Morton, Thelonious Monk, Bill Evans), the instrument's dual melodic and harmonic role in ensembles, and its continued centrality in jazz education and performance today.

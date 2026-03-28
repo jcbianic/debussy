@@ -39,6 +39,7 @@ export default defineEventHandler(async () => {
   let name = 'debussy'
   let description = ''
   let repoUrl = ''
+  const options = { statusline: true }
   const strates: StrateConfig = {
     strategy: { ...(DEFAULT_STRATES.strategy as { depth: StrategyDepth }) },
     product: DEFAULT_STRATES.product,
@@ -91,6 +92,11 @@ export default defineEventHandler(async () => {
         }
       }
     }
+    if (cfg?.options && typeof cfg.options === 'object') {
+      if (typeof cfg.options.statusline === 'boolean') {
+        options.statusline = cfg.options.statusline
+      }
+    }
   } catch {
     // config.yaml missing — fall back to package.json + all strates enabled
   }
@@ -109,5 +115,5 @@ export default defineEventHandler(async () => {
     // package.json missing or unreadable — use defaults
   }
 
-  return { name, description, path: root, repoUrl, strates }
+  return { name, description, path: root, repoUrl, strates, options }
 })

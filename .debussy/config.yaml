@@ -1,7 +1,12 @@
 project:
   name: Debussy
-  description: "A framework for your Claude Sessions: knowledge base, automation
-    and human review of artifacts."
+  description: A disciplined approach to using Claude Code for solo builders.
 strates:
-  strategy: true
-  engineering: true
+  strategy:
+    depth: pitch
+  product: true
+  engineering:
+    depth: lite
+  work: true
+options:
+  statusline: true
