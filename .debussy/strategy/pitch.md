@@ -10,22 +10,28 @@ status: reviewed
 
 Claude Code is the most capable AI coding agent available — it does marvels. But as a solo builder, you find yourself overwhelmed by mundane instructions that feel like pushing buttons, while your valuable feedback is being lost to unreachable artifacts you should be focusing on. Debussy is here to make you focus on where your expertise and creativity is needed, while ensuring reproducible workflows and outcomes.
 
-## The Problem
+## The Problem: The Monster Branch
 
-### P1: Feedback lost, attention scattered
-**Affects:** A1 (solo builders)
+Claude Code can tackle anything you throw at it. And that's exactly the trap.
 
-You have a very powerful agent doing marvels for you, yet you find yourself overwhelmed by repetitive tasks — re-issuing the same instructions, re-explaining the same constraints, re-stating the same conventions. Meanwhile, your feedback on key artifacts is kind of lost — scattered across conversation threads, never captured in a form the agent or you can reliably retrieve. What makes Claude extraordinary is also what makes it overwhelming: it's open, it can tackle anything, and that very openness scatters your attention across many things at once.
+You start a session with a clear intent. But Claude is fast, and you have ideas. You ask for one more thing, then another. The branch grows. Pretty soon, you're sitting on a monster branch — massive local changes, four or five ambitious things tangled together in a mess.
 
-### P2: Documentation that agents need but humans can't maintain
-**Affects:** A1 (solo builders)
+You ask for a commit plan — you get one. But the resulting PR is still unreviewable: too broad for meaningful human or agent review. It does too many things, and reviewing it seriously starts to take longer than building it.
 
-To do good work, your agent needs you to write as much documentation as possible — vision, product decisions, architectural principles, feature intents. That's hard enough. Keeping this documentation nice and tidy becomes harder the more you build, all the more so as you distance yourself from the IDE. Even if you had all the docs in order, the IDE wasn't designed to explore this type of documentation: the further you get from the code editor, the less your product thinking lives somewhere navigable and reviewable.
+So you start planning and rescoping. But then you either lose velocity by working sequentially, or juggle complexity by working in parallel across sessions. Either way, your attention scatters, the artifacts you should be reviewing get lost, and the velocity drops.
 
-### P3: Solo builders do it all — and Claude doesn't wait
-**Affects:** A1 (solo builders)
+This is the core loop Debussy breaks. And it leads naturally upstream: if you're going to plan and scope work to avoid the monster branch, you might as well do it with as much context as you can.
 
-Solo builders carry every role at once. And Claude is fast — but it keeps you waiting. So you launch a second session, and a third, and suddenly you're managing a whole team of agents all at once. Without discipline and a way to organize how you work across sessions, you lose track of what's happening where. You need to run this team, but no one gave you the tools for it.
+### Consequences
+
+**P1: Feedback lost, attention scattered**
+Your feedback on key artifacts is scattered across conversation threads, never captured in a form you or the agent can reliably retrieve. The further you get from the code editor, the less your product thinking lives somewhere navigable and reviewable.
+
+**P2: Documentation that agents need but humans can't maintain**
+Your agent needs documentation to work well — vision, product decisions, architectural principles, feature intents. Writing it is hard enough. Keeping it navigable becomes harder the more you build. But if you're scoping work to avoid monster branches, you need this context — and it needs to be agent-maintainable.
+
+**P3: Parallelism without visibility**
+You launch a second session, then a third. Without discipline and tools to organize parallel work, you lose track. You need to run multiple lanes, but no one gave you the dashboard.
 
 ## The Product
 

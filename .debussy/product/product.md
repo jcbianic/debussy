@@ -1,7 +1,7 @@
 ---
 name: Product
 icon: i-heroicons-cube
-status: draft
+status: reviewed
 ---
 # Product: Debussy
 
@@ -9,7 +9,7 @@ status: draft
 A Claude Code meta-plugin that gives solo builders a disciplined approach from idea to shippable feature — without losing the thread.
 
 ## Positioning
-Solo builders carry every role. The goal is to automate where you can and review where your expertise matters — not just the code, but strategy, product decisions, and engineering governance. Debussy closes the feedback loop: it captures human reviews on project artifacts and feeds structured decisions back into the agent's context, so nothing gets lost across conversations.
+Claude Code's raw capability creates a trap: the monster branch. You throw ideas at it, the branch grows, the PR becomes unreviewable, and you end up rescoping — losing the velocity you gained. Debussy breaks this loop at every link: strategy and product strates scope the work upstream with full context, engineering governance prevents scope creep, the inbox captures your feedback on artifacts where it counts, and parallel lanes make multi-session work visible and manageable.
 
 ## Target User
 A1: Solo builders and indie developers using Claude Code who carry every role at once — product thinker, architect, developer, reviewer.

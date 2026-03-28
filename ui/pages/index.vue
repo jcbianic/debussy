@@ -10,6 +10,144 @@
       </p>
     </div>
 
+    <!-- ═══ Setup Progress ═══ -->
+    <section
+      v-if="!isFullySetUp"
+      class="mb-8"
+    >
+      <div class="border-line overflow-hidden rounded-lg border">
+        <div
+          class="border-line-subtle bg-surface flex items-center justify-between border-b px-5 py-3"
+        >
+          <h2
+            class="text-content-subtle text-xs font-semibold tracking-wider uppercase"
+          >
+            Setup Progress
+          </h2>
+          <NuxtLink
+            v-if="nextAction"
+            :to="nextAction.to"
+            class="text-status-active hover:text-content text-xs font-medium transition-colors"
+          >
+            {{ nextAction.label }} →
+          </NuxtLink>
+        </div>
+
+        <div class="bg-surface divide-line-subtle divide-y px-5">
+          <!-- Strategy -->
+          <div
+            v-if="isStrateEnabled('strategy')"
+            class="py-3"
+          >
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <span class="w-20 text-xs font-medium">Strategy</span>
+                <div class="flex items-center gap-1">
+                  <template
+                    v-for="(d, i) in STRATEGY_DEPTHS"
+                    :key="d"
+                  >
+                    <div
+                      v-if="i > 0"
+                      class="bg-line-subtle h-px w-3"
+                    />
+                    <span
+                      class="rounded-full px-2 py-0.5 text-xs"
+                      :class="
+                        d === strategyDepth
+                          ? 'bg-surface-tinted text-content-secondary font-medium'
+                          : 'text-content-faint'
+                      "
+                    >{{ d }}</span>
+                  </template>
+                </div>
+              </div>
+              <span class="text-content-faint text-xs tabular-nums">
+                {{ strategyProgress.present }}/{{ strategyProgress.expected }}
+                artifacts
+              </span>
+            </div>
+            <div class="mt-1.5 flex gap-0.5">
+              <div
+                v-for="artifact in strategyExpected"
+                :key="artifact.key"
+                class="h-1.5 flex-1 rounded-full"
+                :class="setupBarClass(artifact)"
+              />
+            </div>
+          </div>
+
+          <!-- Product -->
+          <div
+            v-if="isStrateEnabled('product')"
+            class="py-3"
+          >
+            <div class="flex items-center justify-between">
+              <span class="w-20 text-xs font-medium">Product</span>
+              <span class="text-content-faint text-xs tabular-nums">
+                {{ productProgress.present }}/{{ productProgress.expected }}
+                artifacts
+              </span>
+            </div>
+            <div class="mt-1.5 flex gap-0.5">
+              <div
+                v-for="pa in productArtifacts"
+                :key="pa.key"
+                class="h-1.5 flex-1 rounded-full"
+                :class="setupBarClass(pa)"
+              />
+            </div>
+          </div>
+
+          <!-- Engineering -->
+          <div
+            v-if="isStrateEnabled('engineering')"
+            class="py-3"
+          >
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <span class="w-20 text-xs font-medium">Engineering</span>
+                <div class="flex items-center gap-1">
+                  <template
+                    v-for="(d, i) in ENGINEERING_DEPTHS"
+                    :key="d"
+                  >
+                    <div
+                      v-if="i > 0"
+                      class="bg-line-subtle h-px w-3"
+                    />
+                    <span
+                      class="rounded-full px-2 py-0.5 text-xs"
+                      :class="
+                        d === engineeringDepth
+                          ? 'bg-surface-tinted text-content-secondary font-medium'
+                          : 'text-content-faint'
+                      "
+                    >{{ d }}</span>
+                  </template>
+                </div>
+              </div>
+              <span class="text-content-faint text-xs tabular-nums">
+                {{
+                  engineeringItems.filter((i) => i.presence === 'present')
+                    .length
+                }}/{{ engineeringItems.length }}
+                areas
+              </span>
+            </div>
+            <div class="mt-1.5 flex gap-0.5">
+              <div
+                v-for="item in engineeringItems"
+                :key="item.key"
+                class="h-1.5 flex-1 rounded-full"
+                :class="setupBarClass(item)"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <div class="space-y-8">
       <!-- ═══ Strategy — Shape what to build ═══ -->
       <section v-if="isStrateEnabled('strategy')">
@@ -482,10 +620,15 @@
 </template>
 
 <script setup lang="ts">
+import type { StrategyResponse } from '~/composables/useProduct'
+import { ENGINEERING_DEPTH_DOCUMENTS } from '~/types/config'
+
 const {
   name: projectName,
   path: projectPath,
   isStrateEnabled,
+  strategyDepth,
+  engineeringDepth,
 } = useProjectConfig()
 const {
   lanes,
@@ -495,6 +638,7 @@ const {
 const { nextRelease, nextReleaseName, artifacts } = useDashboard()
 const { principles, adrs, proposedCount } = useArchitecture()
 const { topics: policyTopics } = usePolicy()
+const { data: strategyData } = await useFetch<StrategyResponse>('/api/strategy')
 const { data: productData } = await useFetch<{
   artifacts: {
     key: string
@@ -503,6 +647,7 @@ const { data: productData } = await useFetch<{
     status: string
     presence: string
   }[]
+  progress: { expected: number; present: number; reviewed: number }
 }>('/api/product')
 const productArtifacts = computed(() => productData.value?.artifacts ?? [])
 
@@ -520,4 +665,79 @@ const lanesWithPending = computed(() =>
 const activeLaneCount = computed(
   () => lanes.value.filter((l) => l.isActive).length
 )
+
+// ── Setup Progress ──────────────────────────────────────────────────────────
+
+const STRATEGY_DEPTHS = ['pitch', 'foundation', 'full'] as const
+const ENGINEERING_DEPTHS = ['lite', 'standard', 'full'] as const
+
+const strategyProgress = computed(
+  () => strategyData.value?.progress ?? { expected: 0, present: 0, reviewed: 0 }
+)
+const strategyExpected = computed(() =>
+  (strategyData.value?.artifacts ?? []).filter((a) => a.expected)
+)
+
+const productProgress = computed(
+  () => productData.value?.progress ?? { expected: 0, present: 0, reviewed: 0 }
+)
+
+const engineeringItems = computed(() => {
+  const docs = ENGINEERING_DEPTH_DOCUMENTS[engineeringDepth.value]
+  return docs.map((d) => ({
+    key: d,
+    presence:
+      (d === 'policies' && policyTopics.value.length > 0) ||
+      (d === 'principles' && principles.value.length > 0) ||
+      (d === 'decisions' && adrs.value.length > 0)
+        ? 'present'
+        : 'missing',
+    status: 'draft' as const,
+  }))
+})
+
+const isFullySetUp = computed(() => {
+  const s =
+    !isStrateEnabled('strategy') ||
+    (strategyProgress.value.expected > 0 &&
+      strategyProgress.value.reviewed === strategyProgress.value.expected)
+  const p =
+    !isStrateEnabled('product') ||
+    (productProgress.value.expected > 0 &&
+      productProgress.value.reviewed === productProgress.value.expected)
+  const e =
+    !isStrateEnabled('engineering') ||
+    engineeringItems.value.every((i) => i.presence === 'present')
+  return s && p && e
+})
+
+const nextAction = computed<{ label: string; to: string } | null>(() => {
+  if (
+    isStrateEnabled('strategy') &&
+    strategyProgress.value.present < strategyProgress.value.expected
+  )
+    return { label: 'Complete strategy artifacts', to: '/strategy' }
+  if (
+    isStrateEnabled('strategy') &&
+    strategyProgress.value.reviewed < strategyProgress.value.present
+  )
+    return { label: 'Review strategy artifacts', to: '/strategy' }
+  if (
+    isStrateEnabled('product') &&
+    productProgress.value.present < productProgress.value.expected
+  )
+    return { label: 'Define product artifacts', to: '/product' }
+  if (
+    isStrateEnabled('engineering') &&
+    engineeringItems.value.some((i) => i.presence === 'missing')
+  )
+    return { label: 'Set up engineering governance', to: '/policy' }
+  return null
+})
+
+function setupBarClass(item: { presence: string; status: string }) {
+  if (item.presence === 'missing') return 'bg-neutral-200 dark:bg-neutral-700'
+  if (item.status === 'reviewed') return 'bg-green-500'
+  return 'bg-amber-400'
+}
 </script>

@@ -659,117 +659,16 @@ Valid targets depend on depth:
 
 `/strategy --review`
 
-### A. Scan Artifacts
+Delegate to the review-gate skill to open the Debussy UI Inbox for all
+existing strategy artifacts:
 
-Read all existing strategy artifacts from `.debussy/strategy/`. For each, extract
-frontmatter (type, status, updated). **Skip artifacts with `status: reviewed`
-in their frontmatter** — these were fully approved in a prior round.
-
-Artifact slug rules:
-- Top-level artifacts: slug = type name (e.g., `vision`, `problems`, `pitch`)
-- Competitor/ally files: slug = `competitors/{name}` or `allies/{name}`
-- Label = display name (title-cased type, or entity name for competitor/ally)
-
-### B. Parse Sections
-
-For each artifact, read the markdown file and split on `## ` headings. Each
-section becomes a review item. If the file has introductory text before the
-first heading, create an "Introduction" item.
-
-Section ID = artifact slug + "/" + slugified heading (e.g., `pitch/vision`,
-`pitch/the-problem`). Slugify: lowercase, remove non-alphanumeric chars
-except spaces/dashes, replace spaces with dashes, collapse multiple dashes.
-
-### C. Write Inbox Request
-
-Generate a session ID: `strategy-{unix-timestamp}`.
-
-Create the directory `.debussy/inbox/{session-id}/` and write `request.json`:
-
-```json
-{
-  "session_id": "strategy-{timestamp}",
-  "source": "strategy",
-  "title": "Strategy Review: {product-name}",
-  "icon": "i-heroicons-adjustments-horizontal",
-  "created_at": "{ISO 8601 timestamp}",
-  "items": [
-    {
-      "id": "pitch/vision",
-      "title": "Vision",
-      "subtitle": "Pitch",
-      "content": "## Vision\n> One-liner...\n\n(full section markdown)"
-    },
-    {
-      "id": "pitch/the-problem",
-      "title": "The Problem",
-      "subtitle": "Pitch",
-      "content": "## The Problem\n### P1: ...\n\n(full section markdown)"
-    }
-  ]
-}
+```
+/review-gate --source strategy --title "Strategy Review: {product-name}" --icon i-heroicons-adjustments-horizontal --sidecars .debussy/strategy/*.md .debussy/strategy/competitors/*.md .debussy/strategy/allies/*.md
 ```
 
-### D. Wait for User Review
-
-The user reviews in the Debussy UI Inbox at `localhost:4321/inbox`.
-
-Print a message:
-
-> Review items are ready in the Debussy UI Inbox. Open http://localhost:4321/inbox to review.
-
-Wait for the response file using bash filewatch:
-
-```bash
-RESPONSE=".debussy/inbox/{session-id}/response.json"
-while [ ! -f "$RESPONSE" ]; do sleep 1; done
-cat "$RESPONSE"
-```
-
-Timeout: 600 seconds.
-
-### E. Process Response
-
-Read `response.json`. The format is:
-
-```json
-{
-  "submitted_at": "...",
-  "session_id": "strategy-{timestamp}",
-  "decisions": {
-    "pitch/vision": { "action": "approved", "comment": "" },
-    "pitch/the-problem": { "action": "changes-requested", "comment": "Reframe P1..." }
-  },
-  "summary": { "total": 5, "approved": 3, "changes_requested": 1, "rejected": 1 }
-}
-```
-
-Map each decision back to the strategy review format and write to
-`.debussy/strategy/.reviews/{artifact-slug}.review.json`:
-
-```json
-{
-  "sections": {
-    "vision": { "status": "done", "notes": "" },
-    "the-problem": { "status": "discuss", "notes": "Reframe P1..." }
-  }
-}
-```
-
-Action mapping:
-- `approved` → status `done`
-- `changes-requested` → status `discuss` (with comment as notes)
-- `rejected` → status `flagged` (with comment as notes)
-
-### F. Archive Round and Cleanup
-
-If prior round files exist in `.debussy/strategy/.reviews/`, move them to
-`.debussy/strategy/.reviews/rounds/{N+1}/` before writing the new reviews.
-
-Update frontmatter `status: reviewed` on artifacts where ALL sections were
-approved.
-
-Clean up the inbox session directory (delete `.debussy/inbox/{session-id}/`).
+After the review-gate completes, for items with `changes-requested`: revise
+the affected sections based on the user's comments and rewrite artifact files.
+For items `rejected`: remove or rework the section entirely.
 
 ---
 

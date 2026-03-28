@@ -155,6 +155,11 @@ status: draft
 ### .debussy/product/intents.md
 
 ```markdown
+---
+name: Intents
+icon: i-heroicons-flag
+status: draft
+---
 # {name} -- Intents
 
 Intents are ordered implementation milestones. Each builds on the previous.
@@ -274,7 +279,12 @@ When the user asks for review (either via "review" reply in Step 5 or via
    those sections. For items with `action: "rejected"`, remove them from the
    draft. For items with `action: "approved"`, keep as-is.
 
-5. **Cleanup.** Delete `.debussy/inbox/{session-id}/`. Resume at Step 6.
+5. **Update frontmatter status.** For each artifact (`product.md`,
+   `intents.md`), check whether ALL of its sections were approved. If so,
+   set `status: reviewed` in the artifact's YAML frontmatter. If any section
+   was changed or rejected, keep `status: draft`.
+
+6. **Cleanup.** Delete `.debussy/inbox/{session-id}/`. Resume at Step 6.
 
 ---
 
