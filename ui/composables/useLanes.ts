@@ -12,12 +12,20 @@ export { itemStatus } from '~/shared/types/reviews'
 import type { Item, Review } from '~/shared/types/reviews'
 import { itemStatus } from '~/shared/types/reviews'
 
+import type { LaneState, LaneAction, LaneRecord } from '~/shared/types/lanes'
+
+export type { LaneState, LaneAction, LaneRecord }
+export { LANE_TRANSITIONS } from '~/shared/types/lanes'
+
 export interface Lane {
   id: string
   branch: string
   path: string
   isActive: boolean
   intent?: string
+  state?: LaneState
+  issueNumber?: number
+  prNumber?: number | null
   reviews: Review[]
 }
 
@@ -125,6 +133,32 @@ export function useLanes() {
     return null
   }
 
+  const createLane = async (issueNumber: number): Promise<LaneRecord> => {
+    const record = await $fetch<LaneRecord>('/api/lanes', {
+      method: 'POST',
+      body: { issueNumber },
+    })
+    await refresh()
+    return record
+  }
+
+  const transitionLane = async (
+    id: string,
+    action: LaneAction
+  ): Promise<LaneRecord> => {
+    const record = await $fetch<LaneRecord>(`/api/lanes/${id}/transition`, {
+      method: 'POST',
+      body: { action },
+    })
+    await refresh()
+    return record
+  }
+
+  const deleteLane = async (id: string): Promise<void> => {
+    await $fetch(`/api/lanes/${id}`, { method: 'DELETE' })
+    await refresh()
+  }
+
   return {
     lanes,
     lanesWithPending,
@@ -136,5 +170,8 @@ export function useLanes() {
     getReview,
     pendingCount,
     refresh,
+    createLane,
+    transitionLane,
+    deleteLane,
   }
 }

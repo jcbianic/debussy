@@ -1,9 +1,17 @@
 <template>
   <div class="px-3 py-3">
     <div
-      class="text-content-faint mb-1.5 px-2 text-xs font-medium tracking-wider uppercase"
+      class="text-content-faint mb-1.5 flex items-center justify-between px-2 text-xs font-medium tracking-wider uppercase"
     >
-      Lanes
+      <span>Lanes</span>
+      <UButton
+        variant="ghost"
+        color="neutral"
+        size="xs"
+        icon="i-heroicons-plus"
+        title="Create lane from issue"
+        @click="$emit('create')"
+      />
     </div>
     <div class="space-y-0.5">
       <NuxtLink
@@ -17,7 +25,7 @@
       >
         <div
           class="size-2 flex-shrink-0 rounded-full"
-          :class="lane.isActive ? 'bg-status-active' : 'bg-status-inactive'"
+          :class="stateDotClass(lane)"
         />
         <div class="min-w-0 flex-1">
           <div
@@ -31,21 +39,18 @@
         </div>
         <div class="flex flex-shrink-0 items-center gap-1">
           <UBadge
+            v-if="lane.state"
+            :label="lane.state"
+            :color="stateBadgeColor(lane.state)"
+            variant="subtle"
+            size="xs"
+          />
+          <UBadge
             v-if="lane.pending > 0"
             :label="String(lane.pending)"
             color="warning"
             variant="subtle"
             size="xs"
-          />
-          <UButton
-            v-if="!lane.isActive"
-            variant="ghost"
-            color="neutral"
-            size="xs"
-            icon="i-heroicons-arrow-up-tray"
-            title="Stage this lane"
-            class="opacity-0 transition-opacity group-hover:opacity-100"
-            @click.prevent
           />
         </div>
       </NuxtLink>
@@ -54,10 +59,41 @@
 </template>
 
 <script setup lang="ts">
-import type { Lane } from '~/composables/useLanes'
+import type { Lane, LaneState } from '~/composables/useLanes'
 
 defineProps<{
   lanesWithPending: (Lane & { pending: number })[]
   currentPath: string
 }>()
+
+defineEmits<{
+  create: []
+}>()
+
+function stateDotClass(lane: Lane & { pending: number }): string {
+  if (lane.state) {
+    const map: Record<LaneState, string> = {
+      created: 'bg-neutral-400',
+      working: 'bg-blue-500',
+      staged: 'bg-yellow-500',
+      qa: 'bg-yellow-500',
+      ready: 'bg-green-500',
+      merged: 'bg-neutral-400',
+    }
+    return map[lane.state]
+  }
+  return lane.isActive ? 'bg-status-active' : 'bg-status-inactive'
+}
+
+function stateBadgeColor(state: LaneState): string {
+  const map: Record<LaneState, string> = {
+    created: 'neutral',
+    working: 'primary',
+    staged: 'warning',
+    qa: 'warning',
+    ready: 'success',
+    merged: 'neutral',
+  }
+  return map[state]
+}
 </script>

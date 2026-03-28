@@ -7,23 +7,32 @@
       <div class="flex items-center gap-3">
         <div
           class="size-2 flex-shrink-0 rounded-full"
-          :class="lane.isActive ? 'bg-blue-500' : 'bg-neutral-400'"
+          :class="lane.isActive ? 'bg-primary-500' : 'bg-surface-tinted'"
         />
         <div>
           <div class="flex items-center gap-2">
             <span class="font-mono text-sm font-medium">{{ lane.branch }}</span>
             <UBadge
-              v-if="lane.isActive"
+              v-if="lane.state"
+              :label="lane.state"
+              :color="stateColor(lane.state)"
+              variant="subtle"
+              size="xs"
+            />
+            <UBadge
+              v-else-if="lane.isActive"
               label="staged"
               color="primary"
               variant="subtle"
               size="xs"
             />
           </div>
-          <div class="mt-0.5 flex items-center gap-2 text-xs text-neutral-400">
+          <div
+            class="text-content-muted mt-0.5 flex items-center gap-2 text-xs"
+          >
             <span>{{ lane.path }}</span>
             <template v-if="status">
-              <span class="text-neutral-600">&middot;</span>
+              <span class="text-content-subtle">&middot;</span>
               <template v-if="status.sync.remote">
                 <span
                   v-if="status.sync.ahead === 0 && status.sync.behind === 0"
@@ -40,7 +49,7 @@
               </template>
               <span
                 v-else
-                class="text-neutral-500"
+                class="text-content-muted"
               >no remote</span>
             </template>
           </div>
@@ -48,20 +57,15 @@
       </div>
       <div class="flex items-center gap-2">
         <UButton
-          v-if="!lane.isActive"
-          label="Stage"
-          icon="i-heroicons-arrow-up-tray"
+          v-for="action in availableActions"
+          :key="action"
+          :label="actionLabel(action)"
+          :icon="actionIcon(action)"
           size="sm"
-          color="primary"
+          :color="actionColor(action)"
           variant="outline"
-        />
-        <UButton
-          v-else
-          label="Push back"
-          icon="i-heroicons-arrow-down-tray"
-          size="sm"
-          color="neutral"
-          variant="outline"
+          :loading="transitioning"
+          @click="doTransition(action)"
         />
       </div>
     </div>
@@ -118,15 +122,81 @@
 </template>
 
 <script setup lang="ts">
+import { LANE_TRANSITIONS } from '~/shared/types/lanes'
+import type { LaneState, LaneAction } from '~/shared/types/lanes'
+
 const props = defineProps<{
   laneId: string
   basePath: 'lane' | 'worktree'
 }>()
 
-const { getLane, getWorkflow, getCommits, getStatus } = useLanes()
+const { getLane, getWorkflow, getCommits, getStatus, transitionLane } =
+  useLanes()
 
 const lane = computed(() => getLane(props.laneId))
 const reviews = computed(() => lane.value.reviews)
+
+const transitioning = ref(false)
+
+const availableActions = computed(() => {
+  const state = lane.value?.state
+  if (!state) return []
+  return LANE_TRANSITIONS[state] ?? []
+})
+
+const stateColorMap: Record<LaneState, string> = {
+  created: 'neutral',
+  working: 'primary',
+  staged: 'warning',
+  qa: 'warning',
+  ready: 'success',
+  merged: 'neutral',
+}
+
+const actionLabelMap: Record<LaneAction, string> = {
+  start: 'Start',
+  stage: 'Stage',
+  qa: 'Send to QA',
+  rework: 'Rework',
+  ready: 'Mark ready',
+  merge: 'Merge',
+}
+
+const actionIconMap: Record<LaneAction, string> = {
+  start: 'i-heroicons-play',
+  stage: 'i-heroicons-arrow-up-tray',
+  qa: 'i-heroicons-clipboard-document-check',
+  rework: 'i-heroicons-arrow-path',
+  ready: 'i-heroicons-check-circle',
+  merge: 'i-heroicons-code-bracket-square',
+}
+
+function stateColor(state: LaneState): string {
+  return stateColorMap[state]
+}
+
+function actionLabel(action: LaneAction): string {
+  return actionLabelMap[action]
+}
+
+function actionIcon(action: LaneAction): string {
+  return actionIconMap[action]
+}
+
+function actionColor(action: LaneAction): string {
+  if (action === 'merge' || action === 'ready') return 'success'
+  if (action === 'rework') return 'warning'
+  return 'primary'
+}
+
+async function doTransition(action: LaneAction) {
+  transitioning.value = true
+  try {
+    await transitionLane(props.laneId, action)
+  } finally {
+    transitioning.value = false
+  }
+}
 
 const workflow = ref<Awaited<ReturnType<typeof getWorkflow>>>(null)
 const commits = ref<Commit[]>([])

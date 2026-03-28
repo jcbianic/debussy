@@ -1,5 +1,6 @@
 import path from 'node:path'
 import type { Review } from './reviews'
+import type { LaneState } from '~/shared/types/lanes'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -9,6 +10,9 @@ export interface Lane {
   path: string
   isActive: boolean
   intent?: string
+  state?: LaneState
+  issueNumber?: number
+  prNumber?: number | null
   reviews: Review[]
 }
 

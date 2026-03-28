@@ -6,6 +6,7 @@ import { parseLanesFromWorktrees } from '../../utils/lanes'
 import type { Lane } from '../../utils/lanes'
 import type { Review, Item } from '../../utils/reviews'
 import { resolveReviewsPath, scanReviews } from '../../utils/reviews'
+import { listLaneRecords } from '../../utils/lane-store'
 
 const execAsync = promisify(exec)
 
@@ -19,6 +20,22 @@ export default defineEventHandler(async () => {
   }
 
   const lanes = parseLanesFromWorktrees(stdout, process.cwd())
+
+  // Merge lane records with worktree data
+  const records = await listLaneRecords()
+  const recordById = new Map(records.map((r) => [r.id, r]))
+
+  for (const lane of lanes) {
+    // Match by branch name since worktree IDs are path basenames
+    const record = records.find((r) => r.branch === lane.branch)
+    if (record) {
+      lane.state = record.state
+      lane.issueNumber = record.issueNumber
+      lane.prNumber = record.prNumber
+      lane.intent = record.issueTitle
+      recordById.delete(record.id)
+    }
+  }
 
   // Attach pending review groups from .workflow-runs/ for each lane
   await Promise.all(
