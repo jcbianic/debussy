@@ -1,21 +1,6 @@
-// ─── Types (shared) ─────────────────────────────────────────────────────────
-
-export type {
-  Feedback,
-  Iteration,
-  Item,
-  Review,
-  ItemStatus,
-} from '~/shared/types/reviews'
-export { itemStatus } from '~/shared/types/reviews'
-
 import type { Item, Review } from '~/shared/types/reviews'
 import { itemStatus } from '~/shared/types/reviews'
-
 import type { LaneState, LaneAction, LaneRecord } from '~/shared/types/lanes'
-
-export type { LaneState, LaneAction, LaneRecord }
-export { LANE_TRANSITIONS } from '~/shared/types/lanes'
 
 export interface Lane {
   id: string

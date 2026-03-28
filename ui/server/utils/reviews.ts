@@ -20,17 +20,6 @@ function assertInsideDir(child: string, parent: string): void {
   }
 }
 
-// ─── Types (shared) ─────────────────────────────────────────────────────────
-
-export type {
-  Feedback,
-  Iteration,
-  Item,
-  Review,
-  ItemStatus,
-} from '~/shared/types/reviews'
-export { itemStatus } from '~/shared/types/reviews'
-
 import type { Feedback, Item, Review } from '~/shared/types/reviews'
 
 // ─── Storage paths ───────────────────────────────────────────────────────────

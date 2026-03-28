@@ -71,7 +71,8 @@
 </template>
 
 <script setup lang="ts">
-import type { Review, Lane } from '~/composables/useLanes'
+import type { Review } from '~/shared/types/reviews'
+import type { Lane } from '~/composables/useLanes'
 
 const { name: projectName } = useProjectConfig()
 

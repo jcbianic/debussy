@@ -1,4 +1,5 @@
-import type { Item, Review, Lane } from '~/shared/types/reviews'
+import type { Item, Review } from '~/shared/types/reviews'
+import type { Lane } from '~/composables/useLanes'
 
 const TYPE_ICONS: Record<string, string> = {
   feedback: 'i-heroicons-document-text',

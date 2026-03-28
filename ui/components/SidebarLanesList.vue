@@ -59,7 +59,8 @@
 </template>
 
 <script setup lang="ts">
-import type { Lane, LaneState } from '~/composables/useLanes'
+import type { Lane } from '~/composables/useLanes'
+import type { LaneState } from '~/shared/types/lanes'
 
 defineProps<{
   lanesWithPending: (Lane & { pending: number })[]
