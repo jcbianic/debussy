@@ -102,7 +102,7 @@
         v-if="activeTab === 'inbox'"
         :lane-id="laneId"
         :base-path="basePath"
-        :review-groups="reviewGroups"
+        :reviews="reviews"
       />
       <LaneWorkflowTab
         v-else-if="activeTab === 'workflow'"
@@ -126,7 +126,7 @@ const props = defineProps<{
 const { getLane, getWorkflow, getCommits, getStatus } = useLanes()
 
 const lane = computed(() => getLane(props.laneId))
-const reviewGroups = computed(() => lane.value.groups)
+const reviews = computed(() => lane.value.reviews)
 
 const workflow = ref<Awaited<ReturnType<typeof getWorkflow>>>(null)
 const commits = ref<Commit[]>([])
@@ -149,9 +149,9 @@ watch(
 
 const totalPending = computed(
   () =>
-    reviewGroups.value
-      .flatMap((g) => g.items)
-      .filter((i) => i.status === 'pending').length
+    reviews.value
+      .flatMap((r) => r.items)
+      .filter((i) => itemStatus(i) === 'pending').length
 )
 
 const tabs = computed(() => [

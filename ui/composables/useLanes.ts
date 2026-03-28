@@ -1,34 +1,16 @@
-// ─── Types (re-exported from server/utils/lanes for client use) ───────────────
+// ─── Types (shared) ─────────────────────────────────────────────────────────
 
-export interface Round {
-  roundNumber: number
-  proposedAt: string
-  content: string
-  code?: string
-  feedback?: string
-  feedbackAt?: string
-  feedbackStatus?: 'approved' | 'changes-requested' | 'rejected'
-}
+export type {
+  Feedback,
+  Iteration,
+  Item,
+  Review,
+  ItemStatus,
+} from '~/shared/types/reviews'
+export { itemStatus } from '~/shared/types/reviews'
 
-export interface ReviewItem {
-  id: string
-  title: string
-  subtitle: string
-  status: 'pending' | 'approved' | 'rejected'
-  type: string
-  createdAt: string
-  rounds: Round[]
-}
-
-export interface ReviewGroup {
-  id: string
-  title: string
-  icon: string
-  source: string
-  type: string
-  inboxSessionId?: string
-  items: ReviewItem[]
-}
+import type { Item, Review } from '~/shared/types/reviews'
+import { itemStatus } from '~/shared/types/reviews'
 
 export interface Lane {
   id: string
@@ -36,7 +18,7 @@ export interface Lane {
   path: string
   isActive: boolean
   intent?: string
-  groups: ReviewGroup[]
+  reviews: Review[]
 }
 
 export interface WorkflowStep {
@@ -79,12 +61,12 @@ export interface ReviewDetail {
   id: string
   title: string
   source: string
-  status: 'pending' | 'approved' | 'rejected'
+  status: ItemStatus
   body: string
   code: string | null
 }
 
-// ─── useMockData ─────────────────────────────────────────────────────────────
+// ─── useLanes ────────────────────────────────────────────────────────────────
 
 /**
  * Provide reactive access to lane, review, workflow, and commit data via API.
@@ -94,15 +76,15 @@ export function useLanes() {
 
   const lanes = computed(() => lanesData.value ?? [])
 
-  const pendingCount = (items: ReviewItem[]) =>
-    items.filter((i) => i.status === 'pending').length
+  const pendingCount = (items: Item[]) =>
+    items.filter((i) => itemStatus(i) === 'pending').length
 
   const lanesWithPending = computed(() =>
     lanes.value.map((l) => ({
       ...l,
-      pending: l.groups
-        .flatMap((g) => g.items)
-        .filter((i) => i.status === 'pending').length,
+      pending: l.reviews
+        .flatMap((r) => r.items)
+        .filter((i) => itemStatus(i) === 'pending').length,
     }))
   )
 
@@ -126,16 +108,16 @@ export function useLanes() {
 
   const getReview = (id: string): ReviewDetail | null => {
     for (const lane of lanes.value) {
-      for (const group of lane.groups) {
-        const item = group.items.find((i) => i.id === id)
+      for (const review of lane.reviews) {
+        const item = review.items.find((i) => i.id === id)
         if (item) {
           return {
             id: item.id,
             title: item.title,
-            source: `${group.title} · ${group.source}`,
-            status: item.status,
-            body: item.rounds[0]?.content ?? '',
-            code: item.rounds[0]?.code ?? null,
+            source: `${review.title} · ${review.source}`,
+            status: itemStatus(item),
+            body: item.iterations.at(-1)?.content ?? '',
+            code: item.iterations.at(-1)?.code ?? null,
           }
         }
       }

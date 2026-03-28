@@ -1,33 +1,35 @@
 <template>
   <div
-    v-for="group in groups"
-    :key="group.id"
+    v-for="review in reviews"
+    :key="review.id"
   >
-    <!-- Group header -->
+    <!-- Review header -->
     <button
       class="hover:bg-surface-hover-subtle border-line-subtle flex w-full items-center gap-2.5 border-b px-4 py-2.5 text-left transition-colors"
-      @click="emit('toggleGroup', group.id)"
+      @click="emit('toggleGroup', review.id)"
     >
       <UIcon
         :name="
-          expanded.has(group.id)
+          expanded.has(review.id)
             ? 'i-heroicons-chevron-down'
             : 'i-heroicons-chevron-right'
         "
         class="text-content-faint size-3 flex-shrink-0"
       />
       <UIcon
-        :name="group.icon"
+        :name="review.icon"
         class="text-content-faint size-3.5 flex-shrink-0"
       />
-      <span class="flex-1 truncate text-xs font-medium">{{ group.title }}</span>
-      <span class="text-content-faint text-xs">{{ pendingCount(group) }}</span>
+      <span class="flex-1 truncate text-xs font-medium">{{
+        review.title
+      }}</span>
+      <span class="text-content-faint text-xs">{{ pendingCount(review) }}</span>
     </button>
 
     <!-- Items -->
-    <div v-if="expanded.has(group.id)">
+    <div v-if="expanded.has(review.id)">
       <button
-        v-for="item in filteredItems(group)"
+        v-for="item in filteredItems(review)"
         :key="item.id"
         class="group border-line-subtle flex w-full items-start gap-3 border-b px-4 py-3 text-left transition-colors"
         :class="
@@ -43,15 +45,15 @@
             <span
               class="truncate text-xs font-medium"
               :class="
-                item.status === 'approved'
+                derivedStatus(item) === 'approved'
                   ? 'text-content-faint line-through'
                   : ''
               "
             >{{ item.title }}</span>
             <span
-              v-if="item.rounds.length > 1"
+              v-if="item.iterations.length > 1"
               class="flex-shrink-0 font-mono text-xs text-blue-400"
-            >×{{ item.rounds.length }}</span>
+            >×{{ item.iterations.length }}</span>
           </div>
           <div class="text-content-faint mt-0.5 truncate text-xs">
             {{ item.subtitle }}
@@ -59,7 +61,7 @@
         </div>
         <!-- Quick actions on hover -->
         <div
-          v-if="item.status === 'pending'"
+          v-if="derivedStatus(item) === 'pending'"
           class="flex flex-shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100"
         >
           <button
@@ -83,8 +85,8 @@
         </div>
         <UBadge
           v-else
-          :label="item.status"
-          :color="statusColor(item.status)"
+          :label="derivedStatus(item)"
+          :color="statusColor(derivedStatus(item))"
           variant="subtle"
           size="xs"
         />
@@ -94,19 +96,21 @@
 </template>
 
 <script setup lang="ts">
-import type { ReviewGroup } from '~/composables/useLanes'
+import type { Review, Item } from '~/shared/types/reviews'
 
 defineProps<{
-  groups: ReviewGroup[]
+  reviews: Review[]
   laneId: string
   selectedId: string | null
   expanded: Set<string>
-  filteredItems: (group: ReviewGroup) => typeof group.items
-  pendingCount: (group: ReviewGroup) => number
+  filteredItems: (review: Review) => Item[]
+  pendingCount: (review: Review) => number
 }>()
 
 const emit = defineEmits<{
   select: [id: string, laneId: string]
   toggleGroup: [id: string]
 }>()
+
+const derivedStatus = (item: Item) => itemStatus(item)
 </script>

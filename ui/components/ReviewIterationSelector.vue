@@ -3,19 +3,19 @@
     class="bg-surface-sunken mb-5 flex w-fit items-center gap-1 rounded-lg p-1"
   >
     <button
-      v-for="round in rounds"
-      :key="round.roundNumber"
+      v-for="iteration in iterations"
+      :key="iteration.number"
       class="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors"
       :class="
-        activeRound === round.roundNumber
+        activeIteration === iteration.number
           ? 'bg-surface-elevated text-content shadow-sm'
           : 'text-content-subtle hover:text-content-secondary'
       "
-      @click="emit('setRound', round.roundNumber)"
+      @click="emit('setIteration', iteration.number)"
     >
-      <span>Round {{ round.roundNumber }}</span>
+      <span>Iteration {{ iteration.number }}</span>
       <span
-        v-if="round.roundNumber === rounds.length"
+        v-if="iteration.number === iterations.length"
         class="size-1.5 rounded-full"
         :class="
           currentStatus === 'pending'
@@ -30,13 +30,13 @@
 </template>
 
 <script setup lang="ts">
-import type { ReviewItem } from '~/composables/useLanes'
+import type { Iteration, ItemStatus } from '~/composables/useLanes'
 
 defineProps<{
-  rounds: ReviewItem['rounds']
-  activeRound: number
-  currentStatus: ReviewItem['status']
+  iterations: Iteration[]
+  activeIteration: number
+  currentStatus: ItemStatus
 }>()
 
-const emit = defineEmits<{ setRound: [n: number] }>()
+const emit = defineEmits<{ setIteration: [n: number] }>()
 </script>

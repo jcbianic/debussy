@@ -1,36 +1,7 @@
 import path from 'node:path'
+import type { Review } from './reviews'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
-
-export interface Round {
-  roundNumber: number
-  proposedAt: string
-  content: string
-  code?: string
-  feedback?: string
-  feedbackAt?: string
-  feedbackStatus?: 'approved' | 'changes-requested' | 'rejected'
-}
-
-export interface ReviewItem {
-  id: string
-  title: string
-  subtitle: string
-  status: 'pending' | 'approved' | 'rejected'
-  type: string
-  createdAt: string
-  rounds: Round[]
-}
-
-export interface ReviewGroup {
-  id: string
-  title: string
-  icon: string
-  source: string
-  type: string
-  inboxSessionId?: string
-  items: ReviewItem[]
-}
 
 export interface Lane {
   id: string
@@ -38,7 +9,7 @@ export interface Lane {
   path: string
   isActive: boolean
   intent?: string
-  groups: ReviewGroup[]
+  reviews: Review[]
 }
 
 export interface WorkflowStep {
@@ -100,7 +71,13 @@ export function parseLanesFromWorktrees(stdout: string, cwd: string): Lane[] {
 
     const id = i === 0 ? 'root' : path.basename(worktreePath)
 
-    result.push({ id, branch, path: worktreePath, isActive: false, groups: [] })
+    result.push({
+      id,
+      branch,
+      path: worktreePath,
+      isActive: false,
+      reviews: [],
+    })
   }
 
   // Mark the most specific worktree containing cwd as active

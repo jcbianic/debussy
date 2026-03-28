@@ -11,7 +11,7 @@ export default defineEventHandler(async (event) => {
     resolveDebussyPath('docs', 'architecture'),
     resolveDebussyPath('specs'),
     resolveDebussyPath('.workflow-runs'),
-    resolveDebussyPath('.debussy', 'inbox'),
+    resolveDebussyPath('.debussy', 'reviews'),
   ])
 
   const watcher = chokidar.watch(watchPaths, { ignoreInitial: true })

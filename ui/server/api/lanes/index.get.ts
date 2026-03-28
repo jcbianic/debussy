@@ -3,12 +3,9 @@ import { promisify } from 'node:util'
 import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { parseLanesFromWorktrees } from '../../utils/lanes'
-import type { Lane, ReviewGroup, ReviewItem } from '../../utils/lanes'
-import {
-  resolveInboxPath,
-  scanInboxSessions,
-  inboxSessionToReviewGroup,
-} from '../../utils/inbox'
+import type { Lane } from '../../utils/lanes'
+import type { Review, Item } from '../../utils/reviews'
+import { resolveReviewsPath, scanReviews } from '../../utils/reviews'
 
 const execAsync = promisify(exec)
 
@@ -49,7 +46,7 @@ export default defineEventHandler(async () => {
             if (pendingSteps.length === 0) continue
 
             for (const [stepKey, step] of pendingSteps) {
-              const items: ReviewItem[] = []
+              const items: Item[] = []
 
               // Look for cards.json files in step artifacts
               const artifacts = step.artifacts as
@@ -58,6 +55,10 @@ export default defineEventHandler(async () => {
               if (artifacts) {
                 for (const artifact of Object.values(artifacts)) {
                   const cardsPath = artifact.path + '.cards.json'
+                  const resolvedCards = path.resolve(cardsPath)
+                  const resolvedLane = path.resolve(lane.path)
+                  if (!resolvedCards.startsWith(resolvedLane + path.sep))
+                    continue
                   try {
                     const cards = JSON.parse(
                       await readFile(cardsPath, 'utf8')
@@ -72,15 +73,9 @@ export default defineEventHandler(async () => {
                         id: `${runDir}-${stepKey}-${idx}`,
                         title: card.title,
                         subtitle: card.severity,
-                        status: 'pending' as const,
-                        type: 'workflow' as const,
-                        createdAt:
-                          typeof raw.created_at === 'string'
-                            ? raw.created_at
-                            : '',
-                        rounds: [
+                        iterations: [
                           {
-                            roundNumber: 1,
+                            number: 1,
                             proposedAt:
                               typeof raw.created_at === 'string'
                                 ? raw.created_at
@@ -96,15 +91,17 @@ export default defineEventHandler(async () => {
                 }
               }
 
-              const group: ReviewGroup = {
+              const review: Review = {
                 id: `${runDir}-${stepKey}`,
                 title: `${runDir} — ${String(step.name ?? stepKey)}`,
                 icon: 'i-heroicons-document-text',
                 source: String(raw.workflow ?? runDir),
                 type: 'workflow',
+                createdAt:
+                  typeof raw.created_at === 'string' ? raw.created_at : '',
                 items,
               }
-              lane.groups.push(group)
+              lane.reviews.push(review)
             }
           } catch {
             // state.json missing or invalid — skip
@@ -116,18 +113,16 @@ export default defineEventHandler(async () => {
     })
   )
 
-  // Attach pending inbox review sessions to the root lane
+  // Attach pending reviews from .debussy/reviews/ to the root lane
   try {
-    const inboxDir = await resolveInboxPath()
-    const sessions = await scanInboxSessions(inboxDir)
+    const reviewsDir = await resolveReviewsPath()
+    const reviews = await scanReviews(reviewsDir)
     const rootLane = lanes.find((l) => l.id === 'root') ?? lanes[0]
     if (rootLane) {
-      for (const session of sessions) {
-        rootLane.groups.push(inboxSessionToReviewGroup(session))
-      }
+      rootLane.reviews.push(...reviews)
     }
   } catch {
-    // .debussy/inbox/ missing — skip
+    // .debussy/reviews/ missing — skip
   }
 
   return lanes
