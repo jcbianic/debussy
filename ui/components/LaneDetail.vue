@@ -68,32 +68,60 @@
         </div>
       </div>
       <div class="flex items-center gap-2">
-        <UButton
-          v-for="action in availableGitActions"
-          :key="action"
-          :label="gitActionLabelMap[action]"
-          :icon="gitActionIconMap[action]"
-          size="sm"
-          color="neutral"
-          variant="soft"
-          :loading="gitActioning"
-          @click="doGitAction(action)"
-        />
-        <div
-          v-if="availableGitActions.length && availableActions.length"
-          class="bg-line mx-1 h-5 w-px"
-        />
-        <UButton
-          v-for="action in availableActions"
-          :key="action"
-          :label="actionLabel(action)"
-          :icon="actionIcon(action)"
-          size="sm"
-          :color="actionColor(action)"
-          variant="outline"
-          :loading="transitioning"
-          @click="doTransition(action)"
-        />
+        <template v-if="lane.orphaned">
+          <UBadge
+            label="orphaned"
+            color="error"
+            variant="subtle"
+            size="xs"
+          />
+          <UButton
+            label="Restore worktree"
+            icon="i-heroicons-arrow-path"
+            size="sm"
+            color="primary"
+            variant="outline"
+            :loading="gitActioning"
+            @click="doGitAction('restore')"
+          />
+          <UButton
+            label="Delete"
+            icon="i-heroicons-trash"
+            size="sm"
+            color="error"
+            variant="outline"
+            :loading="deleting"
+            @click="doDelete"
+          />
+        </template>
+        <template v-else>
+          <UButton
+            v-for="action in availableGitActions"
+            :key="action"
+            :label="gitActionLabelMap[action]"
+            :icon="gitActionIconMap[action]"
+            size="sm"
+            color="neutral"
+            variant="soft"
+            :loading="gitActioning"
+            @click="doGitAction(action)"
+          />
+          <div
+            v-if="availableGitActions.length && availableActions.length"
+            class="bg-line mx-1 h-5 w-px"
+          />
+          <UButton
+            v-for="action in availableActions"
+            :key="action"
+            :label="actionLabel(action)"
+            :icon="actionIcon(action)"
+            size="sm"
+            :color="actionColor(action)"
+            variant="outline"
+            :loading="transitioning"
+            @click="doTransition(action)"
+          />
+        </template>
       </div>
     </div>
 
@@ -167,6 +195,7 @@ const {
   getStatus,
   transitionLane,
   gitAction,
+  deleteLane,
 } = useLanes()
 
 const lane = computed(() => getLane(props.laneId))
@@ -261,12 +290,14 @@ const gitActionLabelMap: Record<GitAction, string> = {
   push: 'Push',
   pull: 'Pull',
   'to-worktree': 'To worktree',
+  restore: 'Restore worktree',
 }
 
 const gitActionIconMap: Record<GitAction, string> = {
   push: 'i-heroicons-arrow-up-tray',
   pull: 'i-heroicons-arrow-down-tray',
   'to-worktree': 'i-heroicons-arrow-top-right-on-square',
+  restore: 'i-heroicons-arrow-path',
 }
 
 const availableGitActions = computed(() => {
@@ -310,6 +341,26 @@ async function doGitAction(action: GitAction) {
     toast.add({ title: msg, color: 'error' })
   } finally {
     gitActioning.value = false
+  }
+}
+
+// ─── Delete (orphaned lanes) ─────────────────────────────────────────────────
+
+const deleting = ref(false)
+
+async function doDelete() {
+  deleting.value = true
+  try {
+    await deleteLane(props.laneId)
+    await router.push('/lane/root')
+  } catch (err: unknown) {
+    const msg =
+      err && typeof err === 'object' && 'statusMessage' in err
+        ? String((err as { statusMessage: string }).statusMessage)
+        : 'Delete failed'
+    toast.add({ title: msg, color: 'error' })
+  } finally {
+    deleting.value = false
   }
 }
 

@@ -72,6 +72,7 @@ defineEmits<{
 }>()
 
 function stateDotClass(lane: Lane & { pending: number }): string {
+  if (lane.orphaned) return 'bg-red-500'
   if (lane.state) {
     const map: Record<LaneState, string> = {
       created: 'bg-neutral-400',

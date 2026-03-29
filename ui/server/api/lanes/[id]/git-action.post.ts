@@ -17,7 +17,12 @@ import { readLaneRecord, writeLaneRecord } from '../../../utils/lane-store'
 
 const execAsync = promisify(exec)
 
-const VALID_ACTIONS = new Set<GitAction>(['push', 'pull', 'to-worktree'])
+const VALID_ACTIONS = new Set<GitAction>([
+  'push',
+  'pull',
+  'to-worktree',
+  'restore',
+])
 
 export default defineEventHandler(async (event) => {
   const id = getRouterParam(event, 'id')
@@ -33,6 +38,24 @@ export default defineEventHandler(async (event) => {
       statusCode: 400,
       statusMessage: `Invalid action. Must be one of: ${[...VALID_ACTIONS].join(', ')}`,
     })
+  }
+
+  // Handle restore before worktree lookup (orphaned lanes have no worktree)
+  if (action === 'restore') {
+    const record = await readLaneRecord(id)
+    if (!record) {
+      throw createError({
+        statusCode: 404,
+        statusMessage: `Lane ${id} not found`,
+      })
+    }
+    try {
+      await createWorktree(record.worktreePath, record.branch)
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Restore failed'
+      throw createError({ statusCode: 422, statusMessage: msg })
+    }
+    return { ok: true }
   }
 
   // Resolve lane from worktrees (works for root and feature lanes)

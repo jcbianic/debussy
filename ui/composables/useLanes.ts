@@ -16,6 +16,7 @@ export interface Lane {
   state?: LaneState
   issueNumber?: number
   prNumber?: number | null
+  orphaned?: boolean
   reviews: Review[]
 }
 

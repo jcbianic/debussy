@@ -10,7 +10,7 @@ export type LaneState =
 
 export type LaneAction = 'start' | 'stage' | 'qa' | 'rework' | 'ready' | 'merge'
 
-export type GitAction = 'push' | 'pull' | 'to-worktree'
+export type GitAction = 'push' | 'pull' | 'to-worktree' | 'restore'
 
 export const LANE_TRANSITIONS: Record<LaneState, LaneAction[]> = {
   created: ['start'],

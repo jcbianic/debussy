@@ -37,6 +37,22 @@ export default defineEventHandler(async () => {
     }
   }
 
+  // Add orphaned lane records (worktree removed but record still exists)
+  for (const record of recordById.values()) {
+    lanes.push({
+      id: record.id,
+      branch: record.branch,
+      path: record.worktreePath,
+      isActive: false,
+      state: record.state,
+      issueNumber: record.issueNumber,
+      prNumber: record.prNumber,
+      intent: record.issueTitle,
+      orphaned: true,
+      reviews: [],
+    })
+  }
+
   // Attach pending review groups from .workflow-runs/ for each lane
   await Promise.all(
     lanes.map(async (lane: Lane) => {
