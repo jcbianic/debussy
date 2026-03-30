@@ -68,11 +68,59 @@ export async function deleteLaneRecord(id: string): Promise<void> {
   await rm(targetDir, { recursive: true, force: true })
 }
 
+// ─── Resolve ─────────────────────────────────────────────────────────────────
+
+/**
+ * When a feature branch is checked out at root the UI sends
+ * id="root". Resolve to the real lane record ID by matching
+ * the current branch against known records.
+ */
+export async function resolveRecordId(
+  id: string,
+  currentBranch?: string
+): Promise<string> {
+  if (id !== 'root') return id
+  if (!currentBranch) return id
+
+  const records = await listLaneRecords()
+  const match = records.find((r) => r.branch === currentBranch)
+  return match ? match.id : id
+}
+
 // ─── Scope ───────────────────────────────────────────────────────────────────
+
+export async function readScopeMd(id: string): Promise<string | null> {
+  const dir = await lanesDir()
+  try {
+    return await readFile(path.join(laneDir(dir, id), 'scope.md'), 'utf8')
+  } catch {
+    return null
+  }
+}
 
 export async function writeScopeMd(id: string, content: string): Promise<void> {
   const dir = await lanesDir()
   const targetDir = laneDir(dir, id)
   await mkdir(targetDir, { recursive: true })
   await writeFile(path.join(targetDir, 'scope.md'), content, 'utf8')
+}
+
+// ─── Work requests ──────────────────────────────────────────────────────────
+
+export async function writeWorkRequest(
+  id: string,
+  workflow: string
+): Promise<{ file: string }> {
+  const dir = await lanesDir()
+  const targetDir = laneDir(dir, id)
+  await mkdir(targetDir, { recursive: true })
+  const filePath = path.join(targetDir, 'work-request.json')
+  const request = {
+    lane: id,
+    workflow,
+    requestedAt: new Date().toISOString(),
+    status: 'pending',
+  }
+  await writeFile(filePath, JSON.stringify(request, null, 2) + '\n', 'utf8')
+  return { file: filePath }
 }

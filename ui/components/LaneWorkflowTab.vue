@@ -5,6 +5,14 @@
         <div>
           <div class="mb-1 flex items-center gap-2">
             <UBadge
+              v-if="isSkeleton"
+              label="planned"
+              color="neutral"
+              variant="subtle"
+              size="sm"
+            />
+            <UBadge
+              v-else
               :label="workflow.status"
               :color="
                 workflow.status === 'running'
@@ -20,12 +28,24 @@
               workflow.file
             }}</span>
           </div>
-          <div class="text-xs text-neutral-400">
+          <div
+            v-if="!isSkeleton"
+            class="text-xs text-neutral-400"
+          >
             Step {{ workflow.currentStep }} of {{ workflow.totalSteps }} ·
             {{ workflow.elapsed }} elapsed
           </div>
+          <div
+            v-else
+            class="text-xs text-neutral-400"
+          >
+            {{ workflow.totalSteps }} steps
+          </div>
         </div>
-        <div class="font-mono text-xs text-neutral-400">
+        <div
+          v-if="!isSkeleton"
+          class="font-mono text-xs text-neutral-400"
+        >
           started {{ workflow.startedAt }}
         </div>
       </div>
@@ -48,5 +68,7 @@
 <script setup lang="ts">
 import type { WorkflowRun } from '~/composables/useLanes'
 
-defineProps<{ workflow: WorkflowRun | null }>()
+const props = defineProps<{ workflow: WorkflowRun | null }>()
+
+const isSkeleton = computed(() => props.workflow?.status === 'skeleton')
 </script>

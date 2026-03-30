@@ -43,6 +43,61 @@
             >+{{ changes.files.length - 8 }} more</span>
           </div>
         </div>
+        <UButton
+          label="Commit"
+          icon="i-heroicons-check"
+          size="sm"
+          color="primary"
+          variant="soft"
+          :loading="committing"
+          @click="doCommit"
+        />
+      </div>
+
+      <!-- Last dispatch result -->
+      <div
+        v-if="lastResult && !lastResult.ok"
+        class="bg-surface border-b border-dashed border-red-500/30 px-5 py-3.5"
+      >
+        <div class="flex items-center gap-2 text-sm text-red-400">
+          <UIcon
+            name="i-heroicons-exclamation-triangle"
+            class="size-4"
+          />
+          <span>Dispatch failed</span>
+          <UBadge
+            :label="lastResult.sessionId"
+            color="neutral"
+            variant="subtle"
+            size="xs"
+          />
+          <span
+            v-if="lastResult.elapsed"
+            class="text-xs text-neutral-500"
+          >{{
+            lastResult.elapsed
+          }}</span>
+          <span
+            v-if="lastResult.exitCode != null"
+            class="text-xs text-neutral-500"
+          >exit {{ lastResult.exitCode }}</span>
+          <span
+            v-if="lastResult.killed"
+            class="text-xs text-orange-400"
+          >killed (timeout?)</span>
+        </div>
+        <pre
+          v-if="lastResult.stderr"
+          class="mt-2 max-h-40 overflow-auto font-mono text-xs whitespace-pre-wrap text-red-300/70"
+        >{{ lastResult.stderr }}</pre>
+        <pre
+          v-if="lastResult.stdout"
+          class="mt-2 max-h-40 overflow-auto font-mono text-xs whitespace-pre-wrap text-neutral-400"
+        >{{ lastResult.stdout }}</pre>
+        <pre
+          v-if="lastResult.error && !lastResult.stderr"
+          class="mt-2 max-h-40 overflow-auto font-mono text-xs whitespace-pre-wrap text-red-300/70"
+        >{{ lastResult.error }}</pre>
       </div>
 
       <!-- Committed -->
@@ -82,10 +137,58 @@
 </template>
 
 <script setup lang="ts">
-import type { Commit, LaneStatus } from '~/composables/useLanes'
+import type { Commit, LaneStatus, DispatchResult } from '~/composables/useLanes'
 
-defineProps<{
+const props = defineProps<{
+  laneId: string
   commits: Commit[]
   changes: LaneStatus['changes'] | null
 }>()
+
+const emit = defineEmits<{
+  committed: []
+}>()
+
+const toast = useToast()
+const { dispatch } = useLanes()
+
+const committing = ref(false)
+const lastResult = ref<DispatchResult | null>(null)
+
+async function doCommit() {
+  committing.value = true
+  lastResult.value = null
+  try {
+    const result = await dispatch(
+      props.laneId,
+      'Look at the current git diff and status. Stage all changes, then create a git commit with a clear conventional commit message.',
+      'haiku'
+    )
+    lastResult.value = result
+    if (result.ok) {
+      toast.add({
+        title: `Commit created [${result.sessionId}]`,
+        description: result.output?.slice(0, 200),
+        color: 'success',
+      })
+      emit('committed')
+    } else {
+      const detail = result.stderr || result.error || 'Unknown error'
+      toast.add({
+        title: `Commit failed [${result.sessionId}]`,
+        description: detail.slice(0, 300),
+        color: 'error',
+      })
+    }
+  } catch (err: unknown) {
+    // Network or unexpected error
+    const msg =
+      err && typeof err === 'object' && 'message' in err
+        ? String((err as { message: string }).message)
+        : 'Commit failed'
+    toast.add({ title: msg, color: 'error' })
+  } finally {
+    committing.value = false
+  }
+}
 </script>

@@ -65,6 +65,18 @@ export interface ReviewDetail {
   code: string | null
 }
 
+export interface DispatchResult {
+  ok: boolean
+  sessionId: string
+  output?: string
+  stdout?: string
+  stderr?: string
+  error?: string
+  elapsed?: string
+  exitCode?: number | null
+  killed?: boolean
+}
+
 // ─── useLanes ────────────────────────────────────────────────────────────────
 
 /**
@@ -159,6 +171,35 @@ export function useLanes() {
     await refresh()
   }
 
+  const getScope = (laneId: string): Promise<{ content: string | null }> =>
+    $fetch<{ content: string | null }>(`/api/lanes/${laneId}/scope`).catch(
+      () => ({ content: null })
+    )
+
+  const requestWork = async (
+    id: string,
+    workflow: string
+  ): Promise<{ file: string }> => {
+    return await $fetch<{ file: string }>(`/api/lanes/${id}/work-request`, {
+      method: 'POST',
+      body: { workflow },
+    })
+  }
+
+  const dispatch = async (
+    id: string,
+    prompt: string,
+    model?: string
+  ): Promise<DispatchResult> => {
+    const result = await $fetch<DispatchResult>(`/api/lanes/${id}/dispatch`, {
+      method: 'POST',
+      body: { prompt, model },
+      ignoreResponseError: true,
+    })
+    await refresh()
+    return result
+  }
+
   return {
     lanes,
     lanesWithPending,
@@ -174,5 +215,8 @@ export function useLanes() {
     transitionLane,
     gitAction,
     deleteLane,
+    getScope,
+    requestWork,
+    dispatch,
   }
 }

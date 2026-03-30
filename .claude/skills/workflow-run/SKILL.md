@@ -47,6 +47,14 @@ From `$ARGUMENTS`, determine mode:
 
 Extract all `--input key=value` pairs into an inputs dict.
 
+If `--cwd <path>` is present, resolve it to an absolute path and store
+it as `workflow_cwd`. All file operations (workspace creation, artifact
+paths, verify commands, context reads) and all agent dispatches use
+this directory as working directory. When dispatching agents, prepend
+`cd "{workflow_cwd}" &&` to any bash commands and resolve relative
+paths against it. If `--cwd` is absent, `workflow_cwd` defaults to
+the current working directory.
+
 ---
 
 ## Step 2: Load Workflow YAML
@@ -151,13 +159,13 @@ Dashboard: http://127.0.0.1:{port}/review
      `ls -td .workflow-runs/*/state.json 2>/dev/null | head -5`
      Read each and pick the first with `status == "in_progress"`.
 
-2. Read state.json. Workspace = parent directory of state.json.
+1. Read state.json. Workspace = parent directory of state.json.
 
-3. **Ensure review server is running** (see Review Server Management).
+1. **Ensure review server is running** (see Review Server Management).
 
-2. Print current status (step names + statuses).
+1. Print current status (step names + statuses).
 
-3. **Run the Execution Loop** starting from `current_step`.
+1. **Run the Execution Loop** starting from `current_step`.
 
 ---
 
@@ -225,7 +233,9 @@ If step status is `completed`, `approved`, or `skipped`:
 
 If step status is `aborted` or `rejected`:
 
-- Print: "Workflow was previously aborted at step '{step.name}'. To restart from this step, reset its status to `not_started` in state.json."
+- Print: "Workflow was previously aborted at step
+  '{step.name}'. To restart from this step, reset
+  its status to `not_started` in state.json."
 - EXIT
 
 ---
@@ -275,11 +285,15 @@ If step status is `revision_requested`:
 ### G. Dispatch Principal
 
 **Update state.json**:
-- If `state.steps[id].review` has a non-null `decision` (from a previous review cycle),
+
+- If `state.steps[id].review` has a non-null
+  `decision` (from a previous review cycle),
   push it to `review_history` first:
-  `review_history.push({...existing review, "iteration": review_history.length + 1})`
+  `review_history.push({...existing review,
+  "iteration": review_history.length + 1})`
   then set `review: null`.
-- Set step `status: "running"`, `started_at: {ISO timestamp}`.
+- Set step `status: "running"`,
+  `started_at: {ISO timestamp}`.
 
 **Pre-load context files** (if step has `context` list):
 For each path (with variables substituted), read content using Read tool.
@@ -424,7 +438,7 @@ use a single group with one item:
   "items": [{
     "id": "{step.id}-approval",
     "title": "Approve step: {step.name}",
-    "description": "No structured cards were produced. Review the artifacts in the dashboard and decide."
+    "description": "No structured cards. Review artifacts and decide."
   }]
 }
 ```
@@ -440,24 +454,32 @@ use a single group with one item:
 3. Start server:
 
 ```bash
-cd "{workspace}/feedback-{step.id}" && python3 feedback-server.py request.json 0 >> server.log 2>&1 &
+cd "{workspace}/feedback-{step.id}" && \
+  python3 feedback-server.py request.json 0 \
+  >> server.log 2>&1 &
 ```
 
-4. Wait for startup and read port:
+1. Wait for startup and read port:
 
 ```bash
-sleep 1 && cat "{workspace}/feedback-{step.id}/server.port" 2>/dev/null || echo "FAILED"
+sleep 1 && \
+  cat "{workspace}/feedback-{step.id}/server.port" \
+  2>/dev/null || echo "FAILED"
 ```
 
 If FAILED, print server.log and EXIT.
 
-5. Open browser:
+1. Open browser:
 
 ```bash
-open "http://127.0.0.1:{port}" 2>/dev/null || xdg-open "http://127.0.0.1:{port}" 2>/dev/null || echo "Open feedback UI: http://127.0.0.1:{port}"
+open "http://127.0.0.1:{port}" 2>/dev/null \
+  || xdg-open "http://127.0.0.1:{port}" \
+  2>/dev/null \
+  || echo "Open: http://127.0.0.1:{port}"
 ```
 
-6. Block until `response.json` appears. Run with Bash tool, **timeout: 610000ms**:
+1. Block until `response.json` appears.
+   Run with Bash tool, **timeout: 610000ms**:
 
 ```bash
 RESPONSE="{workspace}/feedback-{step.id}/response.json"
@@ -515,7 +537,7 @@ fi
 | --- | --- |
 | `approved` | Advance `current_step`, continue execution loop |
 | `revision_requested` | Re-dispatch principal (step G) with review comments |
-| `rejected` | Mark `status: "aborted"`, stop review server, print summary, EXIT |
+| `rejected` | Mark `"aborted"`, stop server, print summary, EXIT |
 
 ---
 

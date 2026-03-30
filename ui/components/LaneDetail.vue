@@ -121,6 +121,20 @@
             :loading="transitioning"
             @click="doTransition(action)"
           />
+          <template v-if="canStartWork">
+            <div
+              v-if="availableGitActions.length || availableActions.length"
+              class="bg-line mx-1 h-5 w-px"
+            />
+            <UButton
+              label="Start Work"
+              icon="i-heroicons-rocket-launch"
+              size="sm"
+              color="primary"
+              variant="solid"
+              @click="startWorkOpen = true"
+            />
+          </template>
         </template>
       </div>
     </div>
@@ -157,8 +171,12 @@
 
     <!-- Tab content -->
     <div class="flex-1 overflow-auto">
+      <LaneScopeTab
+        v-if="activeTab === 'scope'"
+        :lane-id="laneId"
+      />
       <LaneInboxTab
-        v-if="activeTab === 'inbox'"
+        v-else-if="activeTab === 'inbox'"
         :lane-id="laneId"
         :base-path="basePath"
         :reviews="reviews"
@@ -169,10 +187,20 @@
       />
       <LaneCommitsTab
         v-else-if="activeTab === 'commits'"
+        :lane-id="laneId"
         :commits="commits"
         :changes="status?.changes ?? null"
+        @committed="onCommitted"
       />
     </div>
+
+    <LaneStartWorkDialog
+      v-if="canStartWork"
+      v-model:open="startWorkOpen"
+      :lane-id="laneId"
+      :lane-intent="lane?.intent"
+      :lane-path="lane?.path"
+    />
   </div>
 </template>
 
@@ -364,6 +392,25 @@ async function doDelete() {
   }
 }
 
+// ─── Start work ─────────────────────────────────────────────────────────────
+
+const canStartWork = computed(() => {
+  const l = lane.value
+  if (!l || !l.state) return false
+  return l.state === 'created' || l.state === 'working'
+})
+
+const startWorkOpen = ref(false)
+
+async function onCommitted() {
+  const [c, s] = await Promise.all([
+    getCommits(props.laneId),
+    getStatus(props.laneId),
+  ])
+  commits.value = c
+  status.value = s ?? null
+}
+
 const workflow = ref<Awaited<ReturnType<typeof getWorkflow>>>(null)
 const commits = ref<Commit[]>([])
 const status = ref<LaneStatus | null>(null)
@@ -390,7 +437,25 @@ const totalPending = computed(
       .filter((i) => itemStatus(i) === 'pending').length
 )
 
+const isFeatureLane = computed(() => {
+  const l = lane.value
+  if (!l) return false
+  // A lane with a record (state exists) is a feature lane,
+  // even when checked out at root (staged)
+  return l.id !== 'root' || !!l.state
+})
+
 const tabs = computed(() => [
+  ...(isFeatureLane.value
+    ? [
+        {
+          key: 'scope',
+          label: 'Scope',
+          icon: 'i-heroicons-document-text',
+          badge: 0,
+        },
+      ]
+    : []),
   {
     key: 'inbox',
     label: 'Inbox',
@@ -411,5 +476,32 @@ const tabs = computed(() => [
   },
 ])
 
-const activeTab = ref('inbox')
+const route = useRoute()
+const validTabs = ['scope', 'inbox', 'workflow', 'commits'] as const
+const tabMemory = useState<Record<string, string>>(
+  'lane-tab-memory',
+  () => ({})
+)
+
+const defaultTab = computed(() => (isFeatureLane.value ? 'scope' : 'inbox'))
+
+const activeTab = computed({
+  get: () => {
+    const tab = route.query.tab as string
+    if (validTabs.includes(tab as (typeof validTabs)[number])) return tab
+    return tabMemory.value[props.laneId] ?? defaultTab.value
+  },
+  set: (value: string) => {
+    tabMemory.value[props.laneId] = value
+    router.replace({ query: { ...route.query, tab: value } })
+  },
+})
+
+watch(
+  activeTab,
+  (tab) => {
+    tabMemory.value[props.laneId] = tab
+  },
+  { immediate: true }
+)
 </script>

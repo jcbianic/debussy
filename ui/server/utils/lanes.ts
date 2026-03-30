@@ -1,4 +1,5 @@
 import path from 'node:path'
+import { parse as parseYaml } from 'yaml'
 import type { Review } from './reviews'
 import type { LaneState } from '~/shared/types/lanes'
 
@@ -160,5 +161,33 @@ export function stateJsonToWorkflowRun(
     elapsed,
     startedAt,
     steps: mappedSteps,
+  }
+}
+
+// ─── workflowYamlToSkeleton ─────────────────────────────────────────────────
+
+export function workflowYamlToSkeleton(
+  yamlContent: string,
+  filePath: string
+): WorkflowRun | null {
+  try {
+    const doc = parseYaml(yamlContent) as Record<string, unknown>
+    const steps = doc.steps as Array<Record<string, unknown>> | undefined
+    if (!Array.isArray(steps) || steps.length === 0) return null
+
+    return {
+      file: filePath,
+      status: 'skeleton',
+      currentStep: 0,
+      totalSteps: steps.length,
+      elapsed: '',
+      startedAt: '',
+      steps: steps.map((s) => ({
+        name: (s.name as string) ?? (s.id as string) ?? 'Step',
+        state: 'pending' as const,
+      })),
+    }
+  } catch {
+    return null
   }
 }
