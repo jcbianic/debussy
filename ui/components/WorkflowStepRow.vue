@@ -54,6 +54,7 @@
       size="xs"
       color="primary"
       variant="outline"
+      @click="emit('unblock')"
     />
   </div>
 </template>
@@ -62,4 +63,5 @@
 import type { WorkflowStep } from '~/composables/useLanes'
 
 defineProps<{ step: WorkflowStep }>()
+const emit = defineEmits<{ unblock: [] }>()
 </script>

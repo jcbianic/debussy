@@ -140,6 +140,14 @@ export function useLanes() {
       () => null
     )
 
+  const unblockWorkflow = (
+    laneId: string
+  ): Promise<{ decision: string; step: string }> =>
+    $fetch<{ decision: string; step: string }>(
+      `/api/lanes/${laneId}/workflow/unblock`,
+      { method: 'POST' }
+    )
+
   const getCommits = (laneId: string): Promise<Commit[]> =>
     $fetch<Commit[]>(`/api/lanes/${laneId}/commits`).catch(() => [])
 
@@ -255,6 +263,7 @@ export function useLanes() {
     totalPending,
     getLane,
     getWorkflow,
+    unblockWorkflow,
     getCommits,
     getStatus,
     getReview,

@@ -54,6 +54,7 @@
           v-for="step in workflow.steps"
           :key="step.name"
           :step="step"
+          @unblock="handleUnblock"
         />
       </div>
     </div>
@@ -70,7 +71,7 @@ import type { WorkflowRun } from '~/composables/useLanes'
 
 const props = defineProps<{ laneId: string }>()
 
-const { getWorkflow } = useLanes()
+const { getWorkflow, unblockWorkflow } = useLanes()
 
 const workflow = ref<WorkflowRun | null>(null)
 let pollTimer: ReturnType<typeof setInterval> | null = null
@@ -79,6 +80,11 @@ const isSkeleton = computed(() => workflow.value?.status === 'skeleton')
 
 async function loadWorkflow() {
   workflow.value = (await getWorkflow(props.laneId)) ?? null
+}
+
+async function handleUnblock() {
+  await unblockWorkflow(props.laneId)
+  await loadWorkflow()
 }
 
 function startPolling() {
