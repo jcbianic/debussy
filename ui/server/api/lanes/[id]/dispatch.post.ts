@@ -83,47 +83,51 @@ export default defineEventHandler(async (event) => {
     cwd: lane.path,
     timeout: 180_000,
     env: { ...process.env },
-  }).then(
-    async ({ stdout, stderr }) => {
-      const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1)
-      console.log(
-        `[dispatch:${sessionId}] completed in ${elapsed}s (${stdout.length} bytes)`
-      )
-      if (stderr) {
-        console.log(`[dispatch:${sessionId}] stderr: ${stderr.trim()}`)
-      }
-      await writeSession({
-        ...session,
-        status: 'completed',
-        completedAt: new Date().toISOString(),
-        elapsed: `${elapsed}s`,
-        output: stdout.trim(),
-      })
-    },
-    async (err: unknown) => {
-      const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1)
-      const e = err as {
-        stdout?: string
-        stderr?: string
-        message?: string
-        code?: string | number
-        killed?: boolean
-      }
-      console.error(`[dispatch:${sessionId}] FAILED after ${elapsed}s`)
-      if (e.message) console.error(`[dispatch:${sessionId}] ${e.message}`)
+  })
+    .then(
+      async ({ stdout, stderr }) => {
+        const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1)
+        console.log(
+          `[dispatch:${sessionId}] completed in ${elapsed}s (${stdout.length} bytes)`
+        )
+        if (stderr) {
+          console.log(`[dispatch:${sessionId}] stderr: ${stderr.trim()}`)
+        }
+        await writeSession({
+          ...session,
+          status: 'completed',
+          completedAt: new Date().toISOString(),
+          elapsed: `${elapsed}s`,
+          output: stdout.trim(),
+        })
+      },
+      async (err: unknown) => {
+        const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1)
+        const e = err as {
+          stdout?: string
+          stderr?: string
+          message?: string
+          code?: string | number
+          killed?: boolean
+        }
+        console.error(`[dispatch:${sessionId}] FAILED after ${elapsed}s`)
+        if (e.message) console.error(`[dispatch:${sessionId}] ${e.message}`)
 
-      await writeSession({
-        ...session,
-        status: 'failed',
-        completedAt: new Date().toISOString(),
-        elapsed: `${elapsed}s`,
-        output: e.stdout?.trim() ?? null,
-        error: e.stderr?.trim() || e.message || 'Dispatch failed',
-        exitCode: typeof e.code === 'number' ? e.code : null,
-        killed: e.killed ?? false,
-      })
-    }
-  )
+        await writeSession({
+          ...session,
+          status: 'failed',
+          completedAt: new Date().toISOString(),
+          elapsed: `${elapsed}s`,
+          output: e.stdout?.trim() ?? null,
+          error: e.stderr?.trim() || e.message || 'Dispatch failed',
+          exitCode: typeof e.code === 'number' ? e.code : null,
+          killed: e.killed ?? false,
+        })
+      }
+    )
+    .catch((err) => {
+      console.error(`[dispatch:${sessionId}] post-process error:`, err)
+    })
 
   // Return immediately
   setResponseStatus(event, 202)

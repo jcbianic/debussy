@@ -384,7 +384,6 @@ function stripSystemTags(s: string): string {
     .replace(/<command-name>[\s\S]*?<\/command-name>/g, '')
     .replace(/<command-args>[\s\S]*?<\/command-args>/g, '')
     .replace(/<local-command-stdout>[\s\S]*?<\/local-command-stdout>/g, '')
-    .replace(/<[^>]*>/g, '')
     .replace(/Caveat:.*$/m, '')
     .trim()
 }

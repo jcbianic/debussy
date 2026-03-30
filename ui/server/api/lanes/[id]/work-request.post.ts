@@ -98,50 +98,55 @@ export default defineEventHandler(async (event) => {
   // Spawn claude in background — track completion
   const startedAt = Date.now()
   execFileAsync('claude', ['-p', command, '--max-turns', '200'], {
-    cwd: mainRoot,
+    cwd: absoluteWtPath,
     timeout: 600_000,
+    maxBuffer: 10 * 1024 * 1024, // 10 MB — long workflows produce large output
     env: { ...process.env },
-  }).then(
-    async ({ stdout, stderr }) => {
-      const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1)
-      console.log(
-        `[work-request:${sessionId}] completed in ${elapsed}s (${stdout.length} bytes)`
-      )
-      if (stderr) {
-        console.log(`[work-request:${sessionId}] stderr: ${stderr.trim()}`)
-      }
-      await writeSession({
-        ...session,
-        status: 'completed',
-        completedAt: new Date().toISOString(),
-        elapsed: `${elapsed}s`,
-        output: stdout.trim(),
-      })
-    },
-    async (err: unknown) => {
-      const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1)
-      const e = err as {
-        stdout?: string
-        stderr?: string
-        message?: string
-        code?: string | number
-        killed?: boolean
-      }
-      console.error(`[work-request:${sessionId}] FAILED after ${elapsed}s`)
-      if (e.message) console.error(`[work-request:${sessionId}] ${e.message}`)
+  })
+    .then(
+      async ({ stdout, stderr }) => {
+        const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1)
+        console.log(
+          `[work-request:${sessionId}] completed in ${elapsed}s (${stdout.length} bytes)`
+        )
+        if (stderr) {
+          console.log(`[work-request:${sessionId}] stderr: ${stderr.trim()}`)
+        }
+        await writeSession({
+          ...session,
+          status: 'completed',
+          completedAt: new Date().toISOString(),
+          elapsed: `${elapsed}s`,
+          output: stdout.trim(),
+        })
+      },
+      async (err: unknown) => {
+        const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1)
+        const e = err as {
+          stdout?: string
+          stderr?: string
+          message?: string
+          code?: string | number
+          killed?: boolean
+        }
+        console.error(`[work-request:${sessionId}] FAILED after ${elapsed}s`)
+        if (e.message) console.error(`[work-request:${sessionId}] ${e.message}`)
 
-      await writeSession({
-        ...session,
-        status: 'failed',
-        completedAt: new Date().toISOString(),
-        elapsed: `${elapsed}s`,
-        output: e.stdout?.trim() ?? null,
-        error: e.stderr?.trim() || e.message || 'Work request failed',
-        exitCode: typeof e.code === 'number' ? e.code : null,
-        killed: e.killed ?? false,
-      })
-    }
-  )
+        await writeSession({
+          ...session,
+          status: 'failed',
+          completedAt: new Date().toISOString(),
+          elapsed: `${elapsed}s`,
+          output: e.stdout?.trim() ?? null,
+          error: e.stderr?.trim() || e.message || 'Work request failed',
+          exitCode: typeof e.code === 'number' ? e.code : null,
+          killed: e.killed ?? false,
+        })
+      }
+    )
+    .catch((err) => {
+      console.error(`[work-request:${sessionId}] post-process error:`, err)
+    })
 
   // Return immediately
   setResponseStatus(event, 202)
