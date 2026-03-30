@@ -48,8 +48,21 @@ export default defineEventHandler(async (event) => {
     source: 'dispatch' as const,
   }))
 
+  // Deduplicate: dispatch sessions also appear as CLI sessions.
+  // They have different IDs, but same prompt and close timestamps.
+  // Prefer the dispatch entry (richer metadata: exit code, elapsed, output).
+  const dedupedCli = cliSessions.filter((cli) => {
+    return !normalized.some((d) => {
+      if (d.prompt !== cli.prompt) return false
+      const dt = Math.abs(
+        new Date(d.startedAt).getTime() - new Date(cli.startedAt).getTime()
+      )
+      return dt < 30_000 // within 30 seconds
+    })
+  })
+
   // Merge and sort by startedAt (most recent first)
-  const all = [...normalized, ...cliSessions].sort(
+  const all = [...normalized, ...dedupedCli].sort(
     (a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime()
   )
 

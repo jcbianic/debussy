@@ -1,7 +1,8 @@
 import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
 import {
-  resolveSessionPath,
+  findSessionPath,
+  findSessionByPrompt,
   parseSessionMessages,
 } from '../../../../../utils/session-messages'
 import { readSession } from '../../../../../utils/dispatch-store'
@@ -17,13 +18,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'Missing parameters' })
   }
 
-  // Check if this is a dispatch session first
-  const dispatchSession = await readSession(laneId, sessionId)
-  if (dispatchSession) {
-    return dispatchToChat(dispatchSession)
-  }
-
-  // Otherwise, resolve as CLI session from JSONL
+  // Resolve repo root from worktrees
   let repoRoot = process.cwd()
   try {
     const { stdout } = await execFileAsync('git', [
@@ -37,16 +32,31 @@ export default defineEventHandler(async (event) => {
     // fallback to cwd
   }
 
-  const filePath = resolveSessionPath(repoRoot, sessionId)
-  if (!filePath) {
-    throw createError({
-      statusCode: 404,
-      statusMessage: 'Session file not found',
-    })
+  // Try to find JSONL by exact sessionId first (CLI sessions)
+  const filePath = await findSessionPath(repoRoot, sessionId)
+  if (filePath) {
+    const messages = await parseSessionMessages(filePath)
+    if (messages.length > 0) return messages
   }
 
-  const messages = await parseSessionMessages(filePath)
-  return messages
+  // For dispatch sessions, the CLI sessionId differs from dispatch ID.
+  // Look up the dispatch record, then find the JSONL by prompt + timestamp match.
+  const dispatchSession = await readSession(laneId, sessionId)
+  if (dispatchSession) {
+    const jsonlPath = await findSessionByPrompt(
+      repoRoot,
+      dispatchSession.prompt,
+      dispatchSession.startedAt
+    )
+    if (jsonlPath) {
+      const messages = await parseSessionMessages(jsonlPath)
+      if (messages.length > 0) return messages
+    }
+    // Final fallback: synthesize from stored prompt/output
+    return dispatchToChat(dispatchSession)
+  }
+
+  return []
 })
 
 function dispatchToChat(session: {

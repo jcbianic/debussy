@@ -1,4 +1,4 @@
-import { open as fsOpen } from 'node:fs/promises'
+import { open as fsOpen, readdir, access, stat } from 'node:fs/promises'
 import { createInterface } from 'node:readline'
 import path from 'node:path'
 import os from 'node:os'
@@ -15,15 +15,141 @@ export interface ChatMessage {
 const CLAUDE_PROJECTS = path.join(os.homedir(), '.claude', 'projects')
 
 /**
- * Resolve the JSONL file path for a CLI session.
- * Claude stores sessions in ~/.claude/projects/<encoded-cwd>/<sessionId>.jsonl
+ * Find the JSONL file path for a session.
+ * Searches across all project directories matching the repo root
+ * (main repo + worktree variants).
  */
-export function resolveSessionPath(
+export async function findSessionPath(
   repoRoot: string,
   sessionId: string
-): string | null {
-  const dirName = repoRoot.replace(/\//g, '-')
-  return path.join(CLAUDE_PROJECTS, dirName, `${sessionId}.jsonl`)
+): Promise<string | null> {
+  const mainDirName = repoRoot.replace(/\//g, '-')
+  const fileName = `${sessionId}.jsonl`
+
+  let entries: string[]
+  try {
+    entries = await readdir(CLAUDE_PROJECTS)
+  } catch {
+    return null
+  }
+
+  // Check all project directories for this repo (main + worktrees)
+  const matchingDirs = entries.filter(
+    (e) => e === mainDirName || e.startsWith(mainDirName + '-')
+  )
+
+  for (const dir of matchingDirs) {
+    const candidate = path.join(CLAUDE_PROJECTS, dir, fileName)
+    try {
+      await access(candidate)
+      return candidate
+    } catch {
+      continue
+    }
+  }
+
+  return null
+}
+
+/**
+ * Find a JSONL file by matching the first user prompt and approximate timestamp.
+ * Used for dispatch sessions where the CLI sessionId differs from the dispatch ID.
+ */
+export async function findSessionByPrompt(
+  repoRoot: string,
+  prompt: string,
+  startedAt: string,
+  thresholdMs = 30_000
+): Promise<string | null> {
+  const mainDirName = repoRoot.replace(/\//g, '-')
+
+  let entries: string[]
+  try {
+    entries = await readdir(CLAUDE_PROJECTS)
+  } catch {
+    return null
+  }
+
+  const matchingDirs = entries.filter(
+    (e) => e === mainDirName || e.startsWith(mainDirName + '-')
+  )
+
+  const targetTime = new Date(startedAt).getTime()
+
+  // Collect recent JSONL files (within ~5 min of the target)
+  const candidates: { filePath: string; mtime: number }[] = []
+  for (const dir of matchingDirs) {
+    const dirPath = path.join(CLAUDE_PROJECTS, dir)
+    try {
+      const names = await readdir(dirPath)
+      for (const name of names) {
+        if (!name.endsWith('.jsonl')) continue
+        const filePath = path.join(dirPath, name)
+        const s = await stat(filePath)
+        if (Math.abs(s.mtimeMs - targetTime) < 300_000) {
+          candidates.push({ filePath, mtime: s.mtimeMs })
+        }
+      }
+    } catch {
+      continue
+    }
+  }
+
+  // Sort by closest mtime to target
+  candidates.sort(
+    (a, b) => Math.abs(a.mtime - targetTime) - Math.abs(b.mtime - targetTime)
+  )
+
+  // Check first user prompt in each candidate
+  for (const { filePath } of candidates.slice(0, 10)) {
+    const firstPrompt = await extractFirstPrompt(filePath)
+    if (!firstPrompt) continue
+    const dt = Math.abs(new Date(firstPrompt.timestamp).getTime() - targetTime)
+    if (dt < thresholdMs && firstPrompt.text === prompt) {
+      return filePath
+    }
+  }
+
+  return null
+}
+
+async function extractFirstPrompt(
+  filePath: string
+): Promise<{ text: string; timestamp: string } | null> {
+  let handle: Awaited<ReturnType<typeof fsOpen>> | null = null
+  try {
+    handle = await fsOpen(filePath, 'r')
+    const stream = handle.createReadStream({ encoding: 'utf8' })
+    const rl = createInterface({ input: stream, crlfDelay: Infinity })
+
+    let linesRead = 0
+    for await (const line of rl) {
+      linesRead++
+      if (linesRead > 20) break
+      try {
+        const obj = JSON.parse(line)
+        if (obj.type !== 'user' || obj.isMeta) continue
+        const content = obj.message?.content
+        if (typeof content !== 'string') continue
+        const cleaned = stripSystemTags(content)
+        if (cleaned) {
+          rl.close()
+          stream.destroy()
+          return { text: cleaned, timestamp: obj.timestamp || '' }
+        }
+      } catch {
+        continue
+      }
+    }
+
+    rl.close()
+    stream.destroy()
+    return null
+  } catch {
+    return null
+  } finally {
+    await handle?.close()
+  }
 }
 
 /**

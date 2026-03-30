@@ -58,6 +58,7 @@ export interface LaneStatus {
 
 export interface ReviewDetail {
   id: string
+  reviewId: string
   title: string
   source: string
   status: ItemStatus
@@ -152,6 +153,7 @@ export function useLanes() {
         if (item) {
           return {
             id: item.id,
+            reviewId: review.id,
             title: item.title,
             source: `${review.title} · ${review.source}`,
             status: itemStatus(item),
