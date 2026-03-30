@@ -148,6 +148,8 @@ export default defineEventHandler(async (event) => {
         })
       }
       await mergePR(record.prNumber)
+      // Checkout root back to main before cleanup
+      await checkoutBranch(root, 'main')
       // Cleanup worktree and branch
       try {
         await removeWorktree(absWorktree)

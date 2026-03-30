@@ -3,6 +3,7 @@ import { promisify } from 'node:util'
 import { listSessions, writeSession } from '../../../utils/dispatch-store'
 import { listCliSessions } from '../../../utils/cli-sessions'
 import { parseLanesFromWorktrees } from '../../../utils/lanes'
+import { resolveRecordId } from '../../../utils/lane-store'
 import {
   findSessionByPrompt,
   isSessionCompleted,
@@ -40,9 +41,12 @@ export default defineEventHandler(async (event) => {
     // fallback to cwd
   }
 
+  // Resolve record ID for staged lanes (id=root → real lane ID)
+  const recordId = await resolveRecordId(id, laneBranch)
+
   // Fetch both sources in parallel
   const [dispatchSessions, cliSessions] = await Promise.all([
-    listSessions(id),
+    listSessions(recordId),
     listCliSessions(repoRoot, lanePath, laneBranch),
   ])
 
