@@ -1,14 +1,38 @@
 <template>
   <div class="px-8 py-6">
     <div class="mb-4 flex items-center justify-between">
-      <span class="text-sm font-semibold">Inbox</span>
-      <span class="text-xs text-neutral-400">{{ totalPending }} pending</span>
+      <div class="flex items-center gap-3">
+        <span class="text-sm font-semibold">Inbox</span>
+        <div class="flex items-center gap-1">
+          <button
+            v-for="f in filters"
+            :key="f.key"
+            class="rounded-md px-2 py-0.5 text-xs transition-colors"
+            :class="
+              activeFilter === f.key
+                ? 'bg-primary-500/15 text-primary-400 font-medium'
+                : 'text-content-subtle hover:text-content-strong hover:bg-surface-tinted'
+            "
+            @click="activeFilter = f.key"
+          >
+            {{ f.label }}
+            <span
+              v-if="f.count > 0"
+              class="ml-0.5 text-[10px] opacity-60"
+            >{{
+              f.count
+            }}</span>
+          </button>
+        </div>
+      </div>
     </div>
 
     <EmptyState
-      v-if="reviews.length === 0"
+      v-if="filteredReviews.length === 0"
       icon="i-heroicons-inbox"
-      text="No pending reviews"
+      :text="
+        activeFilter === 'all' ? 'No reviews yet' : `No ${activeFilter} reviews`
+      "
     />
 
     <div
@@ -16,7 +40,7 @@
       class="space-y-3"
     >
       <div
-        v-for="review in reviews"
+        v-for="review in filteredReviews"
         :key="review.id"
         class="border-line overflow-hidden rounded-lg border"
       >
@@ -39,8 +63,16 @@
           <span class="flex-1 text-sm font-medium">{{ review.title }}</span>
           <span class="mr-2 text-xs text-neutral-400">{{ review.source }}</span>
           <UBadge
+            v-if="pendingCount(review) > 0"
             :label="`${pendingCount(review)} pending`"
             color="warning"
+            variant="subtle"
+            size="xs"
+          />
+          <UBadge
+            v-else
+            label="done"
+            color="success"
             variant="subtle"
             size="xs"
           />
@@ -50,12 +82,14 @@
           class="border-line-subtle border-t"
         >
           <NuxtLink
-            v-for="(item, i) in review.items"
+            v-for="(item, i) in filterItems(review.items)"
             :key="item.id"
             :to="`/${basePath}/${laneId}/review/${encodeURIComponent(item.id)}`"
             class="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/50"
             :class="
-              i < review.items.length - 1 ? 'border-line-subtle border-b' : ''
+              i < filterItems(review.items).length - 1
+                ? 'border-line-subtle border-b'
+                : ''
             "
           >
             <div class="w-4 flex-shrink-0" />
@@ -93,17 +127,43 @@ const props = defineProps<{
   reviews: Review[]
 }>()
 
+const activeFilter = ref<'all' | 'pending' | 'done'>('all')
+
 const derivedStatus = (item: Item) => itemStatus(item)
 
-const pendingCount = (r: Review) =>
-  r.items.filter((i) => itemStatus(i) === 'pending').length
+const isPending = (item: Item) => itemStatus(item) === 'pending'
+
+const pendingCount = (r: Review) => r.items.filter((i) => isPending(i)).length
 
 const totalPending = computed(
-  () =>
-    props.reviews
-      .flatMap((r) => r.items)
-      .filter((i) => itemStatus(i) === 'pending').length
+  () => props.reviews.flatMap((r) => r.items).filter((i) => isPending(i)).length
 )
+
+const totalDone = computed(
+  () =>
+    props.reviews.flatMap((r) => r.items).filter((i) => !isPending(i)).length
+)
+
+const filters = computed(() => [
+  {
+    key: 'all' as const,
+    label: 'All',
+    count: props.reviews.flatMap((r) => r.items).length,
+  },
+  { key: 'pending' as const, label: 'Pending', count: totalPending.value },
+  { key: 'done' as const, label: 'Done', count: totalDone.value },
+])
+
+function filterItems(items: Item[]): Item[] {
+  if (activeFilter.value === 'pending') return items.filter((i) => isPending(i))
+  if (activeFilter.value === 'done') return items.filter((i) => !isPending(i))
+  return items
+}
+
+const filteredReviews = computed(() => {
+  if (activeFilter.value === 'all') return props.reviews
+  return props.reviews.filter((r) => filterItems(r.items).length > 0)
+})
 
 const { expanded, toggle: toggleGroup } = useExpandable(
   props.reviews.map((r) => r.id)

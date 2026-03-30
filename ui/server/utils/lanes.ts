@@ -145,7 +145,8 @@ export function stateJsonToWorkflowRun(
     const step = steps[key]!
     const status = step.status as string
     let state: WorkflowStep['state']
-    if (status === 'done') state = 'done'
+    if (status === 'done' || status === 'completed' || status === 'approved')
+      state = 'done'
     else if (status === 'pending_review') state = 'waiting'
     else if (status === 'in_progress') state = 'running'
     else state = 'pending'

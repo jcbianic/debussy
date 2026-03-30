@@ -1,10 +1,13 @@
-import { exec } from 'node:child_process'
+import { exec, spawn } from 'node:child_process'
 import { promisify } from 'node:util'
+import path from 'node:path'
 import {
   readLaneRecord,
   resolveRecordId,
   writeWorkRequest,
 } from '../../../utils/lane-store'
+import { getWorkConfig } from '../../../utils/debussy-config'
+import { resolveDebussyPath } from '../../../utils/debussy'
 
 const execAsync = promisify(exec)
 
@@ -45,6 +48,31 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const result = await writeWorkRequest(recordId, body.workflow)
-  return result
+  const [result, workConfig, mainRoot] = await Promise.all([
+    writeWorkRequest(recordId, body.workflow),
+    getWorkConfig(),
+    resolveDebussyPath(),
+  ])
+
+  const absoluteWtPath = path.resolve(mainRoot, record.worktreePath)
+
+  // Build workflow-run command string
+  const parts = [`/workflow-run ${body.workflow}`]
+  parts.push(`--cwd ${absoluteWtPath}`)
+  const escapedTitle = record.issueTitle.replace(/"/g, '\\"')
+  parts.push(`--input task="${escapedTitle}"`)
+  if (workConfig.test_cmd) {
+    parts.push(`--input test_cmd="${workConfig.test_cmd}"`)
+  }
+  const command = parts.join(' ')
+
+  // Dispatch claude in background
+  const child = spawn('claude', ['-p', command, '--max-turns', '200'], {
+    cwd: mainRoot,
+    detached: true,
+    stdio: 'ignore',
+  })
+  child.unref()
+
+  return { ...result, command, pid: child.pid }
 })

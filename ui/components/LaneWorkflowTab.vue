@@ -68,7 +68,47 @@
 <script setup lang="ts">
 import type { WorkflowRun } from '~/composables/useLanes'
 
-const props = defineProps<{ workflow: WorkflowRun | null }>()
+const props = defineProps<{ laneId: string }>()
 
-const isSkeleton = computed(() => props.workflow?.status === 'skeleton')
+const { getWorkflow } = useLanes()
+
+const workflow = ref<WorkflowRun | null>(null)
+let pollTimer: ReturnType<typeof setInterval> | null = null
+
+const isSkeleton = computed(() => workflow.value?.status === 'skeleton')
+
+async function loadWorkflow() {
+  workflow.value = (await getWorkflow(props.laneId)) ?? null
+}
+
+function startPolling() {
+  stopPolling()
+  pollTimer = setInterval(async () => {
+    await loadWorkflow()
+    const status = workflow.value?.status
+    if (status && status !== 'running') {
+      stopPolling()
+    }
+  }, 3000)
+}
+
+function stopPolling() {
+  if (pollTimer) {
+    clearInterval(pollTimer)
+    pollTimer = null
+  }
+}
+
+watch(
+  () => props.laneId,
+  async () => {
+    await loadWorkflow()
+    if (workflow.value?.status === 'running') {
+      startPolling()
+    }
+  },
+  { immediate: true }
+)
+
+onUnmounted(() => stopPolling())
 </script>

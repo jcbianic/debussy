@@ -132,7 +132,8 @@
               size="sm"
               color="primary"
               variant="solid"
-              @click="startWorkOpen = true"
+              :loading="startingWork"
+              @click="doStartWork"
             />
           </template>
         </template>
@@ -183,7 +184,12 @@
       />
       <LaneWorkflowTab
         v-else-if="activeTab === 'workflow'"
-        :workflow="workflow"
+        :lane-id="laneId"
+      />
+      <LaneSessionsTab
+        v-else-if="activeTab === 'sessions'"
+        :lane-id="laneId"
+        @session-done="onCommitted"
       />
       <LaneCommitsTab
         v-else-if="activeTab === 'commits'"
@@ -193,14 +199,6 @@
         @committed="onCommitted"
       />
     </div>
-
-    <LaneStartWorkDialog
-      v-if="canStartWork"
-      v-model:open="startWorkOpen"
-      :lane-id="laneId"
-      :lane-intent="lane?.intent"
-      :lane-path="lane?.path"
-    />
   </div>
 </template>
 
@@ -218,12 +216,12 @@ const toast = useToast()
 
 const {
   getLane,
-  getWorkflow,
   getCommits,
   getStatus,
   transitionLane,
   gitAction,
   deleteLane,
+  requestWork,
 } = useLanes()
 
 const lane = computed(() => getLane(props.laneId))
@@ -400,7 +398,28 @@ const canStartWork = computed(() => {
   return l.state === 'created' || l.state === 'working'
 })
 
-const startWorkOpen = ref(false)
+const startingWork = ref(false)
+const WORKFLOW = '.claude/workflows/rpikit-complete.yml'
+
+async function doStartWork() {
+  startingWork.value = true
+  try {
+    await requestWork(props.laneId, WORKFLOW)
+    toast.add({
+      title: 'Workflow dispatched',
+      color: 'success',
+    })
+    activeTab.value = 'workflow'
+  } catch (err: unknown) {
+    const msg =
+      err && typeof err === 'object' && 'statusMessage' in err
+        ? String((err as { statusMessage: string }).statusMessage)
+        : 'Failed to start work'
+    toast.add({ title: msg, color: 'error' })
+  } finally {
+    startingWork.value = false
+  }
+}
 
 async function onCommitted() {
   const [c, s] = await Promise.all([
@@ -411,20 +430,14 @@ async function onCommitted() {
   status.value = s ?? null
 }
 
-const workflow = ref<Awaited<ReturnType<typeof getWorkflow>>>(null)
 const commits = ref<Commit[]>([])
 const status = ref<LaneStatus | null>(null)
 
 watch(
   () => props.laneId,
   async (id) => {
-    const [c, w, s] = await Promise.all([
-      getCommits(id),
-      getWorkflow(id),
-      getStatus(id),
-    ])
+    const [c, s] = await Promise.all([getCommits(id), getStatus(id)])
     commits.value = c
-    workflow.value = w ?? null
     status.value = s ?? null
   },
   { immediate: true }
@@ -469,6 +482,12 @@ const tabs = computed(() => [
     badge: 0,
   },
   {
+    key: 'sessions',
+    label: 'Sessions',
+    icon: 'i-heroicons-bolt',
+    badge: 0,
+  },
+  {
     key: 'commits',
     label: 'Commits',
     icon: 'i-heroicons-queue-list',
@@ -477,7 +496,7 @@ const tabs = computed(() => [
 ])
 
 const route = useRoute()
-const validTabs = ['scope', 'inbox', 'workflow', 'commits'] as const
+const validTabs = ['scope', 'inbox', 'workflow', 'sessions', 'commits'] as const
 const tabMemory = useState<Record<string, string>>(
   'lane-tab-memory',
   () => ({})

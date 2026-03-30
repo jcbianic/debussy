@@ -65,16 +65,44 @@ export interface ReviewDetail {
   code: string | null
 }
 
-export interface DispatchResult {
-  ok: boolean
+export interface DispatchSession {
   sessionId: string
-  output?: string
-  stdout?: string
-  stderr?: string
-  error?: string
-  elapsed?: string
-  exitCode?: number | null
-  killed?: boolean
+  source: 'dispatch'
+  laneId: string
+  prompt: string
+  model: string
+  status: 'running' | 'completed' | 'failed'
+  startedAt: string
+  completedAt: string | null
+  elapsed: string | null
+  output: string | null
+  error: string | null
+  exitCode: number | null
+  killed: boolean
+}
+
+export interface CliSession {
+  sessionId: string
+  source: 'cli'
+  branch: string
+  cwd: string
+  startedAt: string
+  lastActivity: string
+  model: string
+  prompt: string
+  slug: string
+  status: 'running' | 'completed'
+}
+
+export type LaneSession = DispatchSession | CliSession
+
+export interface ChatMessage {
+  id: string
+  role: 'user' | 'assistant'
+  content: string
+  tools?: { name: string; summary: string }[]
+  timestamp: string
+  model?: string
 }
 
 // ─── useLanes ────────────────────────────────────────────────────────────────
@@ -179,26 +207,45 @@ export function useLanes() {
   const requestWork = async (
     id: string,
     workflow: string
-  ): Promise<{ file: string }> => {
-    return await $fetch<{ file: string }>(`/api/lanes/${id}/work-request`, {
-      method: 'POST',
-      body: { workflow },
-    })
+  ): Promise<{ file: string; command: string }> => {
+    return await $fetch<{ file: string; command: string }>(
+      `/api/lanes/${id}/work-request`,
+      {
+        method: 'POST',
+        body: { workflow },
+      }
+    )
   }
 
   const dispatch = async (
     id: string,
     prompt: string,
     model?: string
-  ): Promise<DispatchResult> => {
-    const result = await $fetch<DispatchResult>(`/api/lanes/${id}/dispatch`, {
+  ): Promise<{ sessionId: string }> => {
+    return await $fetch<{ sessionId: string }>(`/api/lanes/${id}/dispatch`, {
       method: 'POST',
       body: { prompt, model },
-      ignoreResponseError: true,
     })
-    await refresh()
-    return result
   }
+
+  const getSessions = (laneId: string): Promise<LaneSession[]> =>
+    $fetch<LaneSession[]>(`/api/lanes/${laneId}/sessions`).catch(() => [])
+
+  const getSession = (
+    laneId: string,
+    sessionId: string
+  ): Promise<DispatchSession | null> =>
+    $fetch<DispatchSession | null>(
+      `/api/lanes/${laneId}/sessions/${sessionId}`
+    ).catch(() => null)
+
+  const getSessionMessages = (
+    laneId: string,
+    sessionId: string
+  ): Promise<ChatMessage[]> =>
+    $fetch<ChatMessage[]>(
+      `/api/lanes/${laneId}/sessions/${sessionId}/messages`
+    ).catch(() => [])
 
   return {
     lanes,
@@ -218,5 +265,8 @@ export function useLanes() {
     getScope,
     requestWork,
     dispatch,
+    getSessions,
+    getSession,
+    getSessionMessages,
   }
 }
