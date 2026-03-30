@@ -1,8 +1,12 @@
 import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
-import { listSessions } from '../../../utils/dispatch-store'
+import { listSessions, writeSession } from '../../../utils/dispatch-store'
 import { listCliSessions } from '../../../utils/cli-sessions'
 import { parseLanesFromWorktrees } from '../../../utils/lanes'
+import {
+  findSessionByPrompt,
+  isSessionCompleted,
+} from '../../../utils/session-messages'
 import type { Lane } from '../../../utils/lanes'
 
 const execFileAsync = promisify(execFile)
@@ -41,6 +45,17 @@ export default defineEventHandler(async (event) => {
     listSessions(id),
     listCliSessions(repoRoot, lanePath, laneBranch),
   ])
+
+  // Fix stale "running" dispatch sessions by checking the actual JSONL
+  for (const s of dispatchSessions) {
+    if (s.status !== 'running') continue
+    const jsonlPath = await findSessionByPrompt(repoRoot, s.prompt, s.startedAt)
+    if (jsonlPath && (await isSessionCompleted(jsonlPath))) {
+      s.status = 'completed'
+      s.completedAt = new Date().toISOString()
+      await writeSession(s)
+    }
+  }
 
   // Normalize dispatch sessions to include source field
   const normalized = dispatchSessions.map((s) => ({

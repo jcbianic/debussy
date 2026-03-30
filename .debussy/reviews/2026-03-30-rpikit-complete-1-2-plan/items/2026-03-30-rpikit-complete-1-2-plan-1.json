@@ -1,0 +1,16 @@
+{
+  "id": "2026-03-30-rpikit-complete-1-2-plan-1",
+  "title": "Extend Lane type with release and targetBranch fields",
+  "subtitle": "medium",
+  "iterations": [
+    {
+      "number": 1,
+      "proposedAt": "2026-03-30T13:30:00Z",
+      "content": "Add optional release?: string and targetBranch?: string to Lane interface in both server (lanes.ts) and client (useLanes.ts). Backward-compatible change since fields are optional.",
+      "feedback": {
+        "decision": "approved",
+        "decidedAt": "2026-03-30T19:18:55.532Z"
+      }
+    }
+  ]
+}

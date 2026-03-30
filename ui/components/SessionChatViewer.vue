@@ -185,8 +185,9 @@ async function loadMessages() {
 }
 
 function scrollToBottom() {
-  if (chatContainer.value) {
-    chatContainer.value.scrollTop = chatContainer.value.scrollHeight
+  const last = chatContainer.value?.lastElementChild
+  if (last) {
+    last.scrollIntoView({ block: 'end', behavior: 'instant' })
   }
 }
 

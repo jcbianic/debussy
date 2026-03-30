@@ -86,15 +86,6 @@ export async function scanReviews(reviewsDir: string): Promise<Review[]> {
         // no items directory — empty review
       }
 
-      // Skip reviews where all items have final feedback (completed)
-      const allDecided =
-        items.length > 0 &&
-        items.every((item) => {
-          const last = item.iterations.at(-1)
-          return last?.feedback != null
-        })
-      if (allDecided) continue
-
       reviews.push({
         id: meta.id,
         title: meta.title,

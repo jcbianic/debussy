@@ -1,0 +1,12 @@
+{
+  "id": "fake-strategy-review-1",
+  "title": "Consider adding a 'paused' state for long-running lanes",
+  "subtitle": "low",
+  "iterations": [
+    {
+      "number": 1,
+      "proposedAt": "2026-03-30T10:00:00Z",
+      "content": "Some lanes may be blocked on external dependencies (waiting for API access, design review, etc). Currently these stay in `working` state indefinitely, cluttering the active lanes list.\n\nA `paused` state would:\n- Signal to the user that the lane is intentionally on hold\n- Allow filtering paused lanes from the default view\n- Preserve the previous state for easy resume\n\n### Trade-offs\n\n| Approach | Pros | Cons |\n|----------|------|------|\n| Add `paused` to state machine | Clean semantics | Increases state complexity |\n| Use a `paused` boolean flag | Orthogonal to state | Two dimensions to track |\n| Use labels/tags | Flexible | No state machine enforcement |\n\nRecommend the boolean flag approach — it's simpler and doesn't require new transitions."
+    }
+  ]
+}

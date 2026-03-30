@@ -1,0 +1,12 @@
+{
+  "id": "fake-feedback-1",
+  "title": "Review context is missing when reviewing items",
+  "subtitle": "high",
+  "iterations": [
+    {
+      "number": 1,
+      "proposedAt": "2026-03-30T16:30:00Z",
+      "content": "When reviewing an item in the detail panel, the user loses context about:\n\n1. **What the lane is about** — the ticket intent / scope TLDR isn't visible\n2. **What kind of review they're doing** — is this a code review? strategy? feedback?\n\nThe metadata chips show the source and lane ID, but these are technical identifiers, not human-readable context. Users reported feeling \"lost\" when reviewing items from multiple lanes in the global inbox.\n\n**Recommendation:** Add a context banner between the metadata and the proposal content that shows:\n- The lane intent (from `selectedLane.intent`)\n- The review type in human-readable form (e.g. \"Code review · rpikit-complete\")"
+    }
+  ]
+}

@@ -175,10 +175,12 @@ import type { LaneSession } from '~/composables/useLanes'
 
 const props = defineProps<{
   laneId: string
+  autoOpenSessionId?: string | null
 }>()
 
 const emit = defineEmits<{
   sessionDone: []
+  sessionOpened: []
 }>()
 
 const { getSessions } = useLanes()
@@ -317,6 +319,16 @@ watch(
   },
   { immediate: true }
 )
+
+// Auto-open session slideover when autoOpenSessionId matches a loaded session
+watch([sessions, () => props.autoOpenSessionId], ([list, targetId]) => {
+  if (!targetId) return
+  const match = list.find((s) => s.sessionId === targetId)
+  if (match) {
+    openChat(match)
+    emit('sessionOpened')
+  }
+})
 
 onUnmounted(() => stopPolling())
 </script>

@@ -8,9 +8,14 @@ const TYPE_ICONS: Record<string, string> = {
   strategy: 'i-heroicons-adjustments-horizontal',
 }
 
-/** Provide all state and logic for the inbox page. */
-export const useInbox = () => {
-  const { lanes: allLanes, refresh } = useLanes()
+/** Provide all state and logic for the inbox view, optionally scoped to a single lane. */
+export const useInbox = (options?: { laneId?: string }) => {
+  const { lanes: rawLanes, refresh } = useLanes()
+
+  const allLanes = computed(() => {
+    if (!options?.laneId) return rawLanes.value
+    return rawLanes.value.filter((l: Lane) => l.id === options.laneId)
+  })
 
   const typeFilters = computed(() => {
     const seen = new Set<string>()

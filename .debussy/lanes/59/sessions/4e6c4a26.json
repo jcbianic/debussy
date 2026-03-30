@@ -1,0 +1,14 @@
+{
+  "sessionId": "4e6c4a26",
+  "laneId": "59",
+  "prompt": "/workflow-run .claude/workflows/rpikit-complete.yml --cwd /Users/jcbianic/Projets/Libon-Data/debussy/.worktrees/59 --input task=\"Intent 011 — Release Orchestration\" --input test_cmd=\"pnpm -C ui vitest run --reporter=verbose\"",
+  "model": "opus",
+  "status": "running",
+  "startedAt": "2026-03-30T19:38:08.029Z",
+  "completedAt": null,
+  "elapsed": null,
+  "output": null,
+  "error": null,
+  "exitCode": null,
+  "killed": false
+}

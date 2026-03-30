@@ -152,6 +152,60 @@ async function extractFirstPrompt(
   }
 }
 
+// Terminal message types that indicate a session has cleanly ended
+const COMPLETED_TYPES = new Set([
+  'last-prompt', // non-interactive session finished (dispatch, -p)
+  'turn_duration', // turn ended, session idle (subtype of system)
+  'stop_hook_summary', // session ended with stop hook (subtype of system)
+])
+
+// If the JSONL has no clean end marker but hasn't been written to
+// in this many ms, consider the session inactive (e.g. Ctrl+C, terminal closed).
+const INACTIVE_THRESHOLD_MS = 120_000 // 2 minutes
+
+/**
+ * Determine if a session is completed by reading the last line of the JSONL.
+ * Uses two signals:
+ *  1. A known terminal message type → definitely completed
+ *  2. File not modified in >2 min → likely inactive (unclean exit)
+ */
+export async function isSessionCompleted(filePath: string): Promise<boolean> {
+  let handle: Awaited<ReturnType<typeof fsOpen>> | null = null
+  try {
+    handle = await fsOpen(filePath, 'r')
+    const fileStats = await handle.stat()
+    const size = fileStats.size
+    if (size === 0) return false
+
+    // Read the last chunk (enough for the last line)
+    const chunkSize = Math.min(size, 4096)
+    const buffer = Buffer.alloc(chunkSize)
+    await handle.read(buffer, 0, chunkSize, size - chunkSize)
+
+    const tail = buffer.toString('utf8')
+    const lines = tail.split('\n').filter(Boolean)
+    const lastLine = lines[lines.length - 1]
+    if (!lastLine) return false
+
+    const obj = JSON.parse(lastLine)
+    const type = obj.type as string
+    const subtype = obj.subtype as string | undefined
+
+    // Signal 1: clean end marker
+    if (COMPLETED_TYPES.has(type) || COMPLETED_TYPES.has(subtype ?? '')) {
+      return true
+    }
+
+    // Signal 2: file hasn't been touched recently → inactive session
+    const age = Date.now() - fileStats.mtimeMs
+    return age > INACTIVE_THRESHOLD_MS
+  } catch {
+    return false
+  } finally {
+    await handle?.close()
+  }
+}
+
 /**
  * Parse a Claude CLI JSONL session file into chat messages.
  * Filters out meta messages, system messages, and file-history-snapshots.

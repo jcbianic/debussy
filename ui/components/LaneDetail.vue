@@ -178,9 +178,8 @@
       />
       <LaneInboxTab
         v-else-if="activeTab === 'inbox'"
+        :key="laneId"
         :lane-id="laneId"
-        :base-path="basePath"
-        :reviews="reviews"
       />
       <LaneWorkflowTab
         v-else-if="activeTab === 'workflow'"
@@ -189,7 +188,9 @@
       <LaneSessionsTab
         v-else-if="activeTab === 'sessions'"
         :lane-id="laneId"
+        :auto-open-session-id="lastStartedSessionId"
         @session-done="onCommitted"
+        @session-opened="lastStartedSessionId = null"
       />
       <LaneCommitsTab
         v-else-if="activeTab === 'commits'"
@@ -229,10 +230,19 @@ const reviews = computed(() => lane.value?.reviews ?? [])
 
 const transitioning = ref(false)
 
+const canStartWork = computed(() => {
+  const l = lane.value
+  if (!l || !l.state) return false
+  return l.state === 'created' || l.state === 'working'
+})
+
 const availableActions = computed(() => {
   const state = lane.value?.state
   if (!state) return []
-  return LANE_TRANSITIONS[state] ?? []
+  const actions = LANE_TRANSITIONS[state] ?? []
+  // Hide standalone "start" when "Start Work" button is shown
+  if (canStartWork.value) return actions.filter((a) => a !== 'start')
+  return actions
 })
 
 type UColor =
@@ -392,24 +402,26 @@ async function doDelete() {
 
 // ─── Start work ─────────────────────────────────────────────────────────────
 
-const canStartWork = computed(() => {
-  const l = lane.value
-  if (!l || !l.state) return false
-  return l.state === 'created' || l.state === 'working'
-})
-
 const startingWork = ref(false)
 const WORKFLOW = '.claude/workflows/rpikit-complete.yml'
 
 async function doStartWork() {
   startingWork.value = true
   try {
-    await requestWork(props.laneId, WORKFLOW)
+    // Auto-transition created → working
+    if (lane.value?.state === 'created') {
+      await transitionLane(props.laneId, 'start')
+    }
+    const result = await requestWork(props.laneId, WORKFLOW)
     toast.add({
       title: 'Workflow dispatched',
       color: 'success',
     })
-    activeTab.value = 'workflow'
+    activeTab.value = 'sessions'
+    // Auto-open the session slideover if sessionId is returned
+    if (result?.sessionId) {
+      lastStartedSessionId.value = result.sessionId
+    }
   } catch (err: unknown) {
     const msg =
       err && typeof err === 'object' && 'statusMessage' in err
@@ -420,6 +432,8 @@ async function doStartWork() {
     startingWork.value = false
   }
 }
+
+const lastStartedSessionId = ref<string | null>(null)
 
 async function onCommitted() {
   const [c, s] = await Promise.all([

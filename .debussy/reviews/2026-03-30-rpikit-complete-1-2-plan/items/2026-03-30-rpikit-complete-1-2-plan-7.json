@@ -1,0 +1,16 @@
+{
+  "id": "2026-03-30-rpikit-complete-1-2-plan-7",
+  "title": "GitHub CLI dependency for issue listing and PR operations",
+  "subtitle": "high",
+  "iterations": [
+    {
+      "number": 1,
+      "proposedAt": "2026-03-30T13:30:00Z",
+      "content": "Multiple API routes depend on the gh CLI being installed and authenticated. Missing gh or network failures will cause setup and merge operations to fail. Plan recommends checking gh auth status but does not define a fallback.",
+      "feedback": {
+        "decision": "approved",
+        "decidedAt": "2026-03-30T19:19:09.871Z"
+      }
+    }
+  ]
+}

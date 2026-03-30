@@ -1,0 +1,12 @@
+{
+  "id": "fake-strategy-review-0",
+  "title": "State machine transitions need guard conditions",
+  "subtitle": "critical",
+  "iterations": [
+    {
+      "number": 1,
+      "proposedAt": "2026-03-30T10:00:00Z",
+      "content": "The current lane state machine allows all transitions defined in `LANE_TRANSITIONS` without any pre-condition checks. This can lead to invalid states:\n\n- **`working → staged`** should require at least one commit\n- **`staged → qa`** should require the branch to be pushed to remote\n- **`qa → ready`** should require all reviews to be resolved\n- **`ready → merged`** should require PR approval\n\n### Recommendation\n\nAdd a `guards` map alongside `LANE_TRANSITIONS` that returns `true | string` (error message) for each transition. The transition endpoint checks the guard before applying the state change.\n\n```typescript\nconst LANE_GUARDS: Record<string, (lane: Lane) => true | string> = {\n  stage: (l) => hasCommits(l) || 'No commits to stage',\n  qa: (l) => isPushed(l) || 'Push to remote first',\n  ready: (l) => allReviewsResolved(l) || 'Pending reviews remain',\n}\n```"
+    }
+  ]
+}

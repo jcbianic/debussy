@@ -209,8 +209,8 @@ export function useLanes() {
   const requestWork = async (
     id: string,
     workflow: string
-  ): Promise<{ file: string; command: string }> => {
-    return await $fetch<{ file: string; command: string }>(
+  ): Promise<{ file: string; command: string; sessionId: string }> => {
+    return await $fetch<{ file: string; command: string; sessionId: string }>(
       `/api/lanes/${id}/work-request`,
       {
         method: 'POST',

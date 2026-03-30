@@ -1,7 +1,9 @@
-import { readdir, stat, open as fsOpen } from 'node:fs/promises'
+import { readdir, stat } from 'node:fs/promises'
 import { createInterface } from 'node:readline'
+import { open as fsOpen } from 'node:fs/promises'
 import path from 'node:path'
 import os from 'node:os'
+import { isSessionCompleted } from './session-messages'
 
 export interface CliSession {
   sessionId: string
@@ -65,8 +67,8 @@ export async function listCliSessions(
 
   // Parse metadata from the most recent files
   const sessions: CliSession[] = []
-  for (const { filePath, mtime } of files.slice(0, limit * 2)) {
-    const session = await parseFirstMessages(filePath, mtime)
+  for (const { filePath } of files.slice(0, limit * 2)) {
+    const session = await parseFirstMessages(filePath)
     if (!session) continue
     const cwdMatch = session.cwd === matchCwd
     const branchMatch = matchBranch ? session.branch === matchBranch : false
@@ -79,8 +81,7 @@ export async function listCliSessions(
 }
 
 async function parseFirstMessages(
-  filePath: string,
-  mtime: number
+  filePath: string
 ): Promise<CliSession | null> {
   let handle: Awaited<ReturnType<typeof fsOpen>> | null = null
   try {
@@ -135,8 +136,7 @@ async function parseFirstMessages(
 
     if (!sessionId || !cwd) return null
 
-    // Running heuristic: file modified in the last 90 seconds
-    const isRunning = Date.now() - mtime < 90_000
+    const completed = await isSessionCompleted(filePath)
 
     return {
       sessionId,
@@ -148,7 +148,7 @@ async function parseFirstMessages(
       model: friendlyModel(model),
       prompt: prompt || slug || '(interactive session)',
       slug,
-      status: isRunning ? 'running' : 'completed',
+      status: completed ? 'completed' : 'running',
     }
   } catch {
     return null

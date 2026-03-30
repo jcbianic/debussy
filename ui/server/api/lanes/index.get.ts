@@ -138,12 +138,6 @@ export default defineEventHandler(async () => {
                   // items dir missing — treat as empty
                 }
 
-                // Skip completed reviews (all items decided)
-                const allDecided =
-                  diskItems.length > 0 &&
-                  diskItems.every((i) => i.iterations.at(-1)?.feedback != null)
-                if (allDecided) continue
-
                 if (diskItems.length > 0) {
                   lane.reviews.push({
                     ...reviewMeta,

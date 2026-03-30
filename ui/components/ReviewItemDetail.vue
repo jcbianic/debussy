@@ -147,6 +147,32 @@
           </template>
         </div>
 
+        <!-- Context banner -->
+        <div
+          v-if="selectedLane?.intent || reviewNature"
+          class="border-line-subtle bg-surface-page mb-6 space-y-2 rounded-lg border px-4 py-3"
+        >
+          <div
+            v-if="selectedLane?.intent"
+            class="flex items-start gap-2.5"
+          >
+            <UIcon
+              name="i-heroicons-flag"
+              class="text-content-faint mt-0.5 size-3.5 flex-shrink-0"
+            />
+            <span class="text-content-secondary text-sm">{{
+              selectedLane.intent
+            }}</span>
+          </div>
+          <div class="text-content-faint flex items-start gap-2.5 text-xs">
+            <UIcon
+              :name="selectedReview?.icon || 'i-heroicons-document-text'"
+              class="mt-0.5 size-3.5 flex-shrink-0"
+            />
+            <span>{{ reviewNature }}</span>
+          </div>
+        </div>
+
         <!-- Iteration selector -->
         <ReviewIterationSelector
           v-if="selectedItem.iterations.length > 1"
@@ -249,4 +275,18 @@ const emit = defineEmits<{
 const derivedStatus = computed(() =>
   props.selectedItem ? itemStatus(props.selectedItem) : 'pending'
 )
+
+const REVIEW_TYPE_LABELS: Record<string, string> = {
+  workflow: 'Workflow review',
+  review: 'Code review',
+  feedback: 'Feedback',
+  strategy: 'Strategy review',
+}
+
+const reviewNature = computed(() => {
+  const r = props.selectedReview
+  if (!r) return ''
+  const label = REVIEW_TYPE_LABELS[r.type] ?? r.type
+  return r.source ? `${label} · ${r.source}` : label
+})
 </script>
