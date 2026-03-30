@@ -8,5 +8,7 @@ strates:
   engineering:
     depth: lite
   work: true
+work:
+  test_cmd: "pnpm -C ui vitest run --reporter=verbose"
 options:
   statusline: true
