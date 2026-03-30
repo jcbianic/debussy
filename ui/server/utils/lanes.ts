@@ -1,5 +1,7 @@
 import path from 'node:path'
+import { parse as parseYaml } from 'yaml'
 import type { Review } from './reviews'
+import type { LaneState } from '~/shared/types/lanes'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -9,6 +11,10 @@ export interface Lane {
   path: string
   isActive: boolean
   intent?: string
+  state?: LaneState
+  issueNumber?: number
+  prNumber?: number | null
+  orphaned?: boolean
   reviews: Review[]
 }
 
@@ -139,8 +145,11 @@ export function stateJsonToWorkflowRun(
     const step = steps[key]!
     const status = step.status as string
     let state: WorkflowStep['state']
-    if (status === 'done') state = 'done'
+    if (status === 'done' || status === 'completed' || status === 'approved')
+      state = 'done'
+    else if (status === 'rejected') state = 'done'
     else if (status === 'pending_review') state = 'waiting'
+    else if (status === 'revision_requested') state = 'running'
     else if (status === 'in_progress') state = 'running'
     else state = 'pending'
 
@@ -155,5 +164,33 @@ export function stateJsonToWorkflowRun(
     elapsed,
     startedAt,
     steps: mappedSteps,
+  }
+}
+
+// ─── workflowYamlToSkeleton ─────────────────────────────────────────────────
+
+export function workflowYamlToSkeleton(
+  yamlContent: string,
+  filePath: string
+): WorkflowRun | null {
+  try {
+    const doc = parseYaml(yamlContent) as Record<string, unknown>
+    const steps = doc.steps as Array<Record<string, unknown>> | undefined
+    if (!Array.isArray(steps) || steps.length === 0) return null
+
+    return {
+      file: filePath,
+      status: 'skeleton',
+      currentStep: 0,
+      totalSteps: steps.length,
+      elapsed: '',
+      startedAt: '',
+      steps: steps.map((s) => ({
+        name: (s.name as string) ?? (s.id as string) ?? 'Step',
+        state: 'pending' as const,
+      })),
+    }
+  } catch {
+    return null
   }
 }

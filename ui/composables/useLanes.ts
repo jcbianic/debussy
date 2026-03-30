@@ -1,16 +1,11 @@
-// ─── Types (shared) ─────────────────────────────────────────────────────────
-
-export type {
-  Feedback,
-  Iteration,
-  Item,
-  Review,
-  ItemStatus,
-} from '~/shared/types/reviews'
-export { itemStatus } from '~/shared/types/reviews'
-
 import type { Item, Review } from '~/shared/types/reviews'
 import { itemStatus } from '~/shared/types/reviews'
+import type {
+  LaneState,
+  LaneAction,
+  LaneRecord,
+  GitAction,
+} from '~/shared/types/lanes'
 
 export interface Lane {
   id: string
@@ -18,6 +13,10 @@ export interface Lane {
   path: string
   isActive: boolean
   intent?: string
+  state?: LaneState
+  issueNumber?: number
+  prNumber?: number | null
+  orphaned?: boolean
   reviews: Review[]
 }
 
@@ -59,11 +58,52 @@ export interface LaneStatus {
 
 export interface ReviewDetail {
   id: string
+  reviewId: string
   title: string
   source: string
   status: ItemStatus
   body: string
   code: string | null
+}
+
+export interface DispatchSession {
+  sessionId: string
+  source: 'dispatch'
+  laneId: string
+  prompt: string
+  model: string
+  status: 'running' | 'completed' | 'failed'
+  startedAt: string
+  completedAt: string | null
+  elapsed: string | null
+  output: string | null
+  error: string | null
+  exitCode: number | null
+  killed: boolean
+}
+
+export interface CliSession {
+  sessionId: string
+  source: 'cli'
+  branch: string
+  cwd: string
+  startedAt: string
+  lastActivity: string
+  model: string
+  prompt: string
+  slug: string
+  status: 'running' | 'completed'
+}
+
+export type LaneSession = DispatchSession | CliSession
+
+export interface ChatMessage {
+  id: string
+  role: 'user' | 'assistant'
+  content: string
+  tools?: { name: string; summary: string }[]
+  timestamp: string
+  model?: string
 }
 
 // ─── useLanes ────────────────────────────────────────────────────────────────
@@ -100,6 +140,14 @@ export function useLanes() {
       () => null
     )
 
+  const unblockWorkflow = (
+    laneId: string
+  ): Promise<{ decision: string; step: string }> =>
+    $fetch<{ decision: string; step: string }>(
+      `/api/lanes/${laneId}/workflow/unblock`,
+      { method: 'POST' }
+    )
+
   const getCommits = (laneId: string): Promise<Commit[]> =>
     $fetch<Commit[]>(`/api/lanes/${laneId}/commits`).catch(() => [])
 
@@ -113,6 +161,7 @@ export function useLanes() {
         if (item) {
           return {
             id: item.id,
+            reviewId: review.id,
             title: item.title,
             source: `${review.title} · ${review.source}`,
             status: itemStatus(item),
@@ -125,16 +174,110 @@ export function useLanes() {
     return null
   }
 
+  const createLane = async (issueNumber: number): Promise<LaneRecord> => {
+    const record = await $fetch<LaneRecord>('/api/lanes', {
+      method: 'POST',
+      body: { issueNumber },
+    })
+    await refresh()
+    return record
+  }
+
+  const transitionLane = async (
+    id: string,
+    action: LaneAction
+  ): Promise<LaneRecord> => {
+    const record = await $fetch<LaneRecord>(`/api/lanes/${id}/transition`, {
+      method: 'POST',
+      body: { action },
+    })
+    await refresh()
+    return record
+  }
+
+  const gitAction = async (id: string, action: GitAction): Promise<unknown> => {
+    const result = await $fetch(`/api/lanes/${id}/git-action`, {
+      method: 'POST',
+      body: { action },
+    })
+    await refresh()
+    return result
+  }
+
+  const deleteLane = async (id: string): Promise<void> => {
+    await $fetch(`/api/lanes/${id}`, { method: 'DELETE' })
+    await refresh()
+  }
+
+  const getScope = (laneId: string): Promise<{ content: string | null }> =>
+    $fetch<{ content: string | null }>(`/api/lanes/${laneId}/scope`).catch(
+      () => ({ content: null })
+    )
+
+  const requestWork = async (
+    id: string,
+    workflow: string
+  ): Promise<{ file: string; command: string; sessionId: string }> => {
+    return await $fetch<{ file: string; command: string; sessionId: string }>(
+      `/api/lanes/${id}/work-request`,
+      {
+        method: 'POST',
+        body: { workflow },
+      }
+    )
+  }
+
+  const dispatch = async (
+    id: string,
+    prompt: string,
+    model?: string
+  ): Promise<{ sessionId: string }> => {
+    return await $fetch<{ sessionId: string }>(`/api/lanes/${id}/dispatch`, {
+      method: 'POST',
+      body: { prompt, model },
+    })
+  }
+
+  const getSessions = (laneId: string): Promise<LaneSession[]> =>
+    $fetch<LaneSession[]>(`/api/lanes/${laneId}/sessions`).catch(() => [])
+
+  const getSession = (
+    laneId: string,
+    sessionId: string
+  ): Promise<DispatchSession | null> =>
+    $fetch<DispatchSession | null>(
+      `/api/lanes/${laneId}/sessions/${sessionId}`
+    ).catch(() => null)
+
+  const getSessionMessages = (
+    laneId: string,
+    sessionId: string
+  ): Promise<ChatMessage[]> =>
+    $fetch<ChatMessage[]>(
+      `/api/lanes/${laneId}/sessions/${sessionId}/messages`
+    ).catch(() => [])
+
   return {
     lanes,
     lanesWithPending,
     totalPending,
     getLane,
     getWorkflow,
+    unblockWorkflow,
     getCommits,
     getStatus,
     getReview,
     pendingCount,
     refresh,
+    createLane,
+    transitionLane,
+    gitAction,
+    deleteLane,
+    getScope,
+    requestWork,
+    dispatch,
+    getSessions,
+    getSession,
+    getSessionMessages,
   }
 }

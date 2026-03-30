@@ -70,16 +70,11 @@ A meta-plugin to help you manage projects as a solo builder, from idea to shippa
 
 ## Install
 
-```bash
-# Via Claude Code plugin system
-npx claude code --install-plugin jcbianic/debussy
-```
+Inside Claude Code, add the marketplace and install the plugin:
 
-Or clone and link locally:
-```bash
-git clone https://github.com/jcbianic/debussy
-cd debussy
-npm link
+```
+/plugin marketplace add jcbianic/debussy
+/plugin install debussy@jcbianic-debussy
 ```
 
 ## Source

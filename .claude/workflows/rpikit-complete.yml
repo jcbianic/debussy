@@ -30,22 +30,30 @@ inputs:
       Example: "Add pause/resume to infinite writing sessions"
     required: true
 
+  scope:
+    description: >-
+      Path to the scope/requirements document for this task.
+      The research agent uses it to understand what to build
+      and discover the relevant codebase areas.
+    required: false
+    default: ".debussy/scope.md"
+
   domain:
     description: >-
-      Primary codebase area. File path or glob pattern.
-      Example: "backend/app/api/sessions" or "frontend/app/components/Sessions"
-    required: true
+      Primary codebase area (optional). File path or glob.
+      When omitted, the research agent discovers it from
+      the scope document.
+    required: false
+    default: "."
 
   test_cmd:
     description: >-
       Command to run the domain test suite.
-      Example: "cd backend && uv run pytest tests/sessions/ -q"
     required: true
 
   context_extra:
     description: >-
-      Additional context files or paths (space-separated, optional).
-      Example: "backend/app/api/projects/ docs/architecture.md"
+      Additional context files or paths (space-separated).
     required: false
     default: ""
 
@@ -58,17 +66,21 @@ steps:
       Research the codebase to understand everything needed to implement the following task:
 
       TASK: {task}
-      PRIMARY AREA: {domain}
+
+      Read the scope document first — it describes what to build, the acceptance
+      criteria, and the context. Then explore the codebase to find all relevant
+      files, patterns, and conventions.
 
       Your goal is to produce a thorough research document that will enable an
       implementation plan to be written without needing further codebase exploration.
 
       Explore:
-      1. The primary domain area: {domain}
-      2. Related domains that will be touched (auth, shared utilities, etc.)
-      3. Existing patterns to follow (services, repositories, schemas, tests)
-      4. Test structure and conventions for this domain
-      5. Any existing similar features to reference
+      1. Start from the scope document to understand requirements
+      2. Discover the primary codebase area for this task
+      3. Related areas that will be touched (shared utilities, types, etc.)
+      4. Existing patterns to follow (naming, structure, error handling)
+      5. Test structure and conventions
+      6. Any existing similar features to reference
 
       For each relevant file, note:
       - Its purpose and key functions/classes
@@ -79,6 +91,7 @@ steps:
 
     context:
       - .claude/CLAUDE.md
+      - "{scope}"
       - "{domain}"
 
     artifacts:
@@ -185,12 +198,11 @@ steps:
       Instructions:
       1. Write ALL test cases specified in the plan for each step.
       2. Follow existing test conventions in the codebase exactly.
-         - Integration tests go in tests/{domain}/integration/
-         - Unit tests go in tests/{domain}/unit/
-         - E2E tests go in tests/{domain}/e2e/ and need @pytest.mark.e2e @pytest.mark.slow
-      3. Use real database fixtures (no mocks of DB layer).
+         Discover the test directory structure and naming conventions
+         from the research findings before writing any tests.
+      3. Prefer real dependencies over mocks where practical.
       4. Do NOT write any production code — only tests.
-      5. Tests must be syntactically valid Python but functionally failing.
+      5. Tests must be syntactically valid but functionally failing.
 
       After writing tests, produce a test notes artifact listing:
       - Each test file created with path

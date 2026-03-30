@@ -1,0 +1,12 @@
+{
+  "id": "fake-code-review-2",
+  "title": "InboxListPanel: hide lane headers in single-lane mode",
+  "subtitle": "medium",
+  "iterations": [
+    {
+      "number": 1,
+      "proposedAt": "2026-03-30T14:00:00Z",
+      "content": "When the inbox is scoped to a single lane (inside the lane detail tab), the lane separator header is redundant — the user already knows which lane they're in.\n\nAdded a `singleLane` boolean prop to `InboxListPanel`. When true:\n- Lane separator div is hidden (`v-if=\"!singleLane\"`)\n- Header title changes from \"Inbox of {project}\" to just \"Inbox\"\n\nThis keeps the list panel compact and avoids visual noise in the lane context."
+    }
+  ]
+}

@@ -1,0 +1,99 @@
+{
+  "title": "Monster Branch Reframe",
+  "subtitle": "Review the rewrite of strategy and product artifacts around the monster branch causal chain: scope creep \u2192 branch bloat \u2192 review bottleneck \u2192 velocity trap \u2192 attention drain",
+  "comment_mode": "action",
+  "actions": [
+    {"id": "accept", "label": "Accept", "icon": "check", "style": "green"},
+    {"id": "revise", "label": "Revise", "icon": "chat", "style": "yellow", "has_comment": true, "comment_placeholder": "What should change?"},
+    {"id": "reject", "label": "Reject", "icon": "x", "style": "red", "has_comment": true, "comment_placeholder": "Why reject?"}
+  ],
+  "groups": [
+    {
+      "name": "Strategy",
+      "items": [
+        {
+          "id": "pitch",
+          "ref": "S1",
+          "title": ".debussy/strategy/pitch.md \u2014 Problem Section",
+          "description": "Replaced three independent pain points (P1/P2/P3) with a single causal chain narrative. P1/P2/P3 are now derived as \u201cConsequences\u201d of the monster branch loop. P3 renamed from \u201cSolo builders do it all\u201d to \u201cParallelism without visibility\u201d.",
+          "tags": [
+            {"label": "rewrite", "style": "purple"},
+            {"label": "strategy", "style": "cyan"}
+          ],
+          "details": "## The Problem: The Monster Branch\n\nClaude Code can tackle anything you throw at it. And that\u2019s exactly the trap.\n\nYou start a session with a clear intent. But Claude is fast, and you have ideas. You ask for one more thing, then another. The branch grows. Pretty soon, you\u2019re sitting on a monster branch \u2014 massive local changes, four or five ambitious things tangled together in a mess.\n\nYou ask for a commit plan \u2014 you get one. But the resulting PR is still unreviewable: too broad for meaningful human or agent review. It does too many things, and reviewing it seriously starts to take longer than building it.\n\nSo you start planning and rescoping. But then you either lose velocity by working sequentially, or juggle complexity by working in parallel across sessions. Either way, your attention scatters, the artifacts you should be reviewing get lost, and the velocity drops.\n\nThis is the core loop Debussy breaks. And it leads naturally upstream: if you\u2019re going to plan and scope work to avoid the monster branch, you might as well do it with as much context as you can.\n\n### Consequences\n\n**P1: Feedback lost, attention scattered**\nYour feedback on key artifacts is scattered across conversation threads, never captured in a form you or the agent can reliably retrieve.\n\n**P2: Documentation that agents need but humans can\u2019t maintain**\nYour agent needs documentation to work well. If you\u2019re scoping work to avoid monster branches, you need this context \u2014 and it needs to be agent-maintainable.\n\n**P3: Parallelism without visibility**\nYou launch a second session, then a third. Without discipline and tools to organize parallel work, you lose track.",
+          "context": "Previously: three independent pain points (P1: Feedback lost, P2: Docs unmaintained, P3: Solo builders do it all) with no unifying narrative"
+        }
+      ]
+    },
+    {
+      "name": "Product (internal)",
+      "items": [
+        {
+          "id": "product",
+          "ref": "P1",
+          "title": ".debussy/product/product.md \u2014 Positioning",
+          "description": "Positioning rewritten to anchor in the monster branch loop. Each Debussy capability is framed as breaking a specific link in the chain.",
+          "tags": [
+            {"label": "rewrite", "style": "purple"},
+            {"label": "product", "style": "blue"}
+          ],
+          "details": "## Positioning\nClaude Code\u2019s raw capability creates a trap: the monster branch. You throw ideas at it, the branch grows, the PR becomes unreviewable, and you end up rescoping \u2014 losing the velocity you gained. Debussy breaks this loop at every link: strategy and product strates scope the work upstream with full context, engineering governance prevents scope creep, the inbox captures your feedback on artifacts where it counts, and parallel lanes make multi-session work visible and manageable.",
+          "context": "Previously: \"Solo builders carry every role. The goal is to automate where you can and review where your expertise matters...\""
+        },
+        {
+          "id": "intents",
+          "ref": "P2",
+          "title": ".debussy/product/intents.md \u2014 Chain Links",
+          "description": "Added \u201cBreaks chain at:\u201d field to each intent, mapping it to the causal chain step it addresses. Updated P3 label. Added chain summary in preamble. Intents 010-012 included.",
+          "tags": [
+            {"label": "enrichment", "style": "green"},
+            {"label": "product", "style": "blue"}
+          ],
+          "details": "New preamble: \u201cEvery intent is linked to the monster branch causal chain it breaks: scope creep \u2192 branch bloat \u2192 review bottleneck \u2192 velocity trap \u2192 attention drain.\u201d\n\nChain mapping:\n\u2022 001 Product Strate \u2192 scope creep\n\u2022 002 Inbox Review UX \u2192 review bottleneck, attention drain\n\u2022 003 Workflow Monitoring \u2192 velocity trap\n\u2022 004 Parallel Lanes \u2192 velocity trap\n\u2022 005 Engineering Strate \u2192 branch bloat\n\u2022 006 Status Line \u2192 velocity trap, attention drain\n\u2022 007 Unified UI \u2192 attention drain\n\u2022 008 Strategy Depth \u2192 scope creep\n\u2022 009 Setup Explorer \u2192 velocity trap\n\u2022 010 Lane Lifecycle \u2192 branch bloat, velocity trap\n\u2022 011 Release Orchestration \u2192 review bottleneck\n\u2022 012 QA Staging Loop \u2192 review bottleneck, attention drain",
+          "context": "Previously: intents only had \u201cAddresses: P1/P2/P3\u201d with no chain reference"
+        }
+      ]
+    },
+    {
+      "name": "Public docs",
+      "items": [
+        {
+          "id": "vision",
+          "ref": "D1",
+          "title": "docs/vision.md \u2014 Vision & Pain Points",
+          "description": "Rewrote \u201cWhy We\u2019re Building This\u201d to lead with the monster branch. Replaced \u201cPain Points\u201d section with \u201cThe Core Problem: The Monster Branch\u201d + Consequences. Same narrative as pitch.md but public-facing (shorter consequence descriptions).",
+          "tags": [
+            {"label": "rewrite", "style": "purple"},
+            {"label": "public", "style": "orange"}
+          ],
+          "details": "## Why We\u2019re Building This\nClaude Code is the most-used AI coding agent on the market \u2014 $2.5B run-rate, 75% adoption at startups, 73% of engineering teams using AI tools daily. But its raw capability creates a trap that solo builders fall into daily: the monster branch. Debussy exists to break that loop \u2014 from scoping work upstream with full context, to making parallel execution visible and manageable.\n\n## The Core Problem: The Monster Branch\n[Same narrative as pitch.md]\n\n### Consequences\nP1, P2, P3 as compact one-liners (vs. full paragraphs in pitch.md)",
+          "context": "Previously: generic \u201cinvisible friction\u201d framing, three numbered pain points as independent sections"
+        },
+        {
+          "id": "docs-product",
+          "ref": "D2",
+          "title": "docs/product.md \u2014 One-Liner",
+          "description": "One-liner updated from \u201cdisciplined approach from idea to shippable feature\u201d to \u201cbreaks the monster branch loop\u201d.",
+          "tags": [
+            {"label": "tweak", "style": "cyan"},
+            {"label": "public", "style": "orange"}
+          ],
+          "details": "Old: A Claude Code meta-plugin that gives solo builders a disciplined approach from idea to shippable feature \u2014 without losing the thread.\n\nNew: A Claude Code meta-plugin that breaks the monster branch loop \u2014 from scoping work upstream with full context to making parallel execution visible and manageable.",
+          "context": "Rest of file unchanged (Target User, Nature, Non-Goals, Key Dependencies)"
+        },
+        {
+          "id": "specs-intents",
+          "ref": "D3",
+          "title": "specs/intents.md \u2014 Sync",
+          "description": "Synced with .debussy/product/intents.md: same chain preamble, same \u201cBreaks chain at:\u201d fields, same P3 label update, plus intents 010-012 added.",
+          "tags": [
+            {"label": "sync", "style": "green"},
+            {"label": "public", "style": "orange"}
+          ],
+          "details": "Mirror of .debussy/product/intents.md without YAML frontmatter. Adds intents 010 (Lane Lifecycle), 011 (Release Orchestration), 012 (QA Staging Loop) that were missing from the public specs.",
+          "context": "Previously: only intents 001-009, no chain references, old P3 label"
+        }
+      ]
+    }
+  ]
+}

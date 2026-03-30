@@ -81,7 +81,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Feedback } from '~/composables/useLanes'
+import type { Feedback } from '~/shared/types/reviews'
 
 defineProps<{ feedback: Feedback }>()
 </script>

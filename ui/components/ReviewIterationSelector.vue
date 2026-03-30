@@ -30,7 +30,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Iteration, ItemStatus } from '~/composables/useLanes'
+import type { Iteration, ItemStatus } from '~/shared/types/reviews'
 
 defineProps<{
   iterations: Iteration[]

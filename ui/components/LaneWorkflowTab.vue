@@ -5,6 +5,14 @@
         <div>
           <div class="mb-1 flex items-center gap-2">
             <UBadge
+              v-if="isSkeleton"
+              label="planned"
+              color="neutral"
+              variant="subtle"
+              size="sm"
+            />
+            <UBadge
+              v-else
               :label="workflow.status"
               :color="
                 workflow.status === 'running'
@@ -20,12 +28,24 @@
               workflow.file
             }}</span>
           </div>
-          <div class="text-xs text-neutral-400">
+          <div
+            v-if="!isSkeleton"
+            class="text-xs text-neutral-400"
+          >
             Step {{ workflow.currentStep }} of {{ workflow.totalSteps }} ·
             {{ workflow.elapsed }} elapsed
           </div>
+          <div
+            v-else
+            class="text-xs text-neutral-400"
+          >
+            {{ workflow.totalSteps }} steps
+          </div>
         </div>
-        <div class="font-mono text-xs text-neutral-400">
+        <div
+          v-if="!isSkeleton"
+          class="font-mono text-xs text-neutral-400"
+        >
           started {{ workflow.startedAt }}
         </div>
       </div>
@@ -34,6 +54,7 @@
           v-for="step in workflow.steps"
           :key="step.name"
           :step="step"
+          @unblock="handleUnblock"
         />
       </div>
     </div>
@@ -48,5 +69,52 @@
 <script setup lang="ts">
 import type { WorkflowRun } from '~/composables/useLanes'
 
-defineProps<{ workflow: WorkflowRun | null }>()
+const props = defineProps<{ laneId: string }>()
+
+const { getWorkflow, unblockWorkflow } = useLanes()
+
+const workflow = ref<WorkflowRun | null>(null)
+let pollTimer: ReturnType<typeof setInterval> | null = null
+
+const isSkeleton = computed(() => workflow.value?.status === 'skeleton')
+
+async function loadWorkflow() {
+  workflow.value = (await getWorkflow(props.laneId)) ?? null
+}
+
+async function handleUnblock() {
+  await unblockWorkflow(props.laneId)
+  await loadWorkflow()
+}
+
+function startPolling() {
+  stopPolling()
+  pollTimer = setInterval(async () => {
+    await loadWorkflow()
+    const status = workflow.value?.status
+    if (status && status !== 'running') {
+      stopPolling()
+    }
+  }, 3000)
+}
+
+function stopPolling() {
+  if (pollTimer) {
+    clearInterval(pollTimer)
+    pollTimer = null
+  }
+}
+
+watch(
+  () => props.laneId,
+  async () => {
+    await loadWorkflow()
+    if (workflow.value?.status === 'running') {
+      startPolling()
+    }
+  },
+  { immediate: true }
+)
+
+onUnmounted(() => stopPolling())
 </script>

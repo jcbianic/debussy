@@ -1,0 +1,23 @@
+{
+  "id": "fake-code-review-1",
+  "title": "useInbox composable should accept reactive laneId",
+  "subtitle": "critical",
+  "iterations": [
+    {
+      "number": 1,
+      "proposedAt": "2026-03-30T14:00:00Z",
+      "content": "Currently `useInbox({ laneId })` captures `laneId` as a plain string at setup time. If the parent component changes `laneId` without remounting (e.g. navigating between lanes), the composable won't react.\n\n**Option A:** Accept `MaybeRef<string>` and use `toValue()` inside a computed.\n**Option B:** Use `:key=\"laneId\"` on the component to force remount.\n\nOption B is simpler but creates a new SSE connection each time. Option A is more elegant but adds complexity to the composable signature.",
+      "code": "// Option A\nexport const useInbox = (options?: { laneId?: MaybeRef<string> }) => {\n  const allLanes = computed(() => {\n    const id = toValue(options?.laneId)\n    if (!id) return rawLanes.value\n    return rawLanes.value.filter(l => l.id === id)\n  })\n}",
+      "feedback": {
+        "decision": "changes-requested",
+        "comment": "Go with Option B (:key) for now — simplicity wins. We can always upgrade to reactive later if the SSE reconnection becomes a UX issue.",
+        "decidedAt": "2026-03-30T15:15:00Z"
+      }
+    },
+    {
+      "number": 2,
+      "proposedAt": "2026-03-30T16:00:00Z",
+      "content": "Applied Option B as requested. Added `:key=\"laneId\"` on `LaneInboxTab` in `LaneDetail.vue` to force remount on lane change. The composable keeps its simple `string` parameter.\n\n```vue\n<LaneInboxTab\n  v-else-if=\"activeTab === 'inbox'\"\n  :key=\"laneId\"\n  :lane-id=\"laneId\"\n/>\n```\n\nSSE reconnection is near-instant in practice (< 100ms)."
+    }
+  ]
+}

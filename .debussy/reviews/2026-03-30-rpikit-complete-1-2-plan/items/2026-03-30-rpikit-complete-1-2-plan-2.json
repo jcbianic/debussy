@@ -1,0 +1,16 @@
+{
+  "id": "2026-03-30-rpikit-complete-1-2-plan-2",
+  "title": "Use ReleaseRecord to avoid naming collision with roadmap Release",
+  "subtitle": "high",
+  "iterations": [
+    {
+      "number": 1,
+      "proposedAt": "2026-03-30T13:30:00Z",
+      "content": "The existing roadmap system defines a Release type in roadmap.ts. The new operational entity uses ReleaseRecord consistently to prevent import confusion. The two are conceptually related but independent data sources.",
+      "feedback": {
+        "decision": "approved",
+        "decidedAt": "2026-03-30T19:19:02.340Z"
+      }
+    }
+  ]
+}

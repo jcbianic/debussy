@@ -1,0 +1,16 @@
+{
+  "id": "2026-03-30-rpikit-complete-1-2-plan-0",
+  "title": "Introduce ReleaseRecord data model with CRUD utilities",
+  "subtitle": "high",
+  "iterations": [
+    {
+      "number": 1,
+      "proposedAt": "2026-03-30T13:30:00Z",
+      "content": "New ReleaseRecord entity stored as .debussy/releases/{id}/release.json with parseReleaseRecord, scanReleases, readRelease, createReleaseRecord, and updateReleaseRecord functions. Uses assertSafeSegment for path safety and atomic tmp+rename writes.",
+      "feedback": {
+        "decision": "approved",
+        "decidedAt": "2026-03-30T16:49:38.528Z"
+      }
+    }
+  ]
+}

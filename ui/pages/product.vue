@@ -103,10 +103,5 @@ function progressBarClass(artifact: { presence: string; status: string }) {
 }
 
 // Live reload when product files change
-let es: EventSource | null = null
-onMounted(() => {
-  es = new EventSource('/api/watch')
-  es.onmessage = () => refresh()
-})
-onUnmounted(() => es?.close())
+useWatchSSE(() => refresh())
 </script>

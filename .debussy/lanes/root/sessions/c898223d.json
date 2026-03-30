@@ -1,0 +1,14 @@
+{
+  "sessionId": "c898223d",
+  "laneId": "root",
+  "prompt": "Look at the current git diff and status. Stage all changes, then create a git commit with a clear conventional commit message.",
+  "model": "haiku",
+  "status": "failed",
+  "startedAt": "2026-03-30T13:02:18.890Z",
+  "completedAt": "2026-03-30T13:02:18.890Z",
+  "elapsed": null,
+  "output": null,
+  "error": "Session lost (server restarted)",
+  "exitCode": null,
+  "killed": false
+}

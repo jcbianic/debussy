@@ -12,6 +12,20 @@ export function assertSafeSegment(segment: string, label: string): void {
   }
 }
 
+// ─── Item-ID helpers (IDs may contain `/`, filenames use `--`) ──────────────
+
+const SAFE_ITEM_ID = /^[a-zA-Z0-9_-][a-zA-Z0-9._/-]*$/
+
+export function assertSafeItemId(itemId: string, label: string): void {
+  if (!SAFE_ITEM_ID.test(itemId) || itemId.includes('..')) {
+    throw new Error(`Invalid ${label}: contains unsafe characters`)
+  }
+}
+
+export function itemIdToFilename(itemId: string): string {
+  return itemId.replaceAll('/', '--')
+}
+
 function assertInsideDir(child: string, parent: string): void {
   const resolved = path.resolve(child)
   const root = path.resolve(parent)
@@ -19,17 +33,6 @@ function assertInsideDir(child: string, parent: string): void {
     throw new Error('Path escapes allowed directory')
   }
 }
-
-// ─── Types (shared) ─────────────────────────────────────────────────────────
-
-export type {
-  Feedback,
-  Iteration,
-  Item,
-  Review,
-  ItemStatus,
-} from '~/shared/types/reviews'
-export { itemStatus } from '~/shared/types/reviews'
 
 import type { Feedback, Item, Review } from '~/shared/types/reviews'
 
@@ -83,15 +86,6 @@ export async function scanReviews(reviewsDir: string): Promise<Review[]> {
         // no items directory — empty review
       }
 
-      // Skip reviews where all items have final feedback (completed)
-      const allDecided =
-        items.length > 0 &&
-        items.every((item) => {
-          const last = item.iterations.at(-1)
-          return last?.feedback != null
-        })
-      if (allDecided) continue
-
       reviews.push({
         id: meta.id,
         title: meta.title,
@@ -118,12 +112,12 @@ export async function writeReviewDecision(
   feedback: Feedback
 ): Promise<{ ok: boolean; complete: boolean }> {
   assertSafeSegment(reviewId, 'reviewId')
-  assertSafeSegment(itemId, 'itemId')
+  assertSafeItemId(itemId, 'itemId')
 
   const reviewDir = path.join(reviewsDir, reviewId)
   const metaPath = path.join(reviewDir, 'review.json')
   const itemsDir = path.join(reviewDir, 'items')
-  const itemPath = path.join(itemsDir, `${itemId}.json`)
+  const itemPath = path.join(itemsDir, `${itemIdToFilename(itemId)}.json`)
 
   assertInsideDir(reviewDir, reviewsDir)
   assertInsideDir(itemPath, itemsDir)
@@ -221,7 +215,7 @@ export async function createReview(
 ): Promise<void> {
   assertSafeSegment(review.id, 'reviewId')
   for (const item of items) {
-    assertSafeSegment(item.id, 'itemId')
+    assertSafeItemId(item.id, 'itemId')
   }
 
   const reviewDir = path.join(reviewsDir, review.id)
@@ -261,7 +255,7 @@ export async function createReview(
       ],
     }
     await writeFile(
-      path.join(itemsDir, `${item.id}.json`),
+      path.join(itemsDir, `${itemIdToFilename(item.id)}.json`),
       JSON.stringify(itemData, null, 2)
     )
   }

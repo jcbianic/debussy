@@ -1,8 +1,20 @@
 <template>
   <div class="px-8 py-6">
     <div class="mb-4 flex items-center justify-between">
-      <span class="text-sm font-semibold">Commits</span>
-      <span class="text-xs text-neutral-400">{{ commits.length }} commits ahead of main</span>
+      <div class="flex items-center gap-3">
+        <span class="text-sm font-semibold">Commits</span>
+        <span class="text-xs text-neutral-400">{{ commits.length }} ahead of main</span>
+      </div>
+      <UButton
+        v-if="changes && changes.total > 0"
+        label="Commit"
+        icon="i-heroicons-check"
+        size="sm"
+        color="primary"
+        variant="soft"
+        :loading="committing"
+        @click="doCommit"
+      />
     </div>
     <div class="border-line overflow-hidden rounded-lg border">
       <!-- Pending local changes -->
@@ -84,8 +96,41 @@
 <script setup lang="ts">
 import type { Commit, LaneStatus } from '~/composables/useLanes'
 
-defineProps<{
+const props = defineProps<{
+  laneId: string
   commits: Commit[]
   changes: LaneStatus['changes'] | null
 }>()
+
+const emit = defineEmits<{
+  committed: []
+}>()
+
+const toast = useToast()
+const { dispatch } = useLanes()
+const committing = ref(false)
+
+async function doCommit() {
+  committing.value = true
+  try {
+    const { sessionId } = await dispatch(
+      props.laneId,
+      'Look at the current git diff and status. Stage all changes, then create a git commit with a clear conventional commit message.',
+      'haiku'
+    )
+    toast.add({
+      title: `Session started [${sessionId}]`,
+      color: 'info',
+    })
+    emit('committed')
+  } catch (err: unknown) {
+    const msg =
+      err && typeof err === 'object' && 'message' in err
+        ? String((err as { message: string }).message)
+        : 'Dispatch failed'
+    toast.add({ title: msg, color: 'error' })
+  } finally {
+    committing.value = false
+  }
+}
 </script>

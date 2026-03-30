@@ -41,7 +41,9 @@
       <SidebarLanesList
         :lanes-with-pending="lanesWithPending"
         :current-path="route.path"
+        @create="showCreateLane = true"
       />
+      <LaneCreateDialog v-model:open="showCreateLane" />
     </div>
 
     <!-- Bottom -->
@@ -88,4 +90,5 @@ const {
   path: projectPath,
 } = useProjectConfig()
 const { lanesWithPending, totalPending } = useLanes()
+const showCreateLane = ref(false)
 </script>

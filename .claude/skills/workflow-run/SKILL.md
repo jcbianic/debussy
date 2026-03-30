@@ -14,10 +14,10 @@ metadata:
 
 # Workflow Run Skill
 
-Run or resume a multi-step AI workflow defined in a YAML file. The maestro
-(this skill) is a pure coordinator: it dispatches a principal agent per step
-and blocks at review gates. The review server starts at workflow init and acts
-as a live dashboard throughout.
+Run or resume a multi-step AI workflow defined in a YAML file.
+The maestro (this skill) is a pure coordinator: it dispatches
+a principal agent per step and blocks at review gates. Reviews
+are handled through the Debussy UI Inbox at localhost:4321.
 
 ## When to Activate
 
@@ -46,6 +46,14 @@ From `$ARGUMENTS`, determine mode:
 4. Otherwise → first positional arg is the workflow YAML path → **New Run Mode**
 
 Extract all `--input key=value` pairs into an inputs dict.
+
+If `--cwd <path>` is present, resolve it to an absolute path and store
+it as `workflow_cwd`. All file operations (workspace creation, artifact
+paths, verify commands, context reads) and all agent dispatches use
+this directory as working directory. When dispatching agents, prepend
+`cd "{workflow_cwd}" &&` to any bash commands and resolve relative
+paths against it. If `--cwd` is absent, `workflow_cwd` defaults to
+the current working directory.
 
 ---
 
@@ -130,13 +138,11 @@ Before using any prompt, context path, or artifact path, substitute:
 }
 ```
 
-1. **Start review server** (see Review Server Management).
-
-2. Print:
+1. Print:
 
 ```text
 Starting workflow '{name}' — run {run_id}
-Dashboard: http://127.0.0.1:{port}/review
+Inbox: http://localhost:4321/inbox
 ```
 
 1. **Run the Execution Loop**.
@@ -151,13 +157,11 @@ Dashboard: http://127.0.0.1:{port}/review
      `ls -td .workflow-runs/*/state.json 2>/dev/null | head -5`
      Read each and pick the first with `status == "in_progress"`.
 
-2. Read state.json. Workspace = parent directory of state.json.
+1. Read state.json. Workspace = parent directory of state.json.
 
-3. **Ensure review server is running** (see Review Server Management).
+1. Print current status (step names + statuses).
 
-2. Print current status (step names + statuses).
-
-3. **Run the Execution Loop** starting from `current_step`.
+1. **Run the Execution Loop** starting from `current_step`.
 
 ---
 
@@ -176,7 +180,7 @@ Steps:
   → 3-tests-red        pending_review  (AWAITING YOUR REVIEW)
   ○ 4-implement        not_started
 
-Dashboard: http://127.0.0.1:{port}/review (if server running)
+Inbox: http://localhost:4321/inbox
 Artifacts: {workspace}/
 ```
 
@@ -225,7 +229,9 @@ If step status is `completed`, `approved`, or `skipped`:
 
 If step status is `aborted` or `rejected`:
 
-- Print: "Workflow was previously aborted at step '{step.name}'. To restart from this step, reset its status to `not_started` in state.json."
+- Print: "Workflow was previously aborted at step
+  '{step.name}'. To restart from this step, reset
+  its status to `not_started` in state.json."
 - EXIT
 
 ---
@@ -275,11 +281,15 @@ If step status is `revision_requested`:
 ### G. Dispatch Principal
 
 **Update state.json**:
-- If `state.steps[id].review` has a non-null `decision` (from a previous review cycle),
+
+- If `state.steps[id].review` has a non-null
+  `decision` (from a previous review cycle),
   push it to `review_history` first:
-  `review_history.push({...existing review, "iteration": review_history.length + 1})`
+  `review_history.push({...existing review,
+  "iteration": review_history.length + 1})`
   then set `review: null`.
-- Set step `status: "running"`, `started_at: {ISO timestamp}`.
+- Set step `status: "running"`,
+  `started_at: {ISO timestamp}`.
 
 **Pre-load context files** (if step has `context` list):
 For each path (with variables substituted), read content using Read tool.
@@ -328,10 +338,6 @@ When all steps are terminal:
 
 Update state.json: `status: "completed"`, `updated_at: {ISO timestamp}`.
 
-Leave the review server running — the user may still want to browse completed
-artifacts in the dashboard. The server will stop naturally when the OS reclaims
-it or the user closes it.
-
 Print:
 
 ```text
@@ -341,7 +347,6 @@ Print:
 
 Run ID:    {run_id}
 Steps:     {n completed+approved} / {n total}
-Dashboard: http://127.0.0.1:{port}/review
 
 Artifacts in: {workspace}/
 {list each step with status icon and key artifact names}
@@ -363,8 +368,7 @@ Called after the principal completes a `review: true` step.
 Artifacts produced:
 {for each artifact: - {path}: {description}}
 
-Dashboard: http://127.0.0.1:{port}/review
-Opening feedback UI...
+Review ready at: http://localhost:4321/inbox
 ```
 
 ### 2. Collect Cards
@@ -372,111 +376,104 @@ Opening feedback UI...
 For each artifact in the step, attempt to read
 `{workspace}/{artifact.path}.cards.json`.
 
-Collect all cards grouped by artifact. If a cards file is missing or empty,
-skip that artifact silently.
+Collect all cards grouped by artifact. If a cards file
+is missing or empty, skip that artifact silently.
 
-### 3. Build Feedback Request
+### 3. Write Review to Inbox
 
-Create directory: `{workspace}/feedback-{step.id}/`
+Generate a review ID: `workflow-{step.id}-{unix-timestamp}`.
 
-Write `{workspace}/feedback-{step.id}/request.json`:
+Create directories:
+
+- `.debussy/reviews/{review-id}/`
+- `.debussy/reviews/{review-id}/items/`
+
+Write `.debussy/reviews/{review-id}/review.json`:
 
 ```json
 {
+  "id": "workflow-{step.id}-{timestamp}",
   "title": "Review: {step.name}",
-  "subtitle": "{step.review_prompt or 'Review the artifacts and decide.'}",
-  "actions": [
-    {"id": "approve", "label": "Approve",          "icon": "check", "style": "green"},
-    {"id": "revise",  "label": "Request Revision", "icon": "chat",  "style": "yellow",
-     "has_comment": true, "comment_placeholder": "What needs to be revised?"},
-    {"id": "reject",  "label": "Reject",           "icon": "x",     "style": "red",
-     "has_comment": true, "comment_placeholder": "Why is this rejected?"}
-  ],
-  "groups": [
+  "icon": "i-heroicons-clipboard-document-check",
+  "source": "workflow",
+  "type": "workflow",
+  "createdAt": "{ISO 8601 timestamp}"
+}
+```
+
+For each card collected in Step 2, derive an item ID:
+`{step.id}-{artifact-slug}-{i}` (where `artifact-slug`
+replaces `/` and `.` with `-` in the artifact path,
+and `i` is the card index).
+
+Write `.debussy/reviews/{review-id}/items/{item-id}.json`:
+
+```json
+{
+  "id": "{item-id}",
+  "title": "{card.title}",
+  "subtitle": "{artifact.description or artifact.path}",
+  "iterations": [
     {
-      "name": "{artifact.description or artifact.path}",
-      "items": [
-        {
-          "id": "{step.id}-{artifact.path}-{i}",
-          "ref": "{card.severity[0].toUpperCase()}",
-          "title": "{card.title}",
-          "description": "{card.abstract}",
-          "tags": [
-            {"label": "{card.severity}", "style": "{severity_style}"},
-            {"label": "{card.type}",     "style": "blue"}
-          ]
-        }
-      ]
+      "number": 1,
+      "proposedAt": "{ISO 8601 timestamp}",
+      "content": "{card.abstract}"
     }
   ]
 }
 ```
 
-Severity → style mapping: `critical`→`red`, `high`→`orange`, `medium`→`yellow`,
-`low`→`green`, `info`→`blue`.
-
-**Fallback** — if no cards exist for the step (all failed or no reviewable artifacts),
-use a single group with one item:
+**Fallback** -- if no cards exist for the step, create a
+single item:
 
 ```json
 {
-  "name": "Step Output",
-  "items": [{
-    "id": "{step.id}-approval",
-    "title": "Approve step: {step.name}",
-    "description": "No structured cards were produced. Review the artifacts in the dashboard and decide."
-  }]
+  "id": "{step.id}-approval",
+  "title": "Approve step: {step.name}",
+  "subtitle": "Step Output",
+  "iterations": [
+    {
+      "number": 1,
+      "proposedAt": "{ISO 8601 timestamp}",
+      "content": "{step.review_prompt or 'Review artifacts and decide.'}"
+    }
+  ]
 }
 ```
 
-### 4. Deploy Feedback Server (zero token wait)
+### 4. Wait for User Review (zero token wait)
 
-1. Read `.claude/skills/feedback/templates/feedback-server.py` using Read tool.
-   Write verbatim to `{workspace}/feedback-{step.id}/feedback-server.py`.
-
-2. Read `.claude/skills/feedback/templates/feedback.html` using Read tool.
-   Write verbatim to `{workspace}/feedback-{step.id}/feedback.html`.
-
-3. Start server:
+Wait for the response file using bash filewatch.
+Run with Bash tool, **timeout: 610000ms**:
 
 ```bash
-cd "{workspace}/feedback-{step.id}" && python3 feedback-server.py request.json 0 >> server.log 2>&1 &
-```
-
-4. Wait for startup and read port:
-
-```bash
-sleep 1 && cat "{workspace}/feedback-{step.id}/server.port" 2>/dev/null || echo "FAILED"
-```
-
-If FAILED, print server.log and EXIT.
-
-5. Open browser:
-
-```bash
-open "http://127.0.0.1:{port}" 2>/dev/null || xdg-open "http://127.0.0.1:{port}" 2>/dev/null || echo "Open feedback UI: http://127.0.0.1:{port}"
-```
-
-6. Block until `response.json` appears. Run with Bash tool, **timeout: 610000ms**:
-
-```bash
-RESPONSE="{workspace}/feedback-{step.id}/response.json"
+RESPONSE=".debussy/reviews/{review-id}/response.json"
 end=$((SECONDS + 600))
-while [ ! -f "$RESPONSE" ] && [ $SECONDS -lt $end ]; do sleep 2; done
+while [ ! -f "$RESPONSE" ] && [ $SECONDS -lt $end ]; do
+  sleep 2
+done
 [ -f "$RESPONSE" ] && cat "$RESPONSE" || echo "__TIMEOUT__"
 ```
 
-If output is `__TIMEOUT__`: loop back to step 6 and wait again. Do not EXIT.
+If output is `__TIMEOUT__`: loop back to step 4 and wait
+again. Do not EXIT.
 
-### 5. Derive Decision from Feedback
+### 5. Derive Decision from Inbox Response
 
-Parse the response JSON. Apply priority: `reject` > `revise` > `approve`.
+Parse the response JSON. The inbox uses these actions:
 
-1. If any item has `action: "reject"` → decision = `rejected`.
-   Aggregate comments: `"Rejected: {title}" — {comment}` per rejected item.
+- `approved` → workflow decision `approved`
+- `changes-requested` → workflow decision `revision_requested`
+- `rejected` → workflow decision `rejected`
 
-2. Else if any item has `action: "revise"` → decision = `revision_requested`.
-   Aggregate comments: `"Revise: {title}" — {comment}` per revise item.
+Apply priority: `rejected` > `changes-requested` > `approved`.
+
+1. If any item has action `rejected` → decision = `rejected`.
+   Aggregate: `"Rejected: {title}" -- {comment}` per item.
+
+2. Else if any item has action `changes-requested` →
+   decision = `revision_requested`.
+   Aggregate: `"Revise: {title}" -- {comment}` per item.
 
 3. Else → decision = `approved`.
 
@@ -501,21 +498,19 @@ Read `{workspace}/state.json`. Merge into the step:
 }
 ```
 
-### 7. Cleanup Feedback Server
+### 7. Cleanup
 
 ```bash
-if [ -f "{workspace}/feedback-{step.id}/server.pid" ]; then
-  kill $(cat "{workspace}/feedback-{step.id}/server.pid") 2>/dev/null
-fi
+rm -rf ".debussy/reviews/{review-id}"
 ```
 
 ### 8. Route
 
-| Decision | Action |
-| --- | --- |
-| `approved` | Advance `current_step`, continue execution loop |
+| Decision             | Action                                              |
+| -------------------- | --------------------------------------------------- |
+| `approved`           | Advance `current_step`, continue execution loop     |
 | `revision_requested` | Re-dispatch principal (step G) with review comments |
-| `rejected` | Mark `status: "aborted"`, stop review server, print summary, EXIT |
+| `rejected`           | Mark `"aborted"`, print summary, EXIT               |
 
 ---
 
@@ -716,61 +711,13 @@ This keeps maestro context growth bounded across many steps.
 
 ---
 
-## Review Server Management
-
-### Starting the Server
-
-**Check if already running**:
-
-```bash
-if [ -f {workspace}/review-server.pid ]; then
-  kill -0 $(cat {workspace}/review-server.pid) 2>/dev/null \
-    && echo "running" || echo "dead"
-fi
-```
-
-If running: read port from `{workspace}/review-server.port`, open browser, return.
-
-**If not running — deploy and start**:
-
-1. Read `.claude/skills/workflow-run/templates/review-server.py` using Read tool.
-   Write verbatim to `{workspace}/review-server.py`.
-
-2. Read `.claude/skills/workflow-run/templates/review.html` using Read tool.
-   Write verbatim to `{workspace}/review.html`.
-
-3. Start in background:
-
-```bash
-python3 {workspace}/review-server.py "{workspace}/state.json" 0 \
-  >> {workspace}/review-server.log 2>&1 &
-```
-
-1. Wait for startup and read port:
-
-```bash
-sleep 1 && cat {workspace}/review-server.port 2>/dev/null || echo "8901"
-```
-
-1. Open browser:
-
-```bash
-open "http://127.0.0.1:{port}/review" 2>/dev/null || \
-xdg-open "http://127.0.0.1:{port}/review" 2>/dev/null || \
-echo "Open in browser: http://127.0.0.1:{port}/review"
-```
-
----
-
 ## Error Handling
 
-| Situation | Action |
-| --- | --- |
-| Workflow YAML not found | Print error, suggest `ls .claude/workflows/`, exit |
-| Missing required input | Ask user with AskUserQuestion |
-| Principal returns STATUS: failed | Print detail, ask retry / skip / abort |
-| Review server fails to start | Print log, give manual URL |
-| state.json unreadable | Print path, ask user to inspect manually |
-| No in-progress run for `--resume` | List all runs, ask which to resume |
-| Feedback server fails to start | Print server.log, EXIT |
-| Feedback response times out (10 min) | Loop back to wait again — do not EXIT |
+| Situation                    | Action                              |
+| ---------------------------- | ----------------------------------- |
+| Workflow YAML not found      | Print error, suggest `ls`, exit     |
+| Missing required input       | Ask user with AskUserQuestion       |
+| Principal STATUS: failed     | Print detail, retry / skip / abort  |
+| state.json unreadable        | Print path, ask user to inspect     |
+| No run for `--resume`        | List all runs, ask which to resume  |
+| Inbox response timeout       | Loop back to wait -- do not EXIT    |

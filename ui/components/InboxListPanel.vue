@@ -5,7 +5,7 @@
       <div class="mb-3 flex items-center justify-between">
         <div>
           <h1 class="text-sm font-semibold">
-            Inbox of {{ projectName }}
+            {{ singleLane ? 'Inbox' : `Inbox of ${projectName}` }}
           </h1>
           <p class="text-content-faint mt-0.5 font-mono text-xs">
             {{ totalPending }} pending · {{ totalItems }} total
@@ -32,8 +32,9 @@
         v-for="lane in visibleLanes"
         :key="lane.id"
       >
-        <!-- Lane separator -->
+        <!-- Lane separator (hidden in single-lane mode) -->
         <div
+          v-if="!singleLane"
           class="bg-surface-hover-subtle border-line-subtle sticky top-0 z-10 flex items-center gap-2 border-b px-4 py-2 backdrop-blur-sm"
         >
           <div
@@ -71,7 +72,8 @@
 </template>
 
 <script setup lang="ts">
-import type { Review, Lane } from '~/composables/useLanes'
+import type { Review } from '~/shared/types/reviews'
+import type { Lane } from '~/composables/useLanes'
 
 const { name: projectName } = useProjectConfig()
 
@@ -86,6 +88,7 @@ defineProps<{
   pendingCount: (review: Review) => number
   totalPending: number
   totalItems: number
+  singleLane?: boolean
 }>()
 
 const emit = defineEmits<{

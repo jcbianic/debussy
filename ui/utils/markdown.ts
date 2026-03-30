@@ -8,12 +8,23 @@ export function renderMarkdown(md: string): string {
   const html: string[] = []
   let inCodeBlock = false
   let inList = false
+  let paraLines: string[] = []
+
+  function flushParagraph() {
+    if (paraLines.length) {
+      html.push(
+        `<p class="text-sm leading-relaxed my-1">${inline(paraLines.join(' '))}</p>`
+      )
+      paraLines = []
+    }
+  }
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]!
 
     // Code blocks
     if (line.startsWith('```')) {
+      flushParagraph()
       if (inCodeBlock) {
         html.push('</code></pre>')
         inCodeBlock = false
@@ -39,6 +50,7 @@ export function renderMarkdown(md: string): string {
     // Headings
     const headingMatch = line.match(/^(#{1,4})\s+(.+)/)
     if (headingMatch) {
+      flushParagraph()
       if (inList) {
         html.push('</ul>')
         inList = false
@@ -56,8 +68,20 @@ export function renderMarkdown(md: string): string {
       continue
     }
 
+    // Horizontal rule
+    if (line.match(/^---+\s*$/)) {
+      flushParagraph()
+      if (inList) {
+        html.push('</ul>')
+        inList = false
+      }
+      html.push('<hr class="border-line my-4" />')
+      continue
+    }
+
     // Unordered list items
     if (line.match(/^\s*[-*]\s+/)) {
+      flushParagraph()
       if (!inList) {
         html.push('<ul class="list-disc pl-5 space-y-0.5 text-sm">')
         inList = true
@@ -68,12 +92,23 @@ export function renderMarkdown(md: string): string {
 
     // Ordered list items
     if (line.match(/^\s*\d+\.\s+/)) {
+      flushParagraph()
       if (!inList) {
         html.push('<ul class="list-decimal pl-5 space-y-0.5 text-sm">')
         inList = true
       }
       html.push(`<li>${inline(line.replace(/^\s*\d+\.\s+/, ''))}</li>`)
       continue
+    }
+
+    // Indented continuation line inside a list item
+    if (inList && line.match(/^\s+\S/) && html.length) {
+      const last = html[html.length - 1]!
+      if (last.startsWith('<li>') && last.endsWith('</li>')) {
+        html[html.length - 1] =
+          `${last.slice(0, -5)} ${inline(line.trim())}</li>`
+        continue
+      }
     }
 
     // Close list if we hit a non-list line
@@ -84,6 +119,7 @@ export function renderMarkdown(md: string): string {
 
     // Blockquotes
     if (line.startsWith('>')) {
+      flushParagraph()
       html.push(
         `<blockquote class="border-l-2 border-blue-400/50 pl-3 text-sm italic text-content-subtle my-1">${inline(line.replace(/^>\s*/, ''))}</blockquote>`
       )
@@ -92,13 +128,15 @@ export function renderMarkdown(md: string): string {
 
     // Empty line
     if (!line.trim()) {
+      flushParagraph()
       continue
     }
 
-    // Regular paragraph
-    html.push(`<p class="text-sm leading-relaxed my-1">${inline(line)}</p>`)
+    // Accumulate paragraph lines (soft-wrapped text joins into one block)
+    paraLines.push(line.trim())
   }
 
+  flushParagraph()
   if (inList) html.push('</ul>')
   if (inCodeBlock) html.push('</code></pre>')
 

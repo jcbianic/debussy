@@ -1,0 +1,12 @@
+{
+  "id": "fake-strategy-review-2",
+  "title": "Merge strategy: squash vs rebase vs merge commit",
+  "subtitle": "high",
+  "iterations": [
+    {
+      "number": 1,
+      "proposedAt": "2026-03-30T10:00:00Z",
+      "content": "The `merged` state currently doesn't specify a merge strategy. As a solo builder, the user needs a clear default with the option to override.\n\n### Analysis\n\n**Squash merge** (recommended default):\n- Clean main history, one commit per lane\n- Intent title becomes the commit message\n- Loses granular commit history (acceptable for solo)\n\n**Rebase:**\n- Preserves individual commits on main\n- Risk of conflicts during rebase\n- More complex to automate\n\n**Merge commit:**\n- Preserves branch topology\n- Noisy history for solo work\n- GitHub default\n\n### Recommendation\n\nDefault to **squash merge** with the lane intent as commit message. Store the merge strategy in the lane record so it can be overridden per-lane if needed:\n\n```json\n{ \"mergeStrategy\": \"squash\" }\n```"
+    }
+  ]
+}

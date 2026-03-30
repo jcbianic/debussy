@@ -2,7 +2,13 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { mkdtemp, rm, mkdir, writeFile, readFile } from 'node:fs/promises'
 import path from 'node:path'
 import os from 'node:os'
-import { itemStatus, scanReviews, writeReviewDecision } from './reviews'
+import {
+  itemStatus,
+  scanReviews,
+  writeReviewDecision,
+  itemIdToFilename,
+  assertSafeItemId,
+} from './reviews'
 import type { Item } from './reviews'
 
 // ─── itemStatus ──────────────────────────────────────────────────────────────
@@ -95,6 +101,46 @@ describe('itemStatus', () => {
       iterations: [],
     }
     expect(itemStatus(item)).toBe('pending')
+  })
+})
+
+// ─── itemIdToFilename ────────────────────────────────────────────────────────
+
+describe('itemIdToFilename', () => {
+  it('replaces / with --', () => {
+    expect(itemIdToFilename('policies/testing/unit-tests')).toBe(
+      'policies--testing--unit-tests'
+    )
+  })
+
+  it('leaves IDs without / unchanged', () => {
+    expect(itemIdToFilename('simple-item')).toBe('simple-item')
+  })
+})
+
+// ─── assertSafeItemId ────────────────────────────────────────────────────────
+
+describe('assertSafeItemId', () => {
+  it('accepts IDs with slashes', () => {
+    expect(() =>
+      assertSafeItemId('policies/testing/unit-tests', 'id')
+    ).not.toThrow()
+  })
+
+  it('accepts simple IDs', () => {
+    expect(() => assertSafeItemId('item-1', 'id')).not.toThrow()
+  })
+
+  it('rejects path traversal with ..', () => {
+    expect(() => assertSafeItemId('foo/../etc', 'id')).toThrow()
+  })
+
+  it('rejects absolute paths', () => {
+    expect(() => assertSafeItemId('/etc/passwd', 'id')).toThrow()
+  })
+
+  it('rejects empty strings', () => {
+    expect(() => assertSafeItemId('', 'id')).toThrow()
   })
 })
 
@@ -285,6 +331,52 @@ describe('writeReviewDecision', () => {
       await readFile(path.join(tmpDir, 'rv-test', 'response.json'), 'utf8')
     )
     expect(response.decisions['item-1'].action).toBe('approved')
+  })
+
+  it('handles item IDs with slashes (review-gate format)', async () => {
+    const reviewDir = path.join(tmpDir, 'rv-test')
+    const itemsDir = path.join(reviewDir, 'items')
+    await mkdir(itemsDir, { recursive: true })
+
+    await writeFile(
+      path.join(reviewDir, 'review.json'),
+      JSON.stringify({
+        id: 'rv-test',
+        title: 'Test',
+        source: 'test',
+        type: 'test',
+        createdAt: '',
+      })
+    )
+
+    // File uses -- encoding, but JSON id contains /
+    await writeFile(
+      path.join(itemsDir, 'policies--testing--unit-tests.json'),
+      JSON.stringify({
+        id: 'policies/testing/unit-tests',
+        title: 'Unit Tests',
+        subtitle: 'Policy: Testing',
+        iterations: [{ number: 1, proposedAt: '', content: 'Content' }],
+      })
+    )
+
+    const result = await writeReviewDecision(
+      tmpDir,
+      'rv-test',
+      'policies/testing/unit-tests',
+      { decision: 'approved', decidedAt: '2026-01-01' }
+    )
+
+    expect(result).toEqual({ ok: true, complete: true })
+
+    // Verify feedback written to the --encoded file
+    const item = JSON.parse(
+      await readFile(
+        path.join(itemsDir, 'policies--testing--unit-tests.json'),
+        'utf8'
+      )
+    )
+    expect(item.iterations[0].feedback.decision).toBe('approved')
   })
 
   it('returns ok: false for nonexistent review', async () => {

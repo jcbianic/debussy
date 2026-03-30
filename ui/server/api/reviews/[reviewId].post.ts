@@ -2,6 +2,7 @@ import {
   resolveReviewsPath,
   writeReviewDecision,
   assertSafeSegment,
+  assertSafeItemId,
 } from '../../utils/reviews'
 
 const VALID_ACTIONS = new Set([
@@ -47,7 +48,7 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    assertSafeSegment(body.itemId, 'itemId')
+    assertSafeItemId(body.itemId, 'itemId')
   } catch {
     throw createError({ statusCode: 400, statusMessage: 'Invalid itemId' })
   }
