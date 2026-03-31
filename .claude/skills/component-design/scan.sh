@@ -1,0 +1,1 @@
+the is is a script that scans a directory for component design files and generates a report of the components found.
