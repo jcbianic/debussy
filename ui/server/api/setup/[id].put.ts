@@ -2,6 +2,7 @@ import { writeFile, stat } from 'node:fs/promises'
 import path from 'node:path'
 import { resolveDebussyPath } from '../../utils/debussy'
 import {
+  isValidItemName,
   serializeSkill,
   serializeCommand,
   serializeAgent,
@@ -71,6 +72,14 @@ export default defineEventHandler(async (event) => {
   } else {
     // id = project:name
     itemName = idParts[0]!
+  }
+
+  if (!isValidItemName(itemName)) {
+    throw createError({
+      statusCode: 400,
+      statusMessage:
+        'Invalid item name — must be lowercase alphanumeric with hyphens',
+    })
   }
 
   if (body.type === 'skill') {

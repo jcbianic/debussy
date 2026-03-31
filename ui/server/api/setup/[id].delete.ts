@@ -1,6 +1,7 @@
 import { rm, stat } from 'node:fs/promises'
 import path from 'node:path'
 import { resolveDebussyPath } from '../../utils/debussy'
+import { isValidItemName } from '../../utils/setup'
 
 async function exists(p: string): Promise<boolean> {
   try {
@@ -34,15 +35,25 @@ export default defineEventHandler(async (event) => {
 
   let targetPath: string
 
+  let itemName: string
   if (rest.startsWith('cmd:')) {
-    const name = rest.replace('cmd:', '')
-    targetPath = path.join(projectRoot, 'commands', `${name}.md`)
+    itemName = rest.replace('cmd:', '')
+    targetPath = path.join(projectRoot, 'commands', `${itemName}.md`)
   } else if (rest.startsWith('agent:')) {
-    const name = rest.replace('agent:', '')
-    targetPath = path.join(projectRoot, 'agents', `${name}.md`)
+    itemName = rest.replace('agent:', '')
+    targetPath = path.join(projectRoot, 'agents', `${itemName}.md`)
   } else {
     // Skill — remove the entire directory
-    targetPath = path.join(projectRoot, 'skills', rest)
+    itemName = rest
+    targetPath = path.join(projectRoot, 'skills', itemName)
+  }
+
+  if (!isValidItemName(itemName)) {
+    throw createError({
+      statusCode: 400,
+      statusMessage:
+        'Invalid item name — must be lowercase alphanumeric with hyphens',
+    })
   }
 
   if (!(await exists(targetPath))) {

@@ -21,18 +21,22 @@ case "$hook_event" in
     [ "$tool" != "Skill" ] && exit 0
     skill=$(echo "$DATA" | jq -r '.tool_input.skill // empty')
     [ -z "$skill" ] && exit 0
-    echo "{\"ts\":\"${ts}\",\"event\":\"skill\",\"session\":\"${session}\",\"name\":\"${skill}\"}" >> "$USAGE_FILE"
+    jq -n --arg ts "$ts" --arg session "$session" --arg name "$skill" \
+      '{ts:$ts,event:"skill",session:$session,name:$name}' -c >> "$USAGE_FILE"
     ;;
   SubagentStop)
     agent_type=$(echo "$DATA" | jq -r '.agent_type // empty')
     [ -z "$agent_type" ] && exit 0
-    echo "{\"ts\":\"${ts}\",\"event\":\"agent\",\"session\":\"${session}\",\"name\":\"${agent_type}\"}" >> "$USAGE_FILE"
+    jq -n --arg ts "$ts" --arg session "$session" --arg name "$agent_type" \
+      '{ts:$ts,event:"agent",session:$session,name:$name}' -c >> "$USAGE_FILE"
     ;;
   SessionStart)
-    echo "{\"ts\":\"${ts}\",\"event\":\"session_start\",\"session\":\"${session}\"}" >> "$USAGE_FILE"
+    jq -n --arg ts "$ts" --arg session "$session" \
+      '{ts:$ts,event:"session_start",session:$session}' -c >> "$USAGE_FILE"
     ;;
   SessionEnd)
-    echo "{\"ts\":\"${ts}\",\"event\":\"session_end\",\"session\":\"${session}\"}" >> "$USAGE_FILE"
+    jq -n --arg ts "$ts" --arg session "$session" \
+      '{ts:$ts,event:"session_end",session:$session}' -c >> "$USAGE_FILE"
     ;;
 esac
 

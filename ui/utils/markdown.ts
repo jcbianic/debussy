@@ -1,7 +1,6 @@
 /**
  * Lightweight markdown to HTML renderer for review content.
  * Handles headings, bold, italic, inline code, code blocks, lists, and paragraphs.
- * Content is skill-generated (not user input), so XSS is not a concern.
  */
 export function renderMarkdown(md: string): string {
   const lines = md.split('\n')
@@ -145,17 +144,17 @@ export function renderMarkdown(md: string): string {
 
 /** Apply inline markdown: bold, italic, inline code, links */
 function inline(text: string): string {
-  return text
+  return escapeHtml(text)
     .replace(
       /`([^`]+)`/g,
       '<code class="bg-surface-sunken rounded px-1 py-0.5 font-mono text-xs">$1</code>'
     )
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
     .replace(/\*([^*]+)\*/g, '<em>$1</em>')
-    .replace(
-      /\[([^\]]+)\]\(([^)]+)\)/g,
-      '<a href="$2" class="text-blue-500 underline" target="_blank">$1</a>'
-    )
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label, url) => {
+      const safe = /^https?:\/\//i.test(url) ? url : '#'
+      return `<a href="${safe}" class="text-blue-500 underline" target="_blank" rel="noopener noreferrer">${label}</a>`
+    })
 }
 
 function escapeHtml(str: string): string {

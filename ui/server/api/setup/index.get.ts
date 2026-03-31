@@ -62,22 +62,35 @@ const BINARY_EXTENSIONS = new Set([
   '.dylib',
 ])
 
+const SCAN_MAX_DEPTH = 10
+const SCAN_MAX_FILES = 500
+const SCAN_MAX_FILE_BYTES = 512 * 1024 // 512 KB
+
 async function scanSkillFiles(
   dirPath: string
 ): Promise<{ relativePath: string; content: string }[]> {
   const results: { relativePath: string; content: string }[] = []
 
-  async function walk(current: string, prefix: string) {
+  async function walk(current: string, prefix: string, depth: number) {
+    if (depth > SCAN_MAX_DEPTH || results.length >= SCAN_MAX_FILES) return
     const entries = await safeReaddir(current)
     for (const entry of entries) {
+      if (results.length >= SCAN_MAX_FILES) break
       const fullPath = path.join(current, entry)
       const rel = prefix ? `${prefix}/${entry}` : entry
       if (await isDirectory(fullPath)) {
-        await walk(fullPath, rel)
+        await walk(fullPath, rel, depth + 1)
       } else {
         // Skip SKILL.md (already parsed as body) and binary files
         if (entry === 'SKILL.md') continue
         if (BINARY_EXTENSIONS.has(path.extname(entry).toLowerCase())) continue
+        // Skip files that exceed the size limit
+        try {
+          const s = await stat(fullPath)
+          if (s.size > SCAN_MAX_FILE_BYTES) continue
+        } catch {
+          continue
+        }
         const content = await safeRead(fullPath)
         if (content !== null) {
           results.push({ relativePath: rel, content })
@@ -86,7 +99,7 @@ async function scanSkillFiles(
     }
   }
 
-  await walk(dirPath, '')
+  await walk(dirPath, '', 0)
   return results
 }
 
@@ -155,7 +168,12 @@ export default defineEventHandler(async () => {
   //    or .claude/ layout (.claude/skills/, .claude/commands/, .claude/agents/)
   //    Manifest may be at .claude-plugin/plugin.json or plugin.json
   for (const plugin of installedPlugins) {
-    const root = plugin.installPath
+    const rawPath = plugin.installPath
+    // Validate: must be absolute and resolve to within home directory
+    if (!rawPath || !path.isAbsolute(rawPath)) continue
+    const root = path.resolve(rawPath)
+    const home = os.homedir()
+    if (root !== home && !root.startsWith(home + path.sep)) continue
 
     // Manifest: try .claude-plugin/plugin.json first, then plugin.json
     const manifest =

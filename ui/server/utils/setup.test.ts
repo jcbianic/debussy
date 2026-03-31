@@ -535,6 +535,11 @@ describe('isValidItemName', () => {
   it('rejects empty strings', () => {
     expect(isValidItemName('')).toBe(false)
   })
+
+  it('rejects names longer than 64 characters', () => {
+    expect(isValidItemName('a'.repeat(64))).toBe(true)
+    expect(isValidItemName('a'.repeat(65))).toBe(false)
+  })
 })
 
 // ─── serializeSkill ─────────────────────────────────────────────────────────

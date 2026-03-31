@@ -336,9 +336,9 @@ export function buildSetupItems(pluginDataList: PluginData[]): SetupItem[] {
 
 // ─── Serialization helpers (project items → disk) ───────────────────────────
 
-/** Validate an item name: lowercase alphanumeric + hyphens only. */
+/** Validate an item name: lowercase alphanumeric + hyphens only, max 64 chars. */
 export function isValidItemName(name: string): boolean {
-  return /^[a-z0-9][a-z0-9-]*$/.test(name)
+  return /^[a-z0-9][a-z0-9-]*$/.test(name) && name.length <= 64
 }
 
 /** Serialize a skill back to SKILL.md frontmatter + body. */
