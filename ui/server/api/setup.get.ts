@@ -105,58 +105,111 @@ export default defineEventHandler(async () => {
     ? parseInstalledPlugins(installedJson)
     : []
 
-  // 2. For each plugin, read manifest, skills, commands, hooks
-  for (const plugin of installedPlugins) {
-    const manifest = await safeRead(
-      path.join(plugin.installPath, 'plugin.json')
-    )
-    const parsed = manifest ? parsePluginManifest(manifest) : null
+  // ── Helpers to scan skills / commands / agents from a directory ──
 
-    // Scan skills
-    const skillsDir = path.join(plugin.installPath, '.claude', 'skills')
-    const skillDirs = await safeReaddir(skillsDir)
-    const skills = []
-    for (const dir of skillDirs) {
-      const dirPath = path.join(skillsDir, dir)
+  async function scanSkillsIn(baseDir: string) {
+    const dirs = await safeReaddir(baseDir)
+    const results = []
+    for (const dir of dirs) {
+      const dirPath = path.join(baseDir, dir)
       if (!(await isDirectory(dirPath))) continue
       const skillMd = await safeRead(path.join(dirPath, 'SKILL.md'))
       if (!skillMd) continue
       const skill = parseSkillFrontmatter(skillMd, dir)
       if (skill) {
         skill.files = await scanSkillFiles(dirPath)
-        skills.push(skill)
+        results.push(skill)
+      }
+    }
+    return results
+  }
+
+  async function scanCommandsIn(baseDir: string) {
+    const files = await safeReaddir(baseDir)
+    const results = []
+    for (const file of files) {
+      if (!file.endsWith('.md')) continue
+      const content = await safeRead(path.join(baseDir, file))
+      if (!content) continue
+      const cmd = parseCommandFrontmatter(content, file.replace(/\.md$/, ''))
+      if (cmd) results.push(cmd)
+    }
+    return results
+  }
+
+  async function scanAgentsIn(baseDir: string) {
+    const files = await safeReaddir(baseDir)
+    const results = []
+    for (const file of files) {
+      if (!file.endsWith('.md')) continue
+      const content = await safeRead(path.join(baseDir, file))
+      if (!content) continue
+      const agent = parseAgentFrontmatter(content, file)
+      if (agent) results.push(agent)
+    }
+    return results
+  }
+
+  // 2. For each plugin, read manifest, skills, commands, hooks, agents
+  //    Plugins may use root-level layout (skills/, commands/, agents/)
+  //    or .claude/ layout (.claude/skills/, .claude/commands/, .claude/agents/)
+  //    Manifest may be at .claude-plugin/plugin.json or plugin.json
+  for (const plugin of installedPlugins) {
+    const root = plugin.installPath
+
+    // Manifest: try .claude-plugin/plugin.json first, then plugin.json
+    const manifest =
+      (await safeRead(path.join(root, '.claude-plugin', 'plugin.json'))) ??
+      (await safeRead(path.join(root, 'plugin.json')))
+    const parsed = manifest ? parsePluginManifest(manifest) : null
+
+    // Scan skills from both root/skills/ and root/.claude/skills/
+    const seen = new Set<string>()
+    const skills = []
+    for (const dir of [
+      path.join(root, 'skills'),
+      path.join(root, '.claude', 'skills'),
+    ]) {
+      for (const s of await scanSkillsIn(dir)) {
+        if (!seen.has(s.name)) {
+          seen.add(s.name)
+          skills.push(s)
+        }
       }
     }
 
-    // Scan commands
-    const commandsDir = path.join(plugin.installPath, '.claude', 'commands')
-    const commandFiles = await safeReaddir(commandsDir)
+    // Scan commands from both locations
+    const seenCmd = new Set<string>()
     const commands = []
-    for (const file of commandFiles) {
-      if (!file.endsWith('.md')) continue
-      const content = await safeRead(path.join(commandsDir, file))
-      if (!content) continue
-      const cmdName = file.replace(/\.md$/, '')
-      const cmd = parseCommandFrontmatter(content, cmdName)
-      if (cmd) commands.push(cmd)
+    for (const dir of [
+      path.join(root, 'commands'),
+      path.join(root, '.claude', 'commands'),
+    ]) {
+      for (const c of await scanCommandsIn(dir)) {
+        if (!seenCmd.has(c.name)) {
+          seenCmd.add(c.name)
+          commands.push(c)
+        }
+      }
     }
 
-    // Scan agents
-    const agentsDir = path.join(plugin.installPath, '.claude', 'agents')
-    const agentFiles = await safeReaddir(agentsDir)
+    // Scan agents from both locations
+    const seenAgent = new Set<string>()
     const agents = []
-    for (const file of agentFiles) {
-      if (!file.endsWith('.md')) continue
-      const content = await safeRead(path.join(agentsDir, file))
-      if (!content) continue
-      const agent = parseAgentFrontmatter(content, file)
-      if (agent) agents.push(agent)
+    for (const dir of [
+      path.join(root, 'agents'),
+      path.join(root, '.claude', 'agents'),
+    ]) {
+      for (const a of await scanAgentsIn(dir)) {
+        if (!seenAgent.has(a.name)) {
+          seenAgent.add(a.name)
+          agents.push(a)
+        }
+      }
     }
 
     // Read hooks
-    const hooksJson = await safeRead(
-      path.join(plugin.installPath, 'hooks', 'hooks.json')
-    )
+    const hooksJson = await safeRead(path.join(root, 'hooks', 'hooks.json'))
     const hooks = hooksJson ? parseHooksJson(hooksJson) : []
 
     pluginDataList.push({
@@ -166,7 +219,7 @@ export default defineEventHandler(async () => {
       scope: plugin.scope,
       description: parsed?.description,
       installedAt: plugin.installedAt,
-      installPath: plugin.installPath,
+      installPath: root,
       skills,
       commands,
       hooks,
@@ -177,47 +230,11 @@ export default defineEventHandler(async () => {
   // 3. Scan project-level skills, commands, and agents
   try {
     const projectRoot = await resolveDebussyPath('.claude')
-
-    // Skills
-    const projectSkillsDir = path.join(projectRoot, 'skills')
-    const projDirs = await safeReaddir(projectSkillsDir)
-    const projSkills = []
-    for (const dir of projDirs) {
-      const dirPath = path.join(projectSkillsDir, dir)
-      if (!(await isDirectory(dirPath))) continue
-      const skillMd = await safeRead(path.join(dirPath, 'SKILL.md'))
-      if (!skillMd) continue
-      const skill = parseSkillFrontmatter(skillMd, dir)
-      if (skill) {
-        skill.files = await scanSkillFiles(dirPath)
-        projSkills.push(skill)
-      }
-    }
-
-    // Commands
-    const projectCommandsDir = path.join(projectRoot, 'commands')
-    const projCmdFiles = await safeReaddir(projectCommandsDir)
-    const projCommands = []
-    for (const file of projCmdFiles) {
-      if (!file.endsWith('.md')) continue
-      const content = await safeRead(path.join(projectCommandsDir, file))
-      if (!content) continue
-      const cmdName = file.replace(/\.md$/, '')
-      const cmd = parseCommandFrontmatter(content, cmdName)
-      if (cmd) projCommands.push(cmd)
-    }
-
-    // Agents
-    const projectAgentsDir = path.join(projectRoot, 'agents')
-    const projAgentFiles = await safeReaddir(projectAgentsDir)
-    const projAgents = []
-    for (const file of projAgentFiles) {
-      if (!file.endsWith('.md')) continue
-      const content = await safeRead(path.join(projectAgentsDir, file))
-      if (!content) continue
-      const agent = parseAgentFrontmatter(content, file)
-      if (agent) projAgents.push(agent)
-    }
+    const projSkills = await scanSkillsIn(path.join(projectRoot, 'skills'))
+    const projCommands = await scanCommandsIn(
+      path.join(projectRoot, 'commands')
+    )
+    const projAgents = await scanAgentsIn(path.join(projectRoot, 'agents'))
 
     if (
       projSkills.length > 0 ||
