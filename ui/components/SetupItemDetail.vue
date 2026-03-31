@@ -20,10 +20,16 @@
             variant="subtle"
             size="xs"
           />
-          <span
+          <button
             v-if="item.plugin"
-            class="text-xs text-neutral-400"
-          >from <span class="font-mono">{{ item.plugin }}</span></span>
+            class="cursor-pointer text-xs text-neutral-400 transition-colors hover:text-blue-500"
+            @click="emit('selectByName', item.plugin!)"
+          >
+            from
+            <span class="font-mono underline decoration-dotted">{{
+              item.plugin
+            }}</span>
+          </button>
           <span
             v-if="item.version"
             class="text-content-ghost font-mono text-xs"
@@ -201,9 +207,12 @@
       </div>
     </template>
 
-    <!-- ── SKILL: triggers ── -->
-    <template v-if="item.type === 'skill' && item.triggers?.length">
-      <div class="mb-5">
+    <!-- ── SKILL: triggers + body + files ── -->
+    <template v-if="item.type === 'skill'">
+      <div
+        v-if="item.triggers?.length"
+        class="mb-5"
+      >
         <h3
           class="mb-2 text-xs font-semibold tracking-wider text-neutral-400 uppercase"
         >
@@ -216,6 +225,125 @@
             class="rounded border border-amber-200 bg-amber-50 px-2 py-1 font-mono text-xs text-amber-700 dark:border-amber-800/50 dark:bg-amber-950/30 dark:text-amber-400"
           >{{ t }}</span>
         </div>
+      </div>
+      <div
+        v-if="item.body"
+        class="mb-5"
+      >
+        <h3
+          class="mb-2 text-xs font-semibold tracking-wider text-neutral-400 uppercase"
+        >
+          SKILL.md
+        </h3>
+        <!-- eslint-disable vue/no-v-html -->
+        <div
+          class="text-content-secondary"
+          v-html="renderMarkdown(item.body)"
+        />
+        <!-- eslint-enable vue/no-v-html -->
+      </div>
+      <!-- Skill directory files -->
+      <div
+        v-if="item.files?.length"
+        class="mb-5"
+      >
+        <h3
+          class="mb-3 text-xs font-semibold tracking-wider text-neutral-400 uppercase"
+        >
+          Files
+          <span class="font-normal opacity-60">{{ item.files.length }}</span>
+        </h3>
+        <div class="border-line overflow-hidden rounded-lg border">
+          <div
+            v-for="(file, i) in item.files"
+            :key="file.relativePath"
+            :class="
+              i < item.files.length - 1 ? 'border-line-subtle border-b' : ''
+            "
+          >
+            <button
+              class="flex w-full items-center gap-2.5 px-4 py-2.5 text-left transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-900/50"
+              @click="toggleFile(file.relativePath)"
+            >
+              <UIcon
+                :name="
+                  isFileExpanded(file.relativePath)
+                    ? 'i-heroicons-chevron-down'
+                    : 'i-heroicons-chevron-right'
+                "
+                class="size-3 flex-shrink-0 text-neutral-400"
+              />
+              <UIcon
+                name="i-heroicons-document-text"
+                class="size-3.5 flex-shrink-0 text-neutral-400"
+              />
+              <span class="text-content-secondary flex-1 font-mono text-xs">{{
+                file.relativePath
+              }}</span>
+              <span class="text-xs text-neutral-400 tabular-nums">{{ file.content.split('\n').length }} lines</span>
+            </button>
+            <div
+              v-if="isFileExpanded(file.relativePath)"
+              class="border-line-subtle border-t"
+            >
+              <pre
+                class="bg-surface-tinted overflow-x-auto px-5 py-4 font-mono text-xs leading-relaxed whitespace-pre-wrap"
+              >{{ file.content }}</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <!-- ── AGENT: model, tools, body ── -->
+    <template v-if="item.type === 'agent'">
+      <div
+        v-if="item.model || item.tools"
+        class="mb-5 flex flex-wrap gap-4"
+      >
+        <div v-if="item.model">
+          <h3
+            class="mb-2 text-xs font-semibold tracking-wider text-neutral-400 uppercase"
+          >
+            Model
+          </h3>
+          <UBadge
+            :label="item.model"
+            color="neutral"
+            variant="subtle"
+            size="sm"
+          />
+        </div>
+        <div v-if="item.tools">
+          <h3
+            class="mb-2 text-xs font-semibold tracking-wider text-neutral-400 uppercase"
+          >
+            Tools
+          </h3>
+          <div class="flex flex-wrap gap-1.5">
+            <span
+              v-for="tool in item.tools.split(', ')"
+              :key="tool"
+              class="bg-surface-hover text-content-muted border-line-raised rounded border px-2 py-1 font-mono text-xs"
+            >{{ tool }}</span>
+          </div>
+        </div>
+      </div>
+      <div
+        v-if="item.body"
+        class="mb-5"
+      >
+        <h3
+          class="mb-2 text-xs font-semibold tracking-wider text-neutral-400 uppercase"
+        >
+          System prompt
+        </h3>
+        <!-- eslint-disable vue/no-v-html -->
+        <div
+          class="text-content-secondary"
+          v-html="renderMarkdown(item.body)"
+        />
+        <!-- eslint-enable vue/no-v-html -->
       </div>
     </template>
 
@@ -245,7 +373,7 @@
 <script setup lang="ts">
 import type { SetupItem } from '~/composables/useSetup'
 
-defineProps<{
+const props = defineProps<{
   item: SetupItem
   usage: number
   meta: { label: string; value: string }[]
@@ -256,4 +384,29 @@ const emit = defineEmits<{
   select: [item: SetupItem]
   selectByName: [name: string]
 }>()
+
+// File expand/collapse state for skill files
+const expandedFiles = ref(new Set<string>())
+
+function toggleFile(relativePath: string) {
+  const next = new Set(expandedFiles.value)
+  if (next.has(relativePath)) {
+    next.delete(relativePath)
+  } else {
+    next.add(relativePath)
+  }
+  expandedFiles.value = next
+}
+
+function isFileExpanded(relativePath: string) {
+  return expandedFiles.value.has(relativePath)
+}
+
+// Reset expanded files when item changes
+watch(
+  () => props.item.id,
+  () => {
+    expandedFiles.value = new Set()
+  }
+)
 </script>

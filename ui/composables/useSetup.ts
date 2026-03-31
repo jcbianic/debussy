@@ -1,4 +1,4 @@
-export type ItemType = 'plugin' | 'skill' | 'command' | 'hook'
+export type ItemType = 'plugin' | 'skill' | 'command' | 'hook' | 'agent'
 
 /** A Claude Code plugin, skill, command, or hook tracked in the setup view. */
 export interface SetupItem {
@@ -20,6 +20,13 @@ export interface SetupItem {
   delegatesTo?: string
   // hook
   triggers?: string[]
+  // agent
+  model?: string
+  tools?: string
+  // skill
+  files?: { relativePath: string; content: string }[]
+  // skill / generic
+  metadata?: Record<string, unknown>
 }
 
 /** Map item type to its Heroicons icon name. */
@@ -29,6 +36,7 @@ export const typeIcon = (type: ItemType): string =>
     skill: 'i-heroicons-sparkles',
     command: 'i-heroicons-command-line',
     hook: 'i-heroicons-bolt',
+    agent: 'i-heroicons-cpu-chip',
   })[type]
 
 /** Map item type to its Tailwind text-color class. */
@@ -38,7 +46,23 @@ export const typeColor = (type: ItemType): string =>
     skill: 'text-violet-500',
     command: 'text-emerald-500',
     hook: 'text-amber-500',
+    agent: 'text-cyan-500',
   })[type]
+
+/** Grouping axis for the "All" tab. */
+export type SetupGroupBy = 'type' | 'plugin'
+
+export const setupGroupByOptions = [
+  { value: 'type' as const, label: 'Type' },
+  { value: 'plugin' as const, label: 'Plugin' },
+]
+
+/** A group of items in the list panel. */
+export interface SetupGroup {
+  label: string
+  items: SetupItem[]
+  pluginId?: string
+}
 
 /** Provide Claude setup data, selection state, and derived helpers. */
 export const useSetup = () => {
@@ -52,10 +76,16 @@ export const useSetup = () => {
     items.value.filter((i) => i.type === 'command')
   )
   const hooks = computed(() => items.value.filter((i) => i.type === 'hook'))
+  const agents = computed(() => items.value.filter((i) => i.type === 'agent'))
 
   const allItems = computed(() => items.value)
 
   const activeTab = ref<'all' | ItemType>('all')
+  const groupByMode = ref<SetupGroupBy>('type')
+
+  function setGroupBy(mode: SetupGroupBy) {
+    groupByMode.value = mode
+  }
 
   const tabs = computed(() => [
     { key: 'all' as const, label: 'All', count: allItems.value.length },
@@ -67,9 +97,10 @@ export const useSetup = () => {
       count: commands.value.length,
     },
     { key: 'hook' as const, label: 'Hooks', count: hooks.value.length },
+    { key: 'agent' as const, label: 'Agents', count: agents.value.length },
   ])
 
-  const groupedItems = computed(() => {
+  const groupedItems = computed<SetupGroup[]>(() => {
     if (activeTab.value !== 'all') {
       return [
         {
@@ -78,11 +109,21 @@ export const useSetup = () => {
         },
       ]
     }
+
+    if (groupByMode.value === 'plugin') {
+      return plugins.value.map((p) => ({
+        label: p.name,
+        pluginId: p.id,
+        items: pluginProvides(p.id).flatMap((g) => g.items),
+      }))
+    }
+
     return [
       { label: 'Plugins', items: plugins.value },
       { label: 'Skills', items: skills.value },
       { label: 'Commands', items: commands.value },
       { label: 'Hooks', items: hooks.value },
+      { label: 'Agents', items: agents.value },
     ]
   })
 
@@ -104,12 +145,13 @@ export const useSetup = () => {
     for (const item of allProvided) {
       ;(byType[item.type] ??= []).push(item)
     }
-    const typeOrder: ItemType[] = ['skill', 'command', 'hook']
+    const typeOrder: ItemType[] = ['skill', 'command', 'hook', 'agent']
     const typeLabels: Record<ItemType, string> = {
       plugin: 'Plugins',
       skill: 'Skills',
       command: 'Commands',
       hook: 'Hooks',
+      agent: 'Agents',
     }
     return typeOrder
       .filter((t) => byType[t]?.length)
@@ -145,14 +187,32 @@ export const useSetup = () => {
         value: selected.value.plugin.split('@')[0] ?? '',
       })
     }
+    // Surface extra frontmatter metadata as key-value pairs
+    if (selected.value.metadata) {
+      for (const [key, val] of Object.entries(selected.value.metadata)) {
+        if (val == null) continue
+        if (typeof val === 'object') {
+          // Flatten nested objects (e.g. metadata: { author, version })
+          for (const [subKey, subVal] of Object.entries(
+            val as Record<string, unknown>
+          )) {
+            if (subVal != null) m.push({ label: subKey, value: String(subVal) })
+          }
+        } else {
+          m.push({ label: key, value: String(val) })
+        }
+      }
+    }
     return m
   })
 
   const totalUsage = computed(() =>
-    [...skills.value, ...commands.value, ...hooks.value].reduce(
-      (s, i) => s + i.usage,
-      0
-    )
+    [
+      ...skills.value,
+      ...commands.value,
+      ...hooks.value,
+      ...agents.value,
+    ].reduce((s, i) => s + i.usage, 0)
   )
 
   const headerStats = computed(() => [
@@ -160,6 +220,7 @@ export const useSetup = () => {
     { value: skills.value.length, label: 'skills' },
     { value: commands.value.length, label: 'commands' },
     { value: hooks.value.length, label: 'hooks' },
+    { value: agents.value.length, label: 'agents' },
     { value: totalUsage.value, label: 'total invocations' },
   ])
 
@@ -169,6 +230,8 @@ export const useSetup = () => {
     },
     allItems,
     activeTab,
+    groupByMode,
+    setGroupBy,
     tabs,
     groupedItems,
     selected,

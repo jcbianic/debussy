@@ -46,8 +46,11 @@
         :active-tab="activeTab"
         :grouped-items="groupedItems"
         :selected-id="selected?.id ?? null"
+        :group-by-mode="groupByMode"
+        :group-by-options="setupGroupByOptions"
         @select="selected = $event"
         @set-tab="activeTab = $event"
+        @set-group-by="setGroupBy($event)"
       />
       <div class="flex-1 overflow-y-auto">
         <SetupOverviewPanel
@@ -74,6 +77,8 @@ const { path: projectPath } = useProjectConfig()
 const {
   plugins,
   activeTab,
+  groupByMode,
+  setGroupBy,
   tabs,
   groupedItems,
   selected,

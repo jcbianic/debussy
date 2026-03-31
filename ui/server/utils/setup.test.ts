@@ -3,6 +3,7 @@ import {
   parsePluginManifest,
   parseSkillFrontmatter,
   parseCommandFrontmatter,
+  parseAgentFrontmatter,
   parseHooksJson,
   parseInstalledPlugins,
   buildSetupItems,
@@ -52,6 +53,10 @@ const VALID_SKILL_MD = `---
 name: brainstorming
 description: >-
   Collaborative design methodology for creative work.
+license: MIT
+metadata:
+  author: jcbianic
+  version: "0.2.0"
 ---
 
 Use when requirements are unclear.
@@ -70,29 +75,40 @@ Content here.
 `
 
 describe('parseSkillFrontmatter', () => {
-  it('extracts name and description from valid SKILL.md content', () => {
+  it('extracts name, description, body, and metadata from valid SKILL.md', () => {
     const result = parseSkillFrontmatter(VALID_SKILL_MD, 'brainstorming')
     expect(result).not.toBeNull()
     expect(result!.name).toBe('brainstorming')
     expect(result!.description).toContain('Collaborative design')
+    expect(result!.body).toContain('Use when requirements are unclear.')
+    expect(result!.metadata).toEqual({
+      license: 'MIT',
+      metadata: { author: 'jcbianic', version: '0.2.0' },
+    })
   })
 
-  it('returns null when frontmatter is missing', () => {
+  it('falls back to directory name when frontmatter is missing', () => {
     const result = parseSkillFrontmatter(SKILL_NO_FRONTMATTER, 'some-skill')
-    expect(result).toBeNull()
+    expect(result).not.toBeNull()
+    expect(result!.name).toBe('some-skill')
   })
 
-  it('returns null when name field is absent', () => {
-    const result = parseSkillFrontmatter(SKILL_NO_NAME, 'fallback-dir')
-    expect(result).toBeNull()
-  })
-
-  it('handles description-only frontmatter (no name) by falling back to directory name', () => {
-    // This test checks a graceful fallback behavior. If the implementation
-    // chooses to fall back to dirName when name is absent, this test should
-    // be updated accordingly. For now, we expect null per the plan.
+  it('falls back to directory name when name field is absent', () => {
     const result = parseSkillFrontmatter(SKILL_NO_NAME, 'my-skill')
+    expect(result).not.toBeNull()
+    expect(result!.name).toBe('my-skill')
+    expect(result!.description).toBe('A skill without a name field.')
+    expect(result!.body).toBe('Content here.')
+  })
+
+  it('returns null when neither name nor dirName is provided', () => {
+    const result = parseSkillFrontmatter(SKILL_NO_NAME)
     expect(result).toBeNull()
+  })
+
+  it('omits metadata when no extra frontmatter fields exist', () => {
+    const result = parseSkillFrontmatter(SKILL_NO_NAME, 'my-skill')
+    expect(result!.metadata).toBeUndefined()
   })
 })
 
@@ -150,6 +166,69 @@ describe('parseCommandFrontmatter', () => {
     const result = parseCommandFrontmatter(COMMAND_WITH_DELEGATES, 'implement')
     expect(result).not.toBeNull()
     expect(result!.delegatesTo).toBe('rpikit:implementing-plans')
+  })
+})
+
+// ─── parseAgentFrontmatter ───────────────────────────────────────────────────
+
+const VALID_AGENT_MD = `---
+description: >-
+  Senior frontend lead specialized in Nuxt 4.
+model: sonnet
+tools: Read, Grep, Glob, Bash
+---
+
+You are a senior frontend lead.
+`
+
+const AGENT_NO_FRONTMATTER = `# Just markdown
+
+No frontmatter here.
+`
+
+describe('parseAgentFrontmatter', () => {
+  it('extracts name from filename, description, model, tools, and body', () => {
+    const result = parseAgentFrontmatter(VALID_AGENT_MD, 'frontend-lead.md')
+    expect(result).not.toBeNull()
+    expect(result!.name).toBe('frontend-lead')
+    expect(result!.description).toContain('Senior frontend lead')
+    expect(result!.model).toBe('sonnet')
+    expect(result!.tools).toBe('Read, Grep, Glob, Bash')
+    expect(result!.body).toContain('senior frontend lead')
+  })
+
+  it('strips .md extension from filename for name', () => {
+    const result = parseAgentFrontmatter(VALID_AGENT_MD, 'my-agent.md')
+    expect(result!.name).toBe('my-agent')
+  })
+
+  it('falls back to filename when no frontmatter name', () => {
+    const result = parseAgentFrontmatter(AGENT_NO_FRONTMATTER, 'fallback.md')
+    expect(result).not.toBeNull()
+    expect(result!.name).toBe('fallback')
+  })
+
+  it('returns null for empty content', () => {
+    expect(parseAgentFrontmatter('', 'empty.md')).toBeNull()
+    expect(parseAgentFrontmatter('   ', 'blank.md')).toBeNull()
+  })
+
+  it('collects extra frontmatter fields as metadata', () => {
+    const md = `---
+description: test
+model: opus
+custom_field: hello
+---
+
+Body.
+`
+    const result = parseAgentFrontmatter(md, 'meta.md')
+    expect(result!.metadata).toEqual({ custom_field: 'hello' })
+  })
+
+  it('omits metadata when no extra fields exist', () => {
+    const result = parseAgentFrontmatter(VALID_AGENT_MD, 'clean.md')
+    expect(result!.metadata).toBeUndefined()
   })
 })
 
@@ -300,7 +379,16 @@ const MOCK_PLUGIN_DATA = {
   description: 'A test plugin',
   installedAt: '2026-01-01T00:00:00Z',
   installPath: '/tmp/test-plugin',
-  skills: [{ name: 'test-skill', description: 'A test skill' }],
+  skills: [
+    {
+      name: 'test-skill',
+      description: 'A test skill',
+      files: [
+        { relativePath: 'run.sh', content: '#!/bin/bash\necho hello' },
+        { relativePath: 'templates/review.html', content: '<html></html>' },
+      ],
+    },
+  ],
   commands: [
     {
       name: 'test-cmd',
@@ -317,12 +405,20 @@ const MOCK_PLUGIN_DATA = {
       triggers: ['PostToolUse'],
     },
   ],
+  agents: [
+    {
+      name: 'frontend-lead',
+      description: 'Nuxt 4 expert',
+      model: 'sonnet',
+      tools: 'Read, Grep, Glob',
+    },
+  ],
 }
 
 describe('buildSetupItems', () => {
   it('assembles plugins, skills, commands, hooks into SetupItem[] array', () => {
     const result = buildSetupItems([MOCK_PLUGIN_DATA])
-    expect(result.length).toBeGreaterThanOrEqual(4) // plugin + skill + command + hook
+    expect(result.length).toBeGreaterThanOrEqual(5) // plugin + skill + command + hook + agent
   })
 
   it('sets plugin field on child items to parent id', () => {
@@ -352,5 +448,24 @@ describe('buildSetupItems', () => {
     const result = buildSetupItems([MOCK_PLUGIN_DATA])
     const ids = result.map((i) => i.id)
     expect(new Set(ids).size).toBe(ids.length)
+  })
+
+  it('passes files through to skill SetupItems', () => {
+    const result = buildSetupItems([MOCK_PLUGIN_DATA])
+    const skill = result.find((i) => i.type === 'skill')
+    expect(skill).toBeDefined()
+    expect(skill!.files).toHaveLength(2)
+    expect(skill!.files![0]!.relativePath).toBe('run.sh')
+    expect(skill!.files![1]!.relativePath).toBe('templates/review.html')
+  })
+
+  it('omits files when skill has no files', () => {
+    const data = {
+      ...MOCK_PLUGIN_DATA,
+      skills: [{ name: 'no-files-skill', description: 'No files' }],
+    }
+    const result = buildSetupItems([data])
+    const skill = result.find((i) => i.type === 'skill')
+    expect(skill!.files).toBeUndefined()
   })
 })

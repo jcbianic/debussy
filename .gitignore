@@ -18,4 +18,5 @@ __pycache__/
 .strategy-review/
 .debussy/strategy/.reviews/
 .debussy/inbox/
+.debussy/usage/
 .workflow-runs/

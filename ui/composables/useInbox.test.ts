@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import { describe, it, expect } from 'vitest'
-import { mockNuxtImport } from '@nuxt/test-utils/runtime'
+import { mockNuxtImport, registerEndpoint } from '@nuxt/test-utils/runtime'
 import { useInbox } from './useInbox'
 import type { Lane } from './useLanes'
 import { itemStatus } from './useLanes'
@@ -114,6 +114,9 @@ const mockFetchData = ref<Lane[]>(MOCK_LANES)
 mockNuxtImport('useFetch', () => {
   return () => ({ data: mockFetchData })
 })
+
+registerEndpoint('/api/reviews/rv-1', () => ({}))
+registerEndpoint('/api/reviews/rv-4', () => ({}))
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
@@ -441,23 +444,23 @@ describe('useInbox', () => {
       expect(commentError.value).toBe('')
     })
 
-    it('clears comment after a successful changes-requested submission', () => {
+    it('clears comment after a successful changes-requested submission', async () => {
       const { selectItem, submitAction, comment, visibleLanes } = useInbox()
       const lane = visibleLanes.value[0]!
       const item = lane.reviews[0]!.items[0]!
       selectItem(item.id, lane.id)
       comment.value = 'please fix this'
-      submitAction('changes-requested')
+      await submitAction('changes-requested')
       expect(comment.value).toBe('')
     })
 
-    it('clears comment after an approved submission', () => {
+    it('clears comment after an approved submission', async () => {
       const { selectItem, submitAction, comment, visibleLanes } = useInbox()
       const lane = visibleLanes.value[0]!
       const item = lane.reviews[0]!.items[0]!
       selectItem(item.id, lane.id)
       comment.value = 'looks good'
-      submitAction('approved')
+      await submitAction('approved')
       expect(comment.value).toBe('')
     })
   })

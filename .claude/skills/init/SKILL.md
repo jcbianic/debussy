@@ -547,8 +547,9 @@ If the parsed config has `options.statusline` set to `true` (or absent — defau
 
 ### UI check hook
 
-3. **Copy hook template**: from the same template directory, copy
-   `check-ui.sh` to `.claude/hooks/check-ui.sh`. Make it executable:
+1. **Copy hook template**: from the same template directory,
+   copy `check-ui.sh` to `.claude/hooks/check-ui.sh`.
+   Make it executable:
 
    ```bash
    mkdir -p .claude/hooks
@@ -556,11 +557,30 @@ If the parsed config has `options.statusline` set to `true` (or absent — defau
    chmod +x .claude/hooks/check-ui.sh
    ```
 
+### Usage tracking hook
+
+1. **Copy tracking hook**: from the same template directory,
+   copy `track-usage.sh` to `.claude/hooks/track-usage.sh`.
+   Make it executable:
+
+   ```bash
+   cp "{found-template-dir}/track-usage.sh" .claude/hooks/track-usage.sh
+   chmod +x .claude/hooks/track-usage.sh
+   ```
+
+2. **Create usage directory and gitignore entry**:
+
+   ```bash
+   mkdir -p .debussy/usage
+   grep -q '.debussy/usage/' .gitignore 2>/dev/null \
+     || echo '.debussy/usage/' >> .gitignore
+   ```
+
 ### Configure settings.local.json
 
-4. **Merge settings**: read `.claude/settings.local.json` (create if missing).
-   Merge in both the `statusLine` and `hooks` keys, preserving any existing
-   settings:
+1. **Merge settings**: read `.claude/settings.local.json`
+   (create if missing). Merge in the `statusLine` and `hooks`
+   keys, preserving any existing settings:
 
    ```bash
    SETTINGS=".claude/settings.local.json"
@@ -569,12 +589,31 @@ If the parsed config has `options.statusline` set to `true` (or absent — defau
    else
      EXISTING="{}"
    fi
-   echo "$EXISTING" | jq '
+   TRACK='{"type":"command","command":".claude/hooks/track-usage.sh"}'
+   echo "$EXISTING" | jq --argjson track "$TRACK" '
      . + {
-       "statusLine": {"type": "command", "command": ".claude/statusline.sh"},
+       "statusLine": {
+         "type": "command",
+         "command": ".claude/statusline.sh"
+       },
        "hooks": (.hooks // {} | . + {
          "PreToolUse": ((.PreToolUse // []) + [
-           {"matcher": "Skill", "hooks": [{"type": "command", "command": ".claude/hooks/check-ui.sh"}]}
+           {"matcher": "Skill", "hooks": [
+             {"type": "command",
+              "command": ".claude/hooks/check-ui.sh"}
+           ]}
+         ] | unique_by(.hooks[0].command)),
+         "PostToolUse": ((.PostToolUse // []) + [
+           {"matcher": "Skill", "hooks": [$track]}
+         ] | unique_by(.hooks[0].command)),
+         "SubagentStop": ((.SubagentStop // []) + [
+           {"matcher": ".*", "hooks": [$track]}
+         ] | unique_by(.hooks[0].command)),
+         "SessionStart": ((.SessionStart // []) + [
+           {"matcher": ".*", "hooks": [$track]}
+         ] | unique_by(.hooks[0].command)),
+         "SessionEnd": ((.SessionEnd // []) + [
+           {"matcher": ".*", "hooks": [$track]}
          ] | unique_by(.hooks[0].command))
        })
      }

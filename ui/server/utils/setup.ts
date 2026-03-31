@@ -9,9 +9,17 @@ export interface PluginManifest {
   description?: string
 }
 
+export interface SkillFile {
+  relativePath: string
+  content: string
+}
+
 export interface SkillEntry {
   name: string
   description?: string
+  body?: string
+  metadata?: Record<string, unknown>
+  files?: SkillFile[]
 }
 
 export interface CommandEntry {
@@ -21,6 +29,15 @@ export interface CommandEntry {
   allowedTools?: string
   delegatesTo?: string
   body?: string
+}
+
+export interface AgentEntry {
+  name: string
+  description?: string
+  model?: string
+  tools?: string
+  body?: string
+  metadata?: Record<string, unknown>
 }
 
 export interface HookEntry {
@@ -48,6 +65,7 @@ export interface PluginData {
   skills: SkillEntry[]
   commands: CommandEntry[]
   hooks: HookEntry[]
+  agents: AgentEntry[]
 }
 
 // ─── parsePluginManifest ─────────────────────────────────────────────────────
@@ -68,14 +86,25 @@ export function parsePluginManifest(json: string): PluginManifest | null {
 
 // ─── parseSkillFrontmatter ───────────────────────────────────────────────────
 
-export function parseSkillFrontmatter(content: string): SkillEntry | null {
+export function parseSkillFrontmatter(
+  content: string,
+  dirName?: string
+): SkillEntry | null {
   try {
-    const { data } = matter(content)
+    const { data, content: body } = matter(content)
     if (!data || typeof data !== 'object') return null
-    if (!data.name) return null
+    const name = data.name || dirName
+    if (!name) return null
+    // Collect all frontmatter fields except name/description as metadata
+    const rest = Object.fromEntries(
+      Object.entries(data).filter(([k]) => !['name', 'description'].includes(k))
+    )
+    const metadata = Object.keys(rest).length > 0 ? rest : undefined
     return {
-      name: data.name,
+      name,
       description: data.description,
+      body: body.trim() || undefined,
+      metadata,
     }
   } catch {
     return null
@@ -100,6 +129,37 @@ export function parseCommandFrontmatter(
       allowedTools: data['allowed-tools'],
       delegatesTo: data['delegates-to'],
       body: body.trim() || undefined,
+    }
+  } catch {
+    return null
+  }
+}
+
+// ─── parseAgentFrontmatter ───────────────────────────────────────────────────
+
+export function parseAgentFrontmatter(
+  content: string,
+  fileName: string
+): AgentEntry | null {
+  if (!content || !content.trim()) return null
+  try {
+    const { data, content: body } = matter(content)
+    if (!data || typeof data !== 'object') return null
+    const name = data.name || fileName.replace(/\.md$/, '')
+    if (!name) return null
+    const rest = Object.fromEntries(
+      Object.entries(data).filter(
+        ([k]) => !['name', 'description', 'model', 'tools'].includes(k)
+      )
+    )
+    const metadata = Object.keys(rest).length > 0 ? rest : undefined
+    return {
+      name,
+      description: data.description,
+      model: data.model,
+      tools: data.tools,
+      body: body.trim() || undefined,
+      metadata,
     }
   } catch {
     return null
@@ -182,6 +242,9 @@ export function buildSetupItems(pluginDataList: PluginData[]): SetupItem[] {
         type: 'skill',
         plugin: pd.id,
         description: skill.description,
+        body: skill.body,
+        metadata: skill.metadata,
+        files: skill.files,
         usage: 0,
       })
     }
@@ -215,6 +278,24 @@ export function buildSetupItems(pluginDataList: PluginData[]): SetupItem[] {
         plugin: pd.id,
         description: hook.description,
         triggers: hook.triggers,
+        usage: 0,
+      })
+    }
+
+    // Build agent items
+    for (const agent of pd.agents) {
+      const id = `${pd.id}:agent:${agent.name}`
+      childIds.push(id)
+      items.push({
+        id,
+        name: agent.name,
+        type: 'agent',
+        plugin: pd.id,
+        description: agent.description,
+        model: agent.model,
+        tools: agent.tools,
+        body: agent.body,
+        metadata: agent.metadata,
         usage: 0,
       })
     }
