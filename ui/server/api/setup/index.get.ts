@@ -289,11 +289,25 @@ export default defineEventHandler(async () => {
     const skillCounts = countBySkill(events)
     const agentCounts = countByAgent(events)
 
+    // Assign scoped counts first, then bare-name counts once per unique name
+    // to avoid double-counting when the same name exists in multiple plugins
+    const bareSkillClaimed = new Set<string>()
+    const bareAgentClaimed = new Set<string>()
     for (const item of items) {
       if ((item.type === 'skill' || item.type === 'command') && item.plugin) {
-        // Match "debussy:strategy" or just "strategy"
         const scoped = `${item.plugin.split('@')[0]}:${item.name}`
-        item.usage = (skillCounts[scoped] ?? 0) + (skillCounts[item.name] ?? 0)
+        item.usage = skillCounts[scoped] ?? 0
+        if (!bareSkillClaimed.has(item.name)) {
+          item.usage += skillCounts[item.name] ?? 0
+          bareSkillClaimed.add(item.name)
+        }
+      } else if (item.type === 'agent' && item.plugin) {
+        const scoped = `${item.plugin.split('@')[0]}:${item.name}`
+        item.usage = agentCounts[scoped] ?? 0
+        if (!bareAgentClaimed.has(item.name)) {
+          item.usage += agentCounts[item.name] ?? 0
+          bareAgentClaimed.add(item.name)
+        }
       } else if (item.type === 'agent') {
         item.usage = agentCounts[item.name] ?? 0
       }

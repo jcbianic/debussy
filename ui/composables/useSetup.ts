@@ -59,12 +59,101 @@ export interface SetupGroup {
   pluginId?: string
 }
 
+/** A node in the explorer file tree. */
+export interface ExplorerNode {
+  id: string
+  label: string
+  icon: string
+  iconClass: string
+  item?: SetupItem
+  isFolder: boolean
+  defaultExpanded?: boolean
+  children?: ExplorerNode[]
+}
+
+/** A plugin group with tree-structured nodes for the sidebar. */
+export interface ExplorerGroup {
+  pluginId?: string
+  label: string
+  nodes: ExplorerNode[]
+  itemCount: number
+}
+
 /** Whether an item is editable (project-scoped, non-plugin). */
 export function isEditable(item: SetupItem): boolean {
   return (
     item.plugin === 'project' ||
     (item.type === 'plugin' && item.id === 'project')
   )
+}
+
+/** Build a hierarchical file tree from flat relative paths. */
+function buildFileTree(
+  files: { relativePath: string; content: string }[],
+  parentItem: SetupItem
+): ExplorerNode[] {
+  interface TreeDir {
+    [key: string]: TreeDir | null
+  }
+  const root: TreeDir = {}
+  for (const file of files) {
+    const parts = file.relativePath.split('/')
+    let cur = root
+    for (let i = 0; i < parts.length; i++) {
+      const p = parts[i]!
+      if (i === parts.length - 1) {
+        cur[p] = null
+      } else {
+        if (!cur[p]) cur[p] = {}
+        cur = cur[p] as TreeDir
+      }
+    }
+  }
+  function toNodes(dir: TreeDir, prefix: string): ExplorerNode[] {
+    return Object.entries(dir)
+      .sort(([a, av], [b, bv]) => {
+        if ((av !== null) !== (bv !== null)) return av !== null ? -1 : 1
+        return a.localeCompare(b)
+      })
+      .map(([name, val]) => {
+        const path = prefix ? `${prefix}/${name}` : name
+        if (val === null) {
+          return {
+            id: `${parentItem.id}:file:${path}`,
+            label: name,
+            icon: 'i-heroicons-document-text',
+            iconClass: 'text-neutral-400',
+            item: parentItem,
+            isFolder: false,
+          }
+        }
+        return {
+          id: `${parentItem.id}:dir:${path}`,
+          label: name,
+          icon: 'i-heroicons-folder',
+          iconClass: 'text-neutral-400',
+          isFolder: true,
+          children: toNodes(val, path),
+        }
+      })
+  }
+  return toNodes(root, '')
+}
+
+/** Convert SetupItems into ExplorerNodes, adding file sub-trees where applicable. */
+function buildItemNodes(items: SetupItem[]): ExplorerNode[] {
+  return items.map((item) => {
+    const fc = item.files?.length ? buildFileTree(item.files, item) : undefined
+    return {
+      id: item.id,
+      label: item.name,
+      icon: typeIcon(item.type),
+      iconClass: typeColor(item.type),
+      item,
+      isFolder: !!fc?.length,
+      children: fc?.length ? fc : undefined,
+    }
+  })
 }
 
 /** Provide Claude setup data, selection state, and derived helpers. */
@@ -122,6 +211,65 @@ export const useSetup = () => {
     }
     // All tab: plugin folders with all children
     return groupByPlugin()
+  })
+
+  const typeFolderLabels: Record<string, string> = {
+    skill: 'skills',
+    command: 'commands',
+    hook: 'hooks',
+    agent: 'agents',
+  }
+
+  const explorerGroups = computed<ExplorerGroup[]>(() => {
+    if (activeTab.value === 'plugin') {
+      return [
+        {
+          label: '',
+          nodes: plugins.value.map((p) => ({
+            id: p.id,
+            label: p.name,
+            icon: typeIcon('plugin'),
+            iconClass: typeColor('plugin'),
+            item: p,
+            isFolder: false,
+          })),
+          itemCount: plugins.value.length,
+        },
+      ]
+    }
+
+    const typeFilter =
+      activeTab.value !== 'all' ? (activeTab.value as ItemType) : undefined
+
+    return plugins.value
+      .map((p) => {
+        const groups = pluginProvides(p.id)
+        let totalItems = 0
+        const nodes: ExplorerNode[] = []
+
+        for (const group of groups) {
+          if (typeFilter && group.type !== typeFilter) continue
+          const itemNodes = buildItemNodes(group.items)
+          totalItems += group.items.length
+
+          if (typeFilter) {
+            nodes.push(...itemNodes)
+          } else {
+            nodes.push({
+              id: `${p.id}:folder:${group.type}`,
+              label: typeFolderLabels[group.type] ?? group.type,
+              icon: 'i-heroicons-folder',
+              iconClass: 'text-neutral-400',
+              isFolder: true,
+              defaultExpanded: true,
+              children: itemNodes,
+            })
+          }
+        }
+
+        return { pluginId: p.id, label: p.name, nodes, itemCount: totalItems }
+      })
+      .filter((g) => g.nodes.length > 0)
   })
 
   const selected = ref<SetupItem | null>(null)
@@ -275,19 +423,19 @@ export const useSetup = () => {
   }
 
   return {
-    get plugins() {
-      return plugins.value
-    },
+    plugins,
     allItems,
     activeTab,
     tabs,
     groupedItems,
+    explorerGroups,
     selected,
     selectByName,
     pluginProvides,
     usageFor,
     selectedMeta,
     headerStats,
+    refresh,
     createItem,
     updateItem,
     deleteItem,

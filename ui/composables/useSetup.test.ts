@@ -61,7 +61,7 @@ const MOCK_ITEMS: SetupItem[] = [
 const mockFetchData = ref<SetupItem[] | null>(MOCK_ITEMS)
 
 mockNuxtImport('useFetch', () => {
-  return () => ({ data: mockFetchData })
+  return () => ({ data: mockFetchData, refresh: () => Promise.resolve() })
 })
 
 // Import after mocking
@@ -128,10 +128,13 @@ describe('useSetup', () => {
   })
 
   describe('groupedItems', () => {
-    it('groups items by type when activeTab is all', () => {
+    it('groups items by plugin when activeTab is all', () => {
       const { groupedItems } = useSetup()
-      // When activeTab is 'all', items should be grouped by type
-      expect(groupedItems.value.length).toBeGreaterThan(1)
+      // When activeTab is 'all', items should be grouped by plugin
+      // Mock data has 1 plugin with 3 provided items (skill, command, hook)
+      expect(groupedItems.value).toHaveLength(1)
+      expect(groupedItems.value[0]!.label).toBe('test-plugin')
+      expect(groupedItems.value[0]!.items.length).toBe(3)
     })
 
     it('filters to single type when activeTab is set', () => {
@@ -210,6 +213,34 @@ describe('useSetup', () => {
 
       const hookStat = stats.find((s) => s.label === 'hooks')
       expect(hookStat!.value).toBe(1)
+    })
+  })
+
+  describe('plugins reactivity', () => {
+    it('plugins is a reactive computed ref', () => {
+      const { plugins } = useSetup()
+      expect(plugins.value).toHaveLength(1)
+      expect(plugins.value[0]!.type).toBe('plugin')
+
+      // Mutate data — plugins should update
+      mockFetchData.value = [
+        ...MOCK_ITEMS,
+        {
+          id: 'extra@test',
+          name: 'extra',
+          type: 'plugin' as const,
+          usage: 0,
+          provides: [],
+        },
+      ]
+      expect(plugins.value).toHaveLength(2)
+    })
+  })
+
+  describe('refresh', () => {
+    it('exposes a refresh function', () => {
+      const { refresh } = useSetup()
+      expect(typeof refresh).toBe('function')
     })
   })
 

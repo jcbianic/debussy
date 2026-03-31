@@ -38,7 +38,7 @@
     <!-- Item list -->
     <div class="flex-1 overflow-y-auto py-1.5">
       <template
-        v-for="group in groupedItems"
+        v-for="group in explorerGroups"
         :key="group.pluginId ?? group.label"
       >
         <!-- Plugin group header (collapsible) -->
@@ -63,13 +63,13 @@
             {{ group.label }}
           </span>
           <span class="text-xs text-neutral-400 tabular-nums">
-            {{ group.items.length }}
+            {{ group.itemCount }}
           </span>
         </button>
 
         <!-- Type/plugin group header (non-collapsible) -->
         <div
-          v-else-if="group.label && groupedItems.length > 1"
+          v-else-if="group.label && explorerGroups.length > 1"
           class="px-4 pt-3 pb-1"
         >
           <span
@@ -77,36 +77,16 @@
           >{{ group.label }}</span>
         </div>
 
-        <!-- Items (hidden when plugin group is collapsed) -->
+        <!-- Tree nodes (hidden when plugin group is collapsed) -->
         <template v-if="!group.pluginId || isExpanded(group.pluginId!)">
-          <button
-            v-for="item in group.items"
-            :key="item.id"
-            class="mx-1.5 flex w-[calc(100%-12px)] items-center gap-2.5 rounded-md py-1.5 text-left transition-colors"
-            :class="[
-              selectedId === item.id
-                ? 'bg-surface-sunken'
-                : 'hover:bg-neutral-50 dark:hover:bg-neutral-900/50',
-              group.pluginId ? 'pr-3 pl-9' : 'px-3',
-            ]"
-            @click="emit('select', item)"
-          >
-            <UIcon
-              :name="typeIcon(item.type)"
-              class="size-3.5 flex-shrink-0"
-              :class="typeColor(item.type)"
-            />
-            <span
-              class="flex-1 truncate font-mono text-xs"
-              :class="
-                selectedId === item.id ? 'text-content' : 'text-content-muted'
-              "
-            >{{ item.name }}</span>
-            <span
-              v-if="item.usage > 0"
-              class="flex-shrink-0 text-xs text-neutral-400 tabular-nums"
-            >{{ item.usage }}×</span>
-          </button>
+          <SetupTreeNode
+            v-for="node in group.nodes"
+            :key="node.id"
+            :node="node"
+            :depth="group.pluginId ? 1 : 0"
+            :selected-id="selectedId"
+            @select="emit('select', $event)"
+          />
         </template>
       </template>
     </div>
@@ -114,12 +94,12 @@
 </template>
 
 <script setup lang="ts">
-import type { SetupItem, ItemType, SetupGroup } from '~/composables/useSetup'
+import type { SetupItem, ItemType, ExplorerGroup } from '~/composables/useSetup'
 
 const props = defineProps<{
   tabs: { key: 'all' | ItemType; label: string; count: number }[]
   activeTab: 'all' | ItemType
-  groupedItems: SetupGroup[]
+  explorerGroups: ExplorerGroup[]
   selectedId: string | null
 }>()
 
@@ -130,7 +110,7 @@ const emit = defineEmits<{
 }>()
 
 const pluginIds = computed(() =>
-  props.groupedItems.filter((g) => g.pluginId).map((g) => g.pluginId!)
+  props.explorerGroups.filter((g) => g.pluginId).map((g) => g.pluginId!)
 )
 
 const { toggle, has: isExpanded, expanded } = useExpandable([])

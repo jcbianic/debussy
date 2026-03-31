@@ -11,7 +11,17 @@
             {{ projectPath }}
           </p>
         </div>
+        <UButton
+          v-if="selected"
+          icon="i-heroicons-chart-bar"
+          label="Usage Dashboard"
+          size="xs"
+          color="neutral"
+          variant="soft"
+          @click="selected = null"
+        />
         <UBadge
+          v-else
           label="No conflicts"
           color="success"
           variant="subtle"
@@ -44,17 +54,18 @@
       <SetupListPanel
         :tabs="tabs"
         :active-tab="activeTab"
-        :grouped-items="groupedItems"
+        :explorer-groups="explorerGroups"
         :selected-id="selected?.id ?? null"
         @select="selected = $event"
         @set-tab="activeTab = $event"
         @create="showCreateModal = true"
       />
       <div class="flex flex-1 flex-col overflow-hidden">
-        <SetupOverviewPanel
+        <SetupUsageDashboard
           v-if="!selected"
           class="overflow-y-auto"
-          :plugins="pluginsWithData"
+          :items="allItems"
+          :plugins="plugins"
           @select="selected = $event"
         />
         <SetupItemDetail
@@ -165,32 +176,36 @@
 const { path: projectPath } = useProjectConfig()
 const {
   plugins,
+  allItems,
   activeTab,
   tabs,
-  groupedItems,
+  explorerGroups,
   selected,
   selectByName,
   pluginProvides,
   usageFor,
   selectedMeta,
   headerStats,
+  refresh,
   createItem,
   updateItem,
   deleteItem,
 } = useSetup()
+
+// Poll for usage data updates every 30s
+let pollHandle: ReturnType<typeof setInterval> | null = null
+onMounted(() => {
+  pollHandle = setInterval(() => refresh(), 30_000)
+})
+onUnmounted(() => {
+  if (pollHandle) clearInterval(pollHandle)
+})
 
 const selectedUsage = computed(() =>
   selected.value ? usageFor(selected.value) : 0
 )
 const selectedPluginGroups = computed(() =>
   selected.value?.type === 'plugin' ? pluginProvides(selected.value.id) : []
-)
-const pluginsWithData = computed(() =>
-  plugins.map((p) => ({
-    ...p,
-    totalUsage: usageFor(p),
-    provideGroups: pluginProvides(p.id),
-  }))
 )
 
 // ── Create modal ──
