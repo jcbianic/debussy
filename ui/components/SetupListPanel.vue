@@ -22,19 +22,6 @@
       </div>
     </div>
 
-    <!-- Group-by toggle (only when All tab is active) -->
-    <div
-      v-if="activeTab === 'all'"
-      class="border-line-subtle flex-shrink-0 border-b px-3 py-2"
-    >
-      <SegmentedControl
-        :model-value="groupByMode"
-        :options="groupByOptions"
-        stretch
-        @update:model-value="emit('setGroupBy', $event)"
-      />
-    </div>
-
     <!-- Create new project item -->
     <div class="border-line-subtle flex-shrink-0 border-b px-3 py-2">
       <UButton
@@ -80,9 +67,9 @@
           </span>
         </button>
 
-        <!-- Type group header (flat mode) -->
+        <!-- Type/plugin group header (non-collapsible) -->
         <div
-          v-else-if="activeTab === 'all' && group.label"
+          v-else-if="group.label && groupedItems.length > 1"
           class="px-4 pt-3 pb-1"
         >
           <span
@@ -134,14 +121,11 @@ const props = defineProps<{
   activeTab: 'all' | ItemType
   groupedItems: SetupGroup[]
   selectedId: string | null
-  groupByMode: string
-  groupByOptions: { value: string; label: string }[]
 }>()
 
 const emit = defineEmits<{
   select: [item: SetupItem]
   setTab: [key: 'all' | ItemType]
-  setGroupBy: [mode: string]
   create: []
 }>()
 

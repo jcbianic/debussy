@@ -49,13 +49,8 @@ export const typeColor = (type: ItemType): string =>
     agent: 'text-cyan-500',
   })[type]
 
-/** Grouping axis for the "All" tab. */
-export type SetupGroupBy = 'type' | 'plugin'
-
-export const setupGroupByOptions = [
-  { value: 'type' as const, label: 'Type' },
-  { value: 'plugin' as const, label: 'Plugin' },
-]
+/** @deprecated Grouping is always by plugin now. Kept for type compat. */
+export type SetupGroupBy = 'plugin'
 
 /** A group of items in the list panel. */
 export interface SetupGroup {
@@ -89,11 +84,6 @@ export const useSetup = () => {
   const allItems = computed(() => items.value)
 
   const activeTab = ref<'all' | ItemType>('all')
-  const groupByMode = ref<SetupGroupBy>('type')
-
-  function setGroupBy(mode: SetupGroupBy) {
-    groupByMode.value = mode
-  }
 
   const tabs = computed(() => [
     { key: 'all' as const, label: 'All', count: allItems.value.length },
@@ -108,31 +98,30 @@ export const useSetup = () => {
     { key: 'agent' as const, label: 'Agents', count: agents.value.length },
   ])
 
+  /** Build plugin-folder groups, optionally filtered to a single item type. */
+  function groupByPlugin(typeFilter?: ItemType): SetupGroup[] {
+    return plugins.value
+      .map((p) => {
+        const provided = pluginProvides(p.id).flatMap((g) => g.items)
+        const items = typeFilter
+          ? provided.filter((i) => i.type === typeFilter)
+          : provided
+        return { label: p.name, pluginId: p.id, items }
+      })
+      .filter((g) => g.items.length > 0)
+  }
+
   const groupedItems = computed<SetupGroup[]>(() => {
+    if (activeTab.value === 'plugin') {
+      // Plugins tab: flat list of plugin items
+      return [{ label: '', items: plugins.value }]
+    }
     if (activeTab.value !== 'all') {
-      return [
-        {
-          label: '',
-          items: allItems.value.filter((i) => i.type === activeTab.value),
-        },
-      ]
+      // Type-specific tabs: plugin folders filtered to that type
+      return groupByPlugin(activeTab.value)
     }
-
-    if (groupByMode.value === 'plugin') {
-      return plugins.value.map((p) => ({
-        label: p.name,
-        pluginId: p.id,
-        items: pluginProvides(p.id).flatMap((g) => g.items),
-      }))
-    }
-
-    return [
-      { label: 'Plugins', items: plugins.value },
-      { label: 'Skills', items: skills.value },
-      { label: 'Commands', items: commands.value },
-      { label: 'Hooks', items: hooks.value },
-      { label: 'Agents', items: agents.value },
-    ]
+    // All tab: plugin folders with all children
+    return groupByPlugin()
   })
 
   const selected = ref<SetupItem | null>(null)
@@ -291,8 +280,6 @@ export const useSetup = () => {
     },
     allItems,
     activeTab,
-    groupByMode,
-    setGroupBy,
     tabs,
     groupedItems,
     selected,

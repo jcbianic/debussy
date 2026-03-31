@@ -290,7 +290,7 @@ export default defineEventHandler(async () => {
     const agentCounts = countByAgent(events)
 
     for (const item of items) {
-      if (item.type === 'skill' && item.plugin) {
+      if ((item.type === 'skill' || item.type === 'command') && item.plugin) {
         // Match "debussy:strategy" or just "strategy"
         const scoped = `${item.plugin.split('@')[0]}:${item.name}`
         item.usage = (skillCounts[scoped] ?? 0) + (skillCounts[item.name] ?? 0)

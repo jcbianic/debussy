@@ -46,11 +46,8 @@
         :active-tab="activeTab"
         :grouped-items="groupedItems"
         :selected-id="selected?.id ?? null"
-        :group-by-mode="groupByMode"
-        :group-by-options="setupGroupByOptions"
         @select="selected = $event"
         @set-tab="activeTab = $event"
-        @set-group-by="setGroupBy($event)"
         @create="showCreateModal = true"
       />
       <div class="flex flex-1 flex-col overflow-hidden">
@@ -169,8 +166,6 @@ const { path: projectPath } = useProjectConfig()
 const {
   plugins,
   activeTab,
-  groupByMode,
-  setGroupBy,
   tabs,
   groupedItems,
   selected,
