@@ -7,6 +7,10 @@ import {
   parseHooksJson,
   parseInstalledPlugins,
   buildSetupItems,
+  isValidItemName,
+  serializeSkill,
+  serializeCommand,
+  serializeAgent,
 } from './setup'
 
 // ─── parsePluginManifest ─────────────────────────────────────────────────────
@@ -282,6 +286,14 @@ describe('parseHooksJson', () => {
     expect(postToolHook!.description).toContain('Write|Edit')
   })
 
+  it('extracts commands from hook definitions', () => {
+    const result = parseHooksJson(VALID_HOOKS_JSON)
+    const postToolHook = result.find((h) => h.triggers.includes('PostToolUse'))
+    expect(postToolHook!.commands).toEqual(['echo "post tool use"'])
+    const stopHook = result.find((h) => h.triggers.includes('Stop'))
+    expect(stopHook!.commands).toEqual(['echo "stop"'])
+  })
+
   it('returns empty array for empty/malformed JSON', () => {
     expect(parseHooksJson('')).toEqual([])
     expect(parseHooksJson('not json')).toEqual([])
@@ -305,6 +317,19 @@ describe('parseHooksJson', () => {
     })
     const result = parseHooksJson(nested)
     expect(result.length).toBeGreaterThan(0)
+    expect(result[0]!.commands).toEqual(['echo 1'])
+    expect(result[1]!.commands).toEqual(['echo 2'])
+  })
+
+  it('handles hooks with no command entries', () => {
+    const noCommands = JSON.stringify({
+      hooks: {
+        Stop: [{ hooks: [] }],
+      },
+    })
+    const result = parseHooksJson(noCommands)
+    expect(result).toHaveLength(1)
+    expect(result[0]!.commands).toBeUndefined()
   })
 })
 
@@ -403,6 +428,13 @@ const MOCK_PLUGIN_DATA = {
       name: 'post-tool-hook',
       description: 'PostToolUse: Write|Edit',
       triggers: ['PostToolUse'],
+      commands: ['${CLAUDE_PLUGIN_ROOT}/hooks/post-tool.sh'],
+      files: [
+        {
+          relativePath: 'hooks/post-tool.sh',
+          content: '#!/bin/bash\necho done',
+        },
+      ],
     },
   ],
   agents: [
@@ -467,5 +499,131 @@ describe('buildSetupItems', () => {
     const result = buildSetupItems([data])
     const skill = result.find((i) => i.type === 'skill')
     expect(skill!.files).toBeUndefined()
+  })
+
+  it('passes command as body and files through to hook SetupItems', () => {
+    const result = buildSetupItems([MOCK_PLUGIN_DATA])
+    const hook = result.find((i) => i.type === 'hook')
+    expect(hook).toBeDefined()
+    expect(hook!.body).toBe('${CLAUDE_PLUGIN_ROOT}/hooks/post-tool.sh')
+    expect(hook!.files).toHaveLength(1)
+    expect(hook!.files![0]!.relativePath).toBe('hooks/post-tool.sh')
+  })
+})
+
+// ─── isValidItemName ────────────────────────────────────────────────────────
+
+describe('isValidItemName', () => {
+  it('accepts lowercase alphanumeric names with hyphens', () => {
+    expect(isValidItemName('my-skill')).toBe(true)
+    expect(isValidItemName('skill123')).toBe(true)
+    expect(isValidItemName('a')).toBe(true)
+  })
+
+  it('rejects names starting with a hyphen', () => {
+    expect(isValidItemName('-bad')).toBe(false)
+  })
+
+  it('rejects uppercase, spaces, and special characters', () => {
+    expect(isValidItemName('MySkill')).toBe(false)
+    expect(isValidItemName('my skill')).toBe(false)
+    expect(isValidItemName('my_skill')).toBe(false)
+    expect(isValidItemName('my/skill')).toBe(false)
+    expect(isValidItemName('../traversal')).toBe(false)
+  })
+
+  it('rejects empty strings', () => {
+    expect(isValidItemName('')).toBe(false)
+  })
+})
+
+// ─── serializeSkill ─────────────────────────────────────────────────────────
+
+describe('serializeSkill', () => {
+  it('produces valid frontmatter + body that can be re-parsed', () => {
+    const content = serializeSkill({
+      description: 'A test skill for exploration.',
+      body: '# Usage\n\nUse this skill when exploring.',
+    })
+    const parsed = parseSkillFrontmatter(content, 'test')
+    expect(parsed).not.toBeNull()
+    expect(parsed!.description).toBe('A test skill for exploration.')
+    expect(parsed!.body).toContain('# Usage')
+  })
+
+  it('handles empty body', () => {
+    const content = serializeSkill({ description: 'No body skill.' })
+    expect(content).toContain('description:')
+    expect(content).not.toContain('\n\n\n')
+  })
+
+  it('includes metadata fields in frontmatter', () => {
+    const content = serializeSkill({
+      description: 'With metadata',
+      metadata: { license: 'MIT' },
+    })
+    expect(content).toContain('license:')
+  })
+})
+
+// ─── serializeCommand ───────────────────────────────────────────────────────
+
+describe('serializeCommand', () => {
+  it('produces valid frontmatter + body that can be re-parsed', () => {
+    const content = serializeCommand({
+      description: 'Run quick search',
+      argHint: '<query>',
+      allowedTools: 'Read, Grep',
+      body: 'Search the codebase for the given query.',
+    })
+    const parsed = parseCommandFrontmatter(content, 'search')
+    expect(parsed).not.toBeNull()
+    expect(parsed!.description).toBe('Run quick search')
+    expect(parsed!.argHint).toBe('<query>')
+    expect(parsed!.allowedTools).toBe('Read, Grep')
+    expect(parsed!.body).toContain('Search the codebase')
+  })
+
+  it('omits optional fields when not provided', () => {
+    const content = serializeCommand({ description: 'Simple command' })
+    expect(content).not.toContain('argument-hint')
+    expect(content).not.toContain('allowed-tools')
+    expect(content).not.toContain('delegates-to')
+  })
+
+  it('includes delegates-to when provided', () => {
+    const content = serializeCommand({
+      description: 'Delegating command',
+      delegatesTo: 'my-skill',
+    })
+    const parsed = parseCommandFrontmatter(content, 'delegate')
+    expect(parsed!.delegatesTo).toBe('my-skill')
+  })
+})
+
+// ─── serializeAgent ─────────────────────────────────────────────────────────
+
+describe('serializeAgent', () => {
+  it('produces valid frontmatter + body that can be re-parsed', () => {
+    const content = serializeAgent({
+      name: 'test-agent',
+      description: 'A testing agent',
+      model: 'sonnet',
+      tools: 'Read, Grep, Bash',
+      body: 'You are a testing agent.',
+    })
+    const parsed = parseAgentFrontmatter(content, 'test-agent.md')
+    expect(parsed).not.toBeNull()
+    expect(parsed!.name).toBe('test-agent')
+    expect(parsed!.description).toBe('A testing agent')
+    expect(parsed!.model).toBe('sonnet')
+    expect(parsed!.tools).toBe('Read, Grep, Bash')
+    expect(parsed!.body).toContain('testing agent')
+  })
+
+  it('omits optional fields when not provided', () => {
+    const content = serializeAgent({ description: 'Minimal agent' })
+    expect(content).not.toContain('model:')
+    expect(content).not.toContain('tools:')
   })
 })

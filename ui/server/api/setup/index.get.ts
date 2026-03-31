@@ -9,10 +9,10 @@ import {
   parseAgentFrontmatter,
   parseHooksJson,
   buildSetupItems,
-} from '../utils/setup'
-import type { PluginData } from '../utils/setup'
-import { resolveDebussyPath } from '../utils/debussy'
-import { readUsageData, countBySkill, countByAgent } from '../utils/usage'
+} from '../../utils/setup'
+import type { PluginData } from '../../utils/setup'
+import { resolveDebussyPath } from '../../utils/debussy'
+import { readUsageData, countBySkill, countByAgent } from '../../utils/usage'
 
 async function safeRead(filePath: string): Promise<string | null> {
   try {
@@ -208,9 +208,32 @@ export default defineEventHandler(async () => {
       }
     }
 
-    // Read hooks
+    // Read hooks and resolve script files
     const hooksJson = await safeRead(path.join(root, 'hooks', 'hooks.json'))
     const hooks = hooksJson ? parseHooksJson(hooksJson) : []
+
+    for (const hook of hooks) {
+      if (!hook.commands?.length) continue
+      const seen = new Set<string>()
+      const files: { relativePath: string; content: string }[] = []
+      for (const cmd of hook.commands) {
+        // Resolve ${CLAUDE_PLUGIN_ROOT} to actual plugin path
+        const resolved = cmd.replace(/\$\{CLAUDE_PLUGIN_ROOT\}/g, root)
+        // If the resolved command points to a file, read it
+        const scriptPath = resolved.split(/\s+/)[0]!
+        if (!scriptPath || seen.has(scriptPath)) continue
+        seen.add(scriptPath)
+        if (await isDirectory(scriptPath)) continue
+        const content = await safeRead(scriptPath)
+        if (content !== null) {
+          const relativePath = scriptPath.startsWith(root)
+            ? scriptPath.slice(root.length + 1)
+            : path.basename(scriptPath)
+          files.push({ relativePath, content })
+        }
+      }
+      if (files.length > 0) hook.files = files
+    }
 
     pluginDataList.push({
       id: plugin.id,

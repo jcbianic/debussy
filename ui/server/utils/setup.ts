@@ -44,6 +44,8 @@ export interface HookEntry {
   name: string
   description: string
   triggers: string[]
+  commands?: string[]
+  files?: SkillFile[]
 }
 
 export interface InstalledPlugin {
@@ -181,10 +183,23 @@ export function parseHooksJson(json: string): HookEntry[] {
         const m = matcherEntry as Record<string, unknown>
         const matcher = m.matcher as string | undefined
         const description = matcher ? `${trigger}: ${matcher}` : trigger
+
+        // Extract commands from hook definitions
+        const commands: string[] = []
+        const hookDefs = m.hooks as Array<Record<string, unknown>> | undefined
+        if (Array.isArray(hookDefs)) {
+          for (const h of hookDefs) {
+            if (typeof h.command === 'string') {
+              commands.push(h.command)
+            }
+          }
+        }
+
         entries.push({
           name: `${trigger}${matcher ? `:${matcher}` : ''}`,
           description,
           triggers: [trigger],
+          commands: commands.length > 0 ? commands : undefined,
         })
       }
     }
@@ -278,6 +293,8 @@ export function buildSetupItems(pluginDataList: PluginData[]): SetupItem[] {
         plugin: pd.id,
         description: hook.description,
         triggers: hook.triggers,
+        body: hook.commands?.join('\n'),
+        files: hook.files,
         usage: 0,
       })
     }
@@ -315,4 +332,81 @@ export function buildSetupItems(pluginDataList: PluginData[]): SetupItem[] {
   }
 
   return items
+}
+
+// ─── Serialization helpers (project items → disk) ───────────────────────────
+
+/** Validate an item name: lowercase alphanumeric + hyphens only. */
+export function isValidItemName(name: string): boolean {
+  return /^[a-z0-9][a-z0-9-]*$/.test(name)
+}
+
+/** Serialize a skill back to SKILL.md frontmatter + body. */
+export function serializeSkill(entry: {
+  name?: string
+  description?: string
+  body?: string
+  metadata?: Record<string, unknown>
+}): string {
+  const fm: Record<string, unknown> = {}
+  if (entry.description) fm.description = entry.description
+  if (entry.metadata) Object.assign(fm, entry.metadata)
+  const yamlLines = Object.entries(fm)
+    .map(([k, v]) => {
+      if (typeof v === 'object' && v !== null) {
+        const inner = Object.entries(v as Record<string, unknown>)
+          .map(([sk, sv]) => `  ${sk}: ${JSON.stringify(sv)}`)
+          .join('\n')
+        return `${k}:\n${inner}`
+      }
+      return `${k}: ${JSON.stringify(v)}`
+    })
+    .join('\n')
+  const frontmatter = yamlLines ? `---\n${yamlLines}\n---\n` : ''
+  const body = entry.body?.trim() ?? ''
+  return body ? `${frontmatter}\n${body}\n` : frontmatter
+}
+
+/** Serialize a command back to markdown frontmatter + body. */
+export function serializeCommand(entry: {
+  description?: string
+  argHint?: string
+  allowedTools?: string
+  delegatesTo?: string
+  body?: string
+}): string {
+  const fm: Record<string, unknown> = {}
+  if (entry.description) fm.description = entry.description
+  if (entry.argHint) fm['argument-hint'] = entry.argHint
+  if (entry.allowedTools) fm['allowed-tools'] = entry.allowedTools
+  if (entry.delegatesTo) fm['delegates-to'] = entry.delegatesTo
+  const yamlLines = Object.entries(fm)
+    .map(([k, v]) => `${k}: ${JSON.stringify(v)}`)
+    .join('\n')
+  const frontmatter = yamlLines ? `---\n${yamlLines}\n---\n` : ''
+  const body = entry.body?.trim() ?? ''
+  return body ? `${frontmatter}\n${body}\n` : frontmatter
+}
+
+/** Serialize an agent back to markdown frontmatter + body. */
+export function serializeAgent(entry: {
+  name?: string
+  description?: string
+  model?: string
+  tools?: string
+  body?: string
+  metadata?: Record<string, unknown>
+}): string {
+  const fm: Record<string, unknown> = {}
+  if (entry.name) fm.name = entry.name
+  if (entry.description) fm.description = entry.description
+  if (entry.model) fm.model = entry.model
+  if (entry.tools) fm.tools = entry.tools
+  if (entry.metadata) Object.assign(fm, entry.metadata)
+  const yamlLines = Object.entries(fm)
+    .map(([k, v]) => `${k}: ${JSON.stringify(v)}`)
+    .join('\n')
+  const frontmatter = yamlLines ? `---\n${yamlLines}\n---\n` : ''
+  const body = entry.body?.trim() ?? ''
+  return body ? `${frontmatter}\n${body}\n` : frontmatter
 }

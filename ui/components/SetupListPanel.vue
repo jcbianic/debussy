@@ -35,6 +35,19 @@
       />
     </div>
 
+    <!-- Create new project item -->
+    <div class="border-line-subtle flex-shrink-0 border-b px-3 py-2">
+      <UButton
+        icon="i-heroicons-plus"
+        size="xs"
+        color="neutral"
+        variant="soft"
+        label="New project item"
+        block
+        @click="emit('create')"
+      />
+    </div>
+
     <!-- Item list -->
     <div class="flex-1 overflow-y-auto py-1.5">
       <template
@@ -129,6 +142,7 @@ const emit = defineEmits<{
   select: [item: SetupItem]
   setTab: [key: 'all' | ItemType]
   setGroupBy: [mode: string]
+  create: []
 }>()
 
 const pluginIds = computed(() =>

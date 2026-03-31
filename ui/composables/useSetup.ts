@@ -64,9 +64,17 @@ export interface SetupGroup {
   pluginId?: string
 }
 
+/** Whether an item is editable (project-scoped, non-plugin). */
+export function isEditable(item: SetupItem): boolean {
+  return (
+    item.plugin === 'project' ||
+    (item.type === 'plugin' && item.id === 'project')
+  )
+}
+
 /** Provide Claude setup data, selection state, and derived helpers. */
 export const useSetup = () => {
-  const { data } = useFetch<SetupItem[]>('/api/setup')
+  const { data, refresh } = useFetch<SetupItem[]>('/api/setup')
 
   const items = computed(() => data.value ?? [])
 
@@ -224,6 +232,59 @@ export const useSetup = () => {
     { value: totalUsage.value, label: 'total invocations' },
   ])
 
+  async function createItem(payload: {
+    type: 'skill' | 'command' | 'agent'
+    name: string
+    description?: string
+    body?: string
+    argHint?: string
+    allowedTools?: string
+    delegatesTo?: string
+    model?: string
+    tools?: string
+    metadata?: Record<string, unknown>
+  }) {
+    await $fetch('/api/setup', { method: 'POST', body: payload })
+    await refresh()
+    // Select the newly created item
+    const newId =
+      payload.type === 'command'
+        ? `project:cmd:${payload.name}`
+        : payload.type === 'agent'
+          ? `project:agent:${payload.name}`
+          : `project:${payload.name}`
+    selectByName(newId)
+  }
+
+  async function updateItem(
+    id: string,
+    payload: {
+      type: 'skill' | 'command' | 'agent'
+      description?: string
+      body?: string
+      name?: string
+      argHint?: string
+      allowedTools?: string
+      delegatesTo?: string
+      model?: string
+      tools?: string
+      metadata?: Record<string, unknown>
+    }
+  ) {
+    await $fetch(`/api/setup/${encodeURIComponent(id)}`, {
+      method: 'PUT',
+      body: payload,
+    })
+    await refresh()
+    selectByName(id)
+  }
+
+  async function deleteItem(id: string) {
+    await $fetch(`/api/setup/${encodeURIComponent(id)}`, { method: 'DELETE' })
+    selected.value = null
+    await refresh()
+  }
+
   return {
     get plugins() {
       return plugins.value
@@ -240,5 +301,8 @@ export const useSetup = () => {
     usageFor,
     selectedMeta,
     headerStats,
+    createItem,
+    updateItem,
+    deleteItem,
   }
 }
