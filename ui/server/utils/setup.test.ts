@@ -410,7 +410,10 @@ const MOCK_PLUGIN_DATA = {
       description: 'A test skill',
       files: [
         { relativePath: 'run.sh', content: '#!/bin/bash\necho hello' },
-        { relativePath: 'templates/review.html', content: '<html></html>' },
+        {
+          relativePath: 'templates/helper.sh',
+          content: '#!/bin/bash\necho helper',
+        },
       ],
     },
   ],
@@ -488,7 +491,7 @@ describe('buildSetupItems', () => {
     expect(skill).toBeDefined()
     expect(skill!.files).toHaveLength(2)
     expect(skill!.files![0]!.relativePath).toBe('run.sh')
-    expect(skill!.files![1]!.relativePath).toBe('templates/review.html')
+    expect(skill!.files![1]!.relativePath).toBe('templates/helper.sh')
   })
 
   it('omits files when skill has no files', () => {
