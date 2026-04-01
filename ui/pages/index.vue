@@ -572,7 +572,7 @@
               <NuxtLink
                 v-for="(lane, i) in lanes"
                 :key="lane.id"
-                :to="`/lane/${lane.id}`"
+                :to="laneUrl(lane.id)"
                 class="hover:bg-surface-hover-subtle flex items-center gap-3 px-5 py-3 transition-colors"
                 :class="
                   i < lanes.length - 1 ? 'border-line-subtle border-b' : ''
@@ -581,7 +581,11 @@
                 <div
                   class="size-1.5 flex-shrink-0 rounded-full"
                   :class="
-                    lane.isActive ? 'bg-status-active' : 'bg-status-inactive'
+                    lane.isActive
+                      ? 'bg-status-active'
+                      : lane.checkedOutIn
+                        ? 'bg-blue-400'
+                        : 'bg-status-inactive'
                   "
                 />
                 <div class="min-w-0 flex-1">
@@ -600,9 +604,9 @@
                   </div>
                 </div>
                 <UBadge
-                  v-if="lane.isActive"
-                  label="staged"
-                  color="primary"
+                  v-if="lane.checkedOutIn"
+                  :label="lane.checkedOutIn"
+                  :color="lane.checkedOutIn === 'root' ? 'primary' : 'info'"
                   variant="subtle"
                   size="xs"
                 />
@@ -634,6 +638,7 @@ const {
   lanes,
   lanesWithPending: allLanesWithPending,
   totalPending,
+  laneUrl,
 } = useLanes()
 const { nextRelease, nextReleaseName, artifacts } = useDashboard()
 const { principles, adrs, proposedCount } = useArchitecture()
@@ -663,7 +668,7 @@ const lanesWithPending = computed(() =>
   allLanesWithPending.value.filter((l) => l.pending > 0)
 )
 const activeLaneCount = computed(
-  () => lanes.value.filter((l) => l.isActive).length
+  () => lanes.value.filter((l) => l.checkedOutIn !== null).length
 )
 
 // ── Setup Progress ──────────────────────────────────────────────────────────

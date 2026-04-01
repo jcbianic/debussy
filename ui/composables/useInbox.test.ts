@@ -9,10 +9,11 @@ import { itemStatus } from './useLanes'
 
 const MOCK_LANES: Lane[] = [
   {
-    id: 'root',
+    id: 'feat/42-unified-ui',
     branch: 'feat/42-unified-ui',
     path: '~/debussy',
     isActive: true,
+    checkedOutIn: 'root',
     reviews: [
       {
         id: 'rv-1',
@@ -78,10 +79,11 @@ const MOCK_LANES: Lane[] = [
     ],
   },
   {
-    id: 'wt-fix',
+    id: 'fix/review-server',
     branch: 'fix/review-server',
     path: '~/debussy/.worktrees/fix',
     isActive: false,
+    checkedOutIn: 'worktree',
     reviews: [
       {
         id: 'rv-4',
@@ -177,7 +179,7 @@ describe('useInbox', () => {
       // "workflow" items exist only in the wt-fix lane in the fixture
       activeTypeFilter.value = 'workflow'
       const laneIds = visibleLanes.value.map((l) => l.id)
-      expect(laneIds).toContain('wt-fix')
+      expect(laneIds).toContain('fix/review-server')
     })
   })
 

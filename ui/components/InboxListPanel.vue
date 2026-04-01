@@ -39,15 +39,21 @@
         >
           <div
             class="size-1.5 rounded-full"
-            :class="lane.isActive ? 'bg-blue-500' : 'bg-neutral-400'"
+            :class="
+              lane.isActive
+                ? 'bg-blue-500'
+                : lane.checkedOutIn
+                  ? 'bg-blue-400'
+                  : 'bg-neutral-400'
+            "
           />
           <span class="text-content-subtle font-mono text-xs font-medium">{{
             lane.branch
           }}</span>
           <UBadge
-            v-if="lane.isActive"
-            label="staged"
-            color="primary"
+            v-if="lane.checkedOutIn"
+            :label="lane.checkedOutIn"
+            :color="lane.checkedOutIn === 'root' ? 'primary' : 'info'"
             variant="subtle"
             size="xs"
           />

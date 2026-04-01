@@ -1,20 +1,7 @@
-import { exec } from 'node:child_process'
-import { promisify } from 'node:util'
 import { readScopeMd, resolveRecordId } from '../../../utils/lane-store'
 
-const execAsync = promisify(exec)
-
-async function getCurrentBranch(): Promise<string | undefined> {
-  try {
-    const { stdout } = await execAsync('git symbolic-ref --short HEAD')
-    return stdout.trim()
-  } catch {
-    return undefined
-  }
-}
-
 export default defineEventHandler(async (event) => {
-  const id = getRouterParam(event, 'id')
+  const id = decodeURIComponent(getRouterParam(event, 'id') ?? '')
   if (!id) {
     throw createError({
       statusCode: 400,
@@ -22,8 +9,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const branch = await getCurrentBranch()
-  const recordId = await resolveRecordId(id, branch)
+  const recordId = await resolveRecordId(id)
   const content = await readScopeMd(recordId)
   return { content }
 })

@@ -1,23 +1,21 @@
 import { exec } from 'node:child_process'
 import { promisify } from 'node:util'
-import { parseLanesFromWorktrees } from '../../../utils/lanes'
-import type { Commit, Lane } from '../../../utils/lanes'
+import { fetchLanes } from '../../../utils/lanes'
+import type { Commit } from '../../../utils/lanes'
 
 const execAsync = promisify(exec)
 
 export default defineEventHandler(async (event) => {
-  const id = getRouterParam(event, 'id')
+  const id = decodeURIComponent(getRouterParam(event, 'id') ?? '')
 
-  let stdout = ''
+  let lanes
   try {
-    const result = await execAsync('git worktree list --porcelain')
-    stdout = result.stdout
+    lanes = await fetchLanes()
   } catch {
     return []
   }
 
-  const lanes = parseLanesFromWorktrees(stdout, process.cwd())
-  const lane = lanes.find((l: Lane) => l.id === id)
+  const lane = lanes.find((l) => l.id === id)
   if (!lane) return []
 
   try {
@@ -32,8 +30,9 @@ export default defineEventHandler(async (event) => {
       // fallback to main
     }
 
-    // Show only branch-specific commits; for the default branch show recent history
-    const range = lane.branch === defaultBranch ? '' : `${defaultBranch}..HEAD`
+    // Use branch ref instead of HEAD — works even when branch is not checked out
+    const ref = lane.branch
+    const range = ref === defaultBranch ? ref : `${defaultBranch}..${ref}`
     const { stdout: logOut } = await execAsync(
       `git -C "${lane.path}" log ${range} --pretty=format:"%H|%s|%an|%ar" --max-count=20`
     )

@@ -1,33 +1,25 @@
-import { execFile } from 'node:child_process'
-import { promisify } from 'node:util'
 import {
   findSessionPath,
   findSessionByPrompt,
   parseSessionMessages,
 } from '../../../../../utils/session-messages'
 import { readSession } from '../../../../../utils/dispatch-store'
-import { parseLanesFromWorktrees } from '../../../../../utils/lanes'
+import { fetchLanes } from '../../../../../utils/lanes'
 import type { ChatMessage } from '../../../../../utils/session-messages'
 
-const execFileAsync = promisify(execFile)
-
 export default defineEventHandler(async (event) => {
-  const laneId = getRouterParam(event, 'id')
+  const laneId = decodeURIComponent(getRouterParam(event, 'id') ?? '')
   const sessionId = getRouterParam(event, 'sessionId')
   if (!laneId || !sessionId) {
     throw createError({ statusCode: 400, statusMessage: 'Missing parameters' })
   }
 
-  // Resolve repo root from worktrees
+  // Resolve repo root
   let repoRoot = process.cwd()
   try {
-    const { stdout } = await execFileAsync('git', [
-      'worktree',
-      'list',
-      '--porcelain',
-    ])
-    const lanes = parseLanesFromWorktrees(stdout, process.cwd())
-    if (lanes.length > 0) repoRoot = lanes[0]!.path
+    const lanes = await fetchLanes()
+    const rootLane = lanes.find((l) => l.checkedOutIn === 'root')
+    if (rootLane) repoRoot = rootLane.path
   } catch {
     // fallback to cwd
   }

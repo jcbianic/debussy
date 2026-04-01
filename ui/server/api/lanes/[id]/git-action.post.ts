@@ -1,9 +1,6 @@
-import { exec } from 'node:child_process'
-import { promisify } from 'node:util'
 import type { GitAction } from '~/shared/types/lanes'
 import type { LaneRecord } from '~/shared/types/lanes'
-import { parseLanesFromWorktrees } from '../../../utils/lanes'
-import type { Lane } from '../../../utils/lanes'
+import { fetchLanes } from '../../../utils/lanes'
 import {
   pushBranch,
   pullBranch,
@@ -13,9 +10,11 @@ import {
   parseIssueNumberFromBranch,
   removeWorktree,
 } from '../../../utils/lane-git'
-import { readLaneRecord, writeLaneRecord } from '../../../utils/lane-store'
-
-const execAsync = promisify(exec)
+import {
+  readLaneRecord,
+  writeLaneRecord,
+  resolveRecordId,
+} from '../../../utils/lane-store'
 
 const VALID_ACTIONS = new Set<GitAction>([
   'push',
@@ -25,7 +24,7 @@ const VALID_ACTIONS = new Set<GitAction>([
 ])
 
 export default defineEventHandler(async (event) => {
-  const id = getRouterParam(event, 'id')
+  const id = decodeURIComponent(getRouterParam(event, 'id') ?? '')
   if (!id) {
     throw createError({ statusCode: 400, statusMessage: 'Missing lane id' })
   }
@@ -42,7 +41,8 @@ export default defineEventHandler(async (event) => {
 
   // Handle restore before worktree lookup (orphaned lanes have no worktree)
   if (action === 'restore') {
-    const record = await readLaneRecord(id)
+    const recordId = await resolveRecordId(id)
+    const record = await readLaneRecord(recordId)
     if (!record) {
       throw createError({
         statusCode: 404,
@@ -58,24 +58,13 @@ export default defineEventHandler(async (event) => {
     return { ok: true }
   }
 
-  // Resolve lane from worktrees (works for root and feature lanes)
-  let stdout = ''
-  try {
-    const result = await execAsync('git worktree list --porcelain')
-    stdout = result.stdout
-  } catch {
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to list worktrees',
-    })
-  }
-
-  const lanes = parseLanesFromWorktrees(stdout, process.cwd())
-  const lane = lanes.find((l: Lane) => l.id === id)
-  if (!lane) {
+  // Resolve lane
+  const lanes = await fetchLanes()
+  const lane = lanes.find((l) => l.id === id)
+  if (!lane || !lane.checkedOutIn) {
     throw createError({
       statusCode: 404,
-      statusMessage: `Lane ${id} not found`,
+      statusMessage: `Lane ${id} not found or not checked out`,
     })
   }
 
@@ -101,7 +90,7 @@ export default defineEventHandler(async (event) => {
     }
 
     case 'to-worktree': {
-      if (id !== 'root') {
+      if (lane.checkedOutIn !== 'root') {
         throw createError({
           statusCode: 422,
           statusMessage: 'to-worktree is only available on the root lane',

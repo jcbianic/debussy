@@ -80,7 +80,7 @@
 
           <NuxtLink
             v-if="intent.lane"
-            :to="`/lane/${intent.laneId}`"
+            :to="`/lane/${encodeURIComponent(intent.laneId)}`"
             class="flex items-center gap-1.5 rounded-md bg-blue-50 px-2 py-1 font-mono text-xs text-blue-600 transition-colors hover:bg-blue-100 dark:bg-blue-950/30 dark:text-blue-400 dark:hover:bg-blue-950/50"
             @click.stop
           >

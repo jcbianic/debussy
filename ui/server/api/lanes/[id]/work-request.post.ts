@@ -14,21 +14,8 @@ import { resolveDebussyPath } from '../../../utils/debussy'
 
 const execFileAsync = promisify(execFile)
 
-async function getCurrentBranch(): Promise<string | undefined> {
-  try {
-    const { stdout } = await execFileAsync('git', [
-      'symbolic-ref',
-      '--short',
-      'HEAD',
-    ])
-    return stdout.trim()
-  } catch {
-    return undefined
-  }
-}
-
 export default defineEventHandler(async (event) => {
-  const id = getRouterParam(event, 'id')
+  const id = decodeURIComponent(getRouterParam(event, 'id') ?? '')
   if (!id) {
     throw createError({
       statusCode: 400,
@@ -36,8 +23,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const branch = await getCurrentBranch()
-  const recordId = await resolveRecordId(id, branch)
+  const recordId = await resolveRecordId(id)
 
   const record = await readLaneRecord(recordId)
   if (!record) {

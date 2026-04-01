@@ -1,7 +1,6 @@
 import { exec } from 'node:child_process'
 import { promisify } from 'node:util'
-import { parseLanesFromWorktrees } from '../../../utils/lanes'
-import type { Lane } from '../../../utils/lanes'
+import { fetchLanes } from '../../../utils/lanes'
 
 const execAsync = promisify(exec)
 
@@ -16,28 +15,20 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  let stdout = ''
-  try {
-    const result = await execAsync('git worktree list --porcelain')
-    stdout = result.stdout
-  } catch {
+  const lanes = await fetchLanes()
+  const lane = lanes.find((l) => l.id === id)
+
+  if (!lane || !lane.checkedOutIn) {
     throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to list worktrees',
+      statusCode: 404,
+      statusMessage: 'Lane not found or not checked out',
     })
   }
 
-  const lanes = parseLanesFromWorktrees(stdout, process.cwd())
-  const lane = lanes.find((l: Lane) => l.id === id)
-
-  if (!lane) {
-    throw createError({ statusCode: 404, statusMessage: 'Lane not found' })
-  }
-
   await execAsync(`git -C "${lane.path}" add -A`)
-  const { stdout: commitOut } = await execAsync(
+  const { stdout } = await execAsync(
     `git -C "${lane.path}" commit -m ${JSON.stringify(body.message.trim())}`
   )
 
-  return { ok: true, output: commitOut.trim() }
+  return { ok: true, output: stdout.trim() }
 })
