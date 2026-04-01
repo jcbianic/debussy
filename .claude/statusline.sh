@@ -65,7 +65,7 @@ if [ -f "$cache_file" ] && [ "$(( $(date +%s) - $(stat -f %m "$cache_file" 2>/de
   pr_url=$(echo "$pr_data" | cut -d' ' -f2)
 else
   if command -v gh > /dev/null 2>&1; then
-    pr_json=$(gh pr view --json number,url 2>/dev/null)
+    pr_json=$(cd "$cwd" && gh pr view --json number,url 2>/dev/null)
     if [ $? -eq 0 ] && [ -n "$pr_json" ]; then
       pr_num=$(echo "$pr_json" | jq -r '.number')
       pr_url=$(echo "$pr_json" | jq -r '.url')
@@ -88,7 +88,7 @@ center="${branch_fmt}${pr_segment}"
 
 # --- Right: model + context progress bar ---
 model=$(echo "$DATA" | jq -r '.model.display_name // .model.id // "?"')
-ctx=$(echo "$DATA" | jq -r '.context_window.used_percentage // 0')
+ctx=$(echo "$DATA" | jq -r '.context_window.used_percentage // 0 | floor | tostring')
 
 if [ "$ctx" -lt 50 ] 2>/dev/null; then
   bar_color="\e[32m"
