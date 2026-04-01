@@ -3,7 +3,7 @@ import { describe, it, expect } from 'vitest'
 import { mockNuxtImport, registerEndpoint } from '@nuxt/test-utils/runtime'
 import { useInbox } from './useInbox'
 import type { Lane } from './useLanes'
-import { itemStatus } from './useLanes'
+import { itemStatus } from '~/shared/types/reviews'
 
 // ─── Fixture ─────────────────────────────────────────────────────────────────
 
