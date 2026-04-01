@@ -13,6 +13,7 @@ coverage/
 !.claude/settings.json
 !.claude/skills/
 !.claude/workflows/
+!.claude/statusline.sh
 .claude/skills/tessl__*
 __pycache__/
 .strategy-review/
