@@ -6,11 +6,7 @@
     {
       "number": 1,
       "proposedAt": "2026-03-30T13:30:00Z",
-      "content": "POST /api/releases/:id/setup creates branches, pushes to remote, and creates PRs via child_process exec. Risk of orphaned branches if partially fails. Plan recommends pre-checking branch existence but lacks idempotency strategy.",
-      "feedback": {
-        "decision": "approved",
-        "decidedAt": "2026-03-30T19:19:05.402Z"
-      }
+      "content": "POST /api/releases/:id/setup creates branches, pushes to remote, and creates PRs via child_process exec. Risk of orphaned branches if partially fails. Plan recommends pre-checking branch existence but lacks idempotency strategy."
     }
   ]
 }

@@ -1,17 +1,7 @@
-import { exec } from 'node:child_process'
-import { promisify } from 'node:util'
 import { readdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
-import { parseLanesFromWorktrees } from '../../../../utils/lanes'
+import { fetchLanes } from '../../../../utils/lanes'
 import { resolveDebussyPath } from '../../../../utils/debussy'
-import type { Lane } from '../../../../utils/lanes'
-
-const execAsync = promisify(exec)
-
-async function getRepoRoot(): Promise<string> {
-  const { stdout } = await execAsync('git rev-parse --show-toplevel')
-  return stdout.trim()
-}
 
 /**
  * Determine the aggregate decision from a review response.
@@ -48,20 +38,18 @@ function aggregateDecision(
 }
 
 export default defineEventHandler(async (event) => {
-  const id = getRouterParam(event, 'id')
+  const id = decodeURIComponent(getRouterParam(event, 'id') ?? '')
   if (!id) {
     throw createError({ statusCode: 400, statusMessage: 'Missing lane id' })
   }
 
-  // Find the lane worktree
-  const { stdout } = await execAsync('git worktree list --porcelain')
-  const repoRoot = await getRepoRoot()
-  const lanes = parseLanesFromWorktrees(stdout, repoRoot)
-  const lane = lanes.find((l: Lane) => l.id === id)
-  if (!lane) {
+  // Find the lane
+  const lanes = await fetchLanes()
+  const lane = lanes.find((l) => l.id === id)
+  if (!lane || !lane.checkedOutIn) {
     throw createError({
       statusCode: 404,
-      statusMessage: `Lane ${id} not found`,
+      statusMessage: `Lane ${id} not found or not checked out`,
     })
   }
 

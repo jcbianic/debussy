@@ -22,7 +22,7 @@
     >
       <span class="text-xs text-neutral-400">Lane</span>
       <NuxtLink
-        :to="`/lane/${intent.laneId}`"
+        :to="`/lane/${encodeURIComponent(intent.laneId)}`"
         class="font-mono text-xs text-blue-500 hover:underline"
       >
         {{ intent.lane }}

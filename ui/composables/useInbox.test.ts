@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import { describe, it, expect } from 'vitest'
-import { mockNuxtImport } from '@nuxt/test-utils/runtime'
+import { mockNuxtImport, registerEndpoint } from '@nuxt/test-utils/runtime'
 import { useInbox } from './useInbox'
 import type { Lane } from './useLanes'
 import { itemStatus } from './useLanes'
@@ -9,10 +9,11 @@ import { itemStatus } from './useLanes'
 
 const MOCK_LANES: Lane[] = [
   {
-    id: 'root',
+    id: 'feat/42-unified-ui',
     branch: 'feat/42-unified-ui',
     path: '~/debussy',
     isActive: true,
+    checkedOutIn: 'root',
     reviews: [
       {
         id: 'rv-1',
@@ -78,10 +79,11 @@ const MOCK_LANES: Lane[] = [
     ],
   },
   {
-    id: 'wt-fix',
+    id: 'fix/review-server',
     branch: 'fix/review-server',
     path: '~/debussy/.worktrees/fix',
     isActive: false,
+    checkedOutIn: 'worktree',
     reviews: [
       {
         id: 'rv-4',
@@ -114,6 +116,9 @@ const mockFetchData = ref<Lane[]>(MOCK_LANES)
 mockNuxtImport('useFetch', () => {
   return () => ({ data: mockFetchData })
 })
+
+registerEndpoint('/api/reviews/rv-1', () => ({}))
+registerEndpoint('/api/reviews/rv-4', () => ({}))
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
@@ -174,7 +179,7 @@ describe('useInbox', () => {
       // "workflow" items exist only in the wt-fix lane in the fixture
       activeTypeFilter.value = 'workflow'
       const laneIds = visibleLanes.value.map((l) => l.id)
-      expect(laneIds).toContain('wt-fix')
+      expect(laneIds).toContain('fix/review-server')
     })
   })
 
@@ -441,23 +446,23 @@ describe('useInbox', () => {
       expect(commentError.value).toBe('')
     })
 
-    it('clears comment after a successful changes-requested submission', () => {
+    it('clears comment after a successful changes-requested submission', async () => {
       const { selectItem, submitAction, comment, visibleLanes } = useInbox()
       const lane = visibleLanes.value[0]!
       const item = lane.reviews[0]!.items[0]!
       selectItem(item.id, lane.id)
       comment.value = 'please fix this'
-      submitAction('changes-requested')
+      await submitAction('changes-requested')
       expect(comment.value).toBe('')
     })
 
-    it('clears comment after an approved submission', () => {
+    it('clears comment after an approved submission', async () => {
       const { selectItem, submitAction, comment, visibleLanes } = useInbox()
       const lane = visibleLanes.value[0]!
       const item = lane.reviews[0]!.items[0]!
       selectItem(item.id, lane.id)
       comment.value = 'looks good'
-      submitAction('approved')
+      await submitAction('approved')
       expect(comment.value).toBe('')
     })
   })

@@ -12,6 +12,7 @@ export interface Lane {
   branch: string
   path: string
   isActive: boolean
+  checkedOutIn: 'root' | 'worktree' | null
   intent?: string
   state?: LaneState
   issueNumber?: number
@@ -135,24 +136,36 @@ export function useLanes() {
   const getLane = (id: string) =>
     lanes.value.find((l) => l.id === id) ?? lanes.value[0] ?? null
 
+  const encodedId = (id: string) => encodeURIComponent(id)
+
+  const laneUrl = (id: string) => `/lane/${encodeURIComponent(id)}`
+
   const getWorkflow = (laneId: string): Promise<WorkflowRun | null> =>
-    $fetch<WorkflowRun | null>(`/api/lanes/${laneId}/workflow`).catch(
-      () => null
-    )
+    $fetch<WorkflowRun | null>(
+      `/api/lanes/${encodedId(laneId)}/workflow`
+    ).catch(() => null)
 
   const unblockWorkflow = (
     laneId: string
   ): Promise<{ decision: string; step: string }> =>
     $fetch<{ decision: string; step: string }>(
-      `/api/lanes/${laneId}/workflow/unblock`,
+      `/api/lanes/${encodedId(laneId)}/workflow/unblock`,
       { method: 'POST' }
     )
 
   const getCommits = (laneId: string): Promise<Commit[]> =>
-    $fetch<Commit[]>(`/api/lanes/${laneId}/commits`).catch(() => [])
+    $fetch<Commit[]>(`/api/lanes/${encodedId(laneId)}/commits`).catch(() => [])
 
   const getStatus = (laneId: string): Promise<LaneStatus | null> =>
-    $fetch<LaneStatus | null>(`/api/lanes/${laneId}/status`).catch(() => null)
+    $fetch<LaneStatus | null>(`/api/lanes/${encodedId(laneId)}/status`).catch(
+      () => null
+    )
+
+  const commitLane = (laneId: string, message: string) =>
+    $fetch<{ ok: boolean; output: string }>(
+      `/api/lanes/${encodedId(laneId)}/commit`,
+      { method: 'POST', body: { message } }
+    )
 
   const getReview = (id: string): ReviewDetail | null => {
     for (const lane of lanes.value) {
@@ -187,16 +200,16 @@ export function useLanes() {
     id: string,
     action: LaneAction
   ): Promise<LaneRecord> => {
-    const record = await $fetch<LaneRecord>(`/api/lanes/${id}/transition`, {
-      method: 'POST',
-      body: { action },
-    })
+    const record = await $fetch<LaneRecord>(
+      `/api/lanes/${encodedId(id)}/transition`,
+      { method: 'POST', body: { action } }
+    )
     await refresh()
     return record
   }
 
   const gitAction = async (id: string, action: GitAction): Promise<unknown> => {
-    const result = await $fetch(`/api/lanes/${id}/git-action`, {
+    const result = await $fetch(`/api/lanes/${encodedId(id)}/git-action`, {
       method: 'POST',
       body: { action },
     })
@@ -205,25 +218,22 @@ export function useLanes() {
   }
 
   const deleteLane = async (id: string): Promise<void> => {
-    await $fetch(`/api/lanes/${id}`, { method: 'DELETE' })
+    await $fetch(`/api/lanes/${encodedId(id)}`, { method: 'DELETE' })
     await refresh()
   }
 
   const getScope = (laneId: string): Promise<{ content: string | null }> =>
-    $fetch<{ content: string | null }>(`/api/lanes/${laneId}/scope`).catch(
-      () => ({ content: null })
-    )
+    $fetch<{ content: string | null }>(
+      `/api/lanes/${encodedId(laneId)}/scope`
+    ).catch(() => ({ content: null }))
 
   const requestWork = async (
     id: string,
     workflow: string
   ): Promise<{ file: string; command: string; sessionId: string }> => {
     return await $fetch<{ file: string; command: string; sessionId: string }>(
-      `/api/lanes/${id}/work-request`,
-      {
-        method: 'POST',
-        body: { workflow },
-      }
+      `/api/lanes/${encodedId(id)}/work-request`,
+      { method: 'POST', body: { workflow } }
     )
   }
 
@@ -232,21 +242,23 @@ export function useLanes() {
     prompt: string,
     model?: string
   ): Promise<{ sessionId: string }> => {
-    return await $fetch<{ sessionId: string }>(`/api/lanes/${id}/dispatch`, {
-      method: 'POST',
-      body: { prompt, model },
-    })
+    return await $fetch<{ sessionId: string }>(
+      `/api/lanes/${encodedId(id)}/dispatch`,
+      { method: 'POST', body: { prompt, model } }
+    )
   }
 
   const getSessions = (laneId: string): Promise<LaneSession[]> =>
-    $fetch<LaneSession[]>(`/api/lanes/${laneId}/sessions`).catch(() => [])
+    $fetch<LaneSession[]>(`/api/lanes/${encodedId(laneId)}/sessions`).catch(
+      () => []
+    )
 
   const getSession = (
     laneId: string,
     sessionId: string
   ): Promise<DispatchSession | null> =>
     $fetch<DispatchSession | null>(
-      `/api/lanes/${laneId}/sessions/${sessionId}`
+      `/api/lanes/${encodedId(laneId)}/sessions/${sessionId}`
     ).catch(() => null)
 
   const getSessionMessages = (
@@ -254,7 +266,7 @@ export function useLanes() {
     sessionId: string
   ): Promise<ChatMessage[]> =>
     $fetch<ChatMessage[]>(
-      `/api/lanes/${laneId}/sessions/${sessionId}/messages`
+      `/api/lanes/${encodedId(laneId)}/sessions/${sessionId}/messages`
     ).catch(() => [])
 
   return {
@@ -262,10 +274,12 @@ export function useLanes() {
     lanesWithPending,
     totalPending,
     getLane,
+    laneUrl,
     getWorkflow,
     unblockWorkflow,
     getCommits,
     getStatus,
+    commitLane,
     getReview,
     pendingCount,
     refresh,

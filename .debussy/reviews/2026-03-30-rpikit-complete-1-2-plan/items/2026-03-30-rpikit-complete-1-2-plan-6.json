@@ -6,11 +6,7 @@
     {
       "number": 1,
       "proposedAt": "2026-03-30T13:30:00Z",
-      "content": "The plan creates 13 primary and 4 ancillary new files spanning server utilities, API routes, composables, pages, and components. Consider whether Phase 6-7 UI components could be deferred to a follow-up intent to reduce scope.",
-      "feedback": {
-        "decision": "approved",
-        "decidedAt": "2026-03-30T19:19:08.255Z"
-      }
+      "content": "The plan creates 13 primary and 4 ancillary new files spanning server utilities, API routes, composables, pages, and components. Consider whether Phase 6-7 UI components could be deferred to a follow-up intent to reduce scope."
     }
   ]
 }

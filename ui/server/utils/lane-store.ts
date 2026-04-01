@@ -71,20 +71,19 @@ export async function deleteLaneRecord(id: string): Promise<void> {
 // ─── Resolve ─────────────────────────────────────────────────────────────────
 
 /**
- * When a feature branch is checked out at root the UI sends
- * id="root". Resolve to the real lane record ID by matching
- * the current branch against known records.
+ * Resolve a lane ID (branch name) to the corresponding lane record ID.
+ * Lane IDs are branch names (e.g. 'feature/42-some-feature'),
+ * while record IDs are shorter (e.g. '42' or 'quick-fix').
  */
-export async function resolveRecordId(
-  id: string,
-  currentBranch?: string
-): Promise<string> {
-  if (id !== 'root') return id
-  if (!currentBranch) return id
+export async function resolveRecordId(branchOrId: string): Promise<string> {
+  // Try direct match first (ID already is a record ID)
+  const direct = await readLaneRecord(branchOrId)
+  if (direct) return branchOrId
 
+  // Look up by branch name
   const records = await listLaneRecords()
-  const match = records.find((r) => r.branch === currentBranch)
-  return match ? match.id : id
+  const match = records.find((r) => r.branch === branchOrId)
+  return match ? match.id : branchOrId
 }
 
 // ─── Scope ───────────────────────────────────────────────────────────────────

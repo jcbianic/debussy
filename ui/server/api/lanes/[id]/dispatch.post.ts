@@ -1,15 +1,14 @@
 import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
 import { randomUUID } from 'node:crypto'
-import { parseLanesFromWorktrees } from '../../../utils/lanes'
-import type { Lane } from '../../../utils/lanes'
+import { fetchLanes } from '../../../utils/lanes'
 import { writeSession } from '../../../utils/dispatch-store'
 import type { DispatchSession } from '../../../utils/dispatch-store'
 
 const execFileAsync = promisify(execFile)
 
 export default defineEventHandler(async (event) => {
-  const id = getRouterParam(event, 'id')
+  const id = decodeURIComponent(getRouterParam(event, 'id') ?? '')
   if (!id) {
     throw createError({ statusCode: 400, statusMessage: 'Missing lane id' })
   }
@@ -20,27 +19,12 @@ export default defineEventHandler(async (event) => {
   }
 
   // Resolve lane working directory
-  let wtOutput: string
-  try {
-    const result = await execFileAsync('git', [
-      'worktree',
-      'list',
-      '--porcelain',
-    ])
-    wtOutput = result.stdout
-  } catch {
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to list worktrees',
-    })
-  }
-
-  const lanes = parseLanesFromWorktrees(wtOutput, process.cwd())
-  const lane = lanes.find((l: Lane) => l.id === id)
-  if (!lane) {
+  const lanes = await fetchLanes()
+  const lane = lanes.find((l) => l.id === id)
+  if (!lane || !lane.checkedOutIn) {
     throw createError({
       statusCode: 404,
-      statusMessage: `Lane ${id} not found`,
+      statusMessage: `Lane ${id} not found or not checked out`,
     })
   }
 

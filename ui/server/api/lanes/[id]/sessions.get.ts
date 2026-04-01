@@ -1,48 +1,35 @@
-import { execFile } from 'node:child_process'
-import { promisify } from 'node:util'
 import { listSessions, writeSession } from '../../../utils/dispatch-store'
 import { listCliSessions } from '../../../utils/cli-sessions'
-import { parseLanesFromWorktrees } from '../../../utils/lanes'
+import { fetchLanes } from '../../../utils/lanes'
 import { resolveRecordId } from '../../../utils/lane-store'
 import {
   findSessionByPrompt,
   isSessionCompleted,
 } from '../../../utils/session-messages'
-import type { Lane } from '../../../utils/lanes'
-
-const execFileAsync = promisify(execFile)
 
 export default defineEventHandler(async (event) => {
-  const id = getRouterParam(event, 'id')
+  const id = decodeURIComponent(getRouterParam(event, 'id') ?? '')
   if (!id) {
     throw createError({ statusCode: 400, statusMessage: 'Missing lane id' })
   }
 
-  // Resolve lane path and repo root from worktrees
-  // The first worktree is always the main repo root
+  // Resolve lane path and repo root
   let repoRoot = process.cwd()
   let lanePath = repoRoot
-  let laneBranch: string | undefined
+  const laneBranch = id
   try {
-    const { stdout } = await execFileAsync('git', [
-      'worktree',
-      'list',
-      '--porcelain',
-    ])
-    const lanes = parseLanesFromWorktrees(stdout, process.cwd())
-    // First lane (root) gives us the repo root
-    if (lanes.length > 0) repoRoot = lanes[0]!.path
-    const lane = lanes.find((l: Lane) => l.id === id)
-    if (lane) {
+    const lanes = await fetchLanes()
+    const rootLane = lanes.find((l) => l.checkedOutIn === 'root')
+    if (rootLane) repoRoot = rootLane.path
+    const lane = lanes.find((l) => l.id === id)
+    if (lane && lane.checkedOutIn) {
       lanePath = lane.path
-      laneBranch = lane.branch
     }
   } catch {
     // fallback to cwd
   }
 
-  // Resolve record ID for staged lanes (id=root → real lane ID)
-  const recordId = await resolveRecordId(id, laneBranch)
+  const recordId = await resolveRecordId(id)
 
   // Fetch both sources in parallel
   const [dispatchSessions, cliSessions] = await Promise.all([

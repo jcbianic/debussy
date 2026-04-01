@@ -19,7 +19,13 @@
       <div class="flex items-center gap-3">
         <div
           class="size-2 flex-shrink-0 rounded-full"
-          :class="lane.isActive ? 'bg-primary-500' : 'bg-surface-tinted'"
+          :class="
+            lane.isActive
+              ? 'bg-blue-500'
+              : lane.checkedOutIn
+                ? 'bg-blue-400'
+                : 'bg-neutral-400'
+          "
         />
         <div>
           <div class="flex items-center gap-2">
@@ -32,9 +38,23 @@
               size="xs"
             />
             <UBadge
-              v-else-if="lane.isActive"
-              label="active"
+              v-if="lane.checkedOutIn === 'root'"
+              :label="lane.isActive ? 'root · active' : 'root'"
               color="primary"
+              variant="subtle"
+              size="xs"
+            />
+            <UBadge
+              v-else-if="lane.checkedOutIn === 'worktree'"
+              :label="lane.isActive ? 'worktree · active' : 'worktree'"
+              color="info"
+              variant="subtle"
+              size="xs"
+            />
+            <UBadge
+              v-else-if="!lane.state"
+              label="not checked out"
+              color="neutral"
               variant="subtle"
               size="xs"
             />
@@ -42,7 +62,11 @@
           <div
             class="text-content-muted mt-0.5 flex items-center gap-2 text-xs"
           >
-            <span>{{ lane.path }}</span>
+            <span v-if="lane.checkedOutIn">{{ lane.path }}</span>
+            <span
+              v-else
+              class="italic"
+            >no working directory</span>
             <template v-if="status">
               <span class="text-content-subtle">&middot;</span>
               <template v-if="status.sync.remote">
@@ -217,6 +241,7 @@ const toast = useToast()
 
 const {
   getLane,
+  laneUrl,
   getCommits,
   getStatus,
   transitionLane,
@@ -303,9 +328,9 @@ async function doTransition(action: LaneAction) {
   transitioning.value = true
   try {
     await transitionLane(props.laneId, action)
-    // Stage moves the branch to root — navigate there
+    // Stage moves the branch to root — stay on same lane (branch name is the ID)
     if (action === 'stage') {
-      await router.push('/lane/root')
+      await router.push(laneUrl(props.laneId))
     }
   } catch (err: unknown) {
     const msg =
@@ -348,7 +373,12 @@ const availableGitActions = computed(() => {
     }
   }
   const l = lane.value
-  if (l && l.id === 'root' && l.branch !== 'main' && l.branch !== 'master') {
+  if (
+    l &&
+    l.checkedOutIn === 'root' &&
+    l.branch !== 'main' &&
+    l.branch !== 'master'
+  ) {
     actions.push('to-worktree')
   }
   return actions
@@ -367,7 +397,9 @@ async function doGitAction(action: GitAction) {
       typeof result === 'object' &&
       'id' in result
     ) {
-      await router.push(`/lane/${(result as { id: string }).id}`)
+      // After to-worktree, the result contains the new lane record.
+      // The lane ID is the branch name — navigate using the current lane's branch.
+      await router.push(laneUrl(props.laneId))
     }
   } catch (err: unknown) {
     const msg =
@@ -388,7 +420,7 @@ async function doDelete() {
   deleting.value = true
   try {
     await deleteLane(props.laneId)
-    await router.push('/lane/root')
+    await router.push('/')
   } catch (err: unknown) {
     const msg =
       err && typeof err === 'object' && 'statusMessage' in err
@@ -469,7 +501,7 @@ const isFeatureLane = computed(() => {
   if (!l) return false
   // A lane with a record (state exists) is a feature lane,
   // even when checked out at root (staged)
-  return l.id !== 'root' || !!l.state
+  return l.branch !== 'main' && l.branch !== 'master'
 })
 
 const tabs = computed(() => [

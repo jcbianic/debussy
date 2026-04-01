@@ -1,47 +1,28 @@
-import { exec } from 'node:child_process'
-import { promisify } from 'node:util'
 import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 import {
-  parseLanesFromWorktrees,
+  fetchLanes,
   stateJsonToWorkflowRun,
   workflowYamlToSkeleton,
 } from '../../../utils/lanes'
 import { resolveRecordId } from '../../../utils/lane-store'
 import { resolveDebussyPath } from '../../../utils/debussy'
-import type { Lane } from '../../../utils/lanes'
-
-const execAsync = promisify(exec)
-
-async function getRepoRoot(): Promise<string> {
-  const { stdout } = await execAsync('git rev-parse --show-toplevel')
-  return stdout.trim()
-}
-
-async function getCurrentBranch(): Promise<string | undefined> {
-  try {
-    const { stdout } = await execAsync('git symbolic-ref --short HEAD')
-    return stdout.trim()
-  } catch {
-    return undefined
-  }
-}
 
 export default defineEventHandler(async (event) => {
-  const id = getRouterParam(event, 'id')
+  const id = decodeURIComponent(getRouterParam(event, 'id') ?? '')
 
-  let stdout = ''
+  let lanes
   try {
-    const result = await execAsync('git worktree list --porcelain')
-    stdout = result.stdout
+    lanes = await fetchLanes()
   } catch {
     return null
   }
 
-  const repoRoot = await getRepoRoot()
-  const lanes = parseLanesFromWorktrees(stdout, repoRoot)
-  const lane = lanes.find((l: Lane) => l.id === id)
+  const lane = lanes.find((l) => l.id === id)
   if (!lane) return null
+
+  // Workflow runs only exist in checked-out worktrees
+  if (!lane.checkedOutIn) return null
 
   // Try active workflow runs first
   const runsDir = path.join(lane.path, '.workflow-runs')
@@ -68,9 +49,9 @@ export default defineEventHandler(async (event) => {
   }
 
   // No active run — try to build a skeleton from the workflow YAML
-  const branch = await getCurrentBranch()
-  const recordId = await resolveRecordId(id ?? '', branch)
+  const recordId = await resolveRecordId(id)
   const laneDir = await resolveDebussyPath('.debussy', 'lanes', recordId)
+  const repoRoot = await resolveDebussyPath()
 
   let workflowPath: string | null = null
   try {

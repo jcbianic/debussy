@@ -1,15 +1,20 @@
-import { readLaneRecord, deleteLaneRecord } from '../../../utils/lane-store'
+import {
+  readLaneRecord,
+  deleteLaneRecord,
+  resolveRecordId,
+} from '../../../utils/lane-store'
 import { removeWorktree, closePR, deleteBranch } from '../../../utils/lane-git'
 import { resolveDebussyPath } from '../../../utils/debussy'
 import path from 'node:path'
 
 export default defineEventHandler(async (event) => {
-  const id = getRouterParam(event, 'id')
+  const id = decodeURIComponent(getRouterParam(event, 'id') ?? '')
   if (!id) {
     throw createError({ statusCode: 400, statusMessage: 'Missing lane id' })
   }
 
-  const record = await readLaneRecord(id)
+  const recordId = await resolveRecordId(id)
+  const record = await readLaneRecord(recordId)
   if (!record) {
     throw createError({
       statusCode: 404,
@@ -41,7 +46,7 @@ export default defineEventHandler(async (event) => {
     // branch may not exist
   }
 
-  await deleteLaneRecord(id)
+  await deleteLaneRecord(recordId)
 
   return { ok: true }
 })

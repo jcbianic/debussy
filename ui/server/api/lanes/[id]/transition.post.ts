@@ -4,6 +4,7 @@ import {
   readLaneRecord,
   writeLaneRecord,
   listLaneRecords,
+  resolveRecordId,
 } from '../../../utils/lane-store'
 import {
   isCleanWorktree,
@@ -28,7 +29,7 @@ const VALID_ACTIONS = new Set<LaneAction>([
 ])
 
 export default defineEventHandler(async (event) => {
-  const id = getRouterParam(event, 'id')
+  const id = decodeURIComponent(getRouterParam(event, 'id') ?? '')
   if (!id) {
     throw createError({ statusCode: 400, statusMessage: 'Missing lane id' })
   }
@@ -43,7 +44,8 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const record = await readLaneRecord(id)
+  const recordId = await resolveRecordId(id)
+  const record = await readLaneRecord(recordId)
   if (!record) {
     throw createError({
       statusCode: 404,

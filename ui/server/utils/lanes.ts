@@ -1,7 +1,11 @@
 import path from 'node:path'
+import { exec } from 'node:child_process'
+import { promisify } from 'node:util'
 import { parse as parseYaml } from 'yaml'
 import type { Review } from './reviews'
 import type { LaneState } from '~/shared/types/lanes'
+
+const execAsync = promisify(exec)
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -10,6 +14,7 @@ export interface Lane {
   branch: string
   path: string
   isActive: boolean
+  checkedOutIn: 'root' | 'worktree' | null
   intent?: string
   state?: LaneState
   issueNumber?: number
@@ -43,16 +48,22 @@ export interface Commit {
   pr?: string
 }
 
-// ─── parseLanesFromWorktrees ──────────────────────────────────────────────────
+// ─── Worktree parsing ────────────────────────────────────────────────────────
 
-export function parseLanesFromWorktrees(stdout: string, cwd: string): Lane[] {
+interface WorktreeEntry {
+  path: string
+  branch: string | null
+  isRoot: boolean
+}
+
+function parseWorktrees(stdout: string): WorktreeEntry[] {
   if (!stdout.trim()) return []
 
   const blocks = stdout
     .trim()
     .split(/\n\n+/)
     .filter((b) => b.trim())
-  const result: Lane[] = []
+  const result: WorktreeEntry[] = []
 
   for (let i = 0; i < blocks.length; i++) {
     const block = blocks[i]!
@@ -63,40 +74,116 @@ export function parseLanesFromWorktrees(stdout: string, cwd: string): Lane[] {
     const worktreePath = pathLine.replace('worktree ', '').trim()
 
     const branchLine = lines.find((l) => l.startsWith('branch '))
-    let branch: string
+    let branch: string | null = null
     if (branchLine) {
       branch = branchLine
         .replace('branch refs/heads/', '')
         .replace('branch ', '')
         .trim()
-    } else if (lines.some((l) => l.trim() === 'detached')) {
-      branch = 'detached'
-    } else {
-      branch = 'unknown'
     }
 
-    const id = i === 0 ? 'root' : path.basename(worktreePath)
-
-    result.push({
-      id,
-      branch,
-      path: worktreePath,
-      isActive: false,
-      reviews: [],
-    })
-  }
-
-  // Mark the most specific worktree containing cwd as active
-  const activeWorktreePath = result
-    .map((l) => l.path)
-    .filter((p) => cwd === p || cwd.startsWith(p + path.sep))
-    .sort((a, b) => b.length - a.length)[0]
-
-  for (const lane of result) {
-    lane.isActive = lane.path === activeWorktreePath
+    result.push({ path: worktreePath, branch, isRoot: i === 0 })
   }
 
   return result
+}
+
+// ─── parseLanes ──────────────────────────────────────────────────────────────
+
+export function parseLanes(
+  branchesStdout: string,
+  worktreeStdout: string,
+  cwd: string
+): Lane[] {
+  const branches = branchesStdout
+    .split('\n')
+    .map((l) => l.trim())
+    .filter(Boolean)
+
+  if (branches.length === 0) return []
+
+  const worktrees = parseWorktrees(worktreeStdout)
+  const rootPath = worktrees[0]?.path ?? cwd
+
+  // Map branch → worktree entry
+  const branchToWorktree = new Map<string, WorktreeEntry>()
+  for (const wt of worktrees) {
+    if (wt.branch) {
+      branchToWorktree.set(wt.branch, wt)
+    }
+  }
+
+  const lanes: Lane[] = branches.map((branch) => {
+    const wt = branchToWorktree.get(branch)
+    let checkedOutIn: Lane['checkedOutIn'] = null
+    let lanePath = rootPath
+
+    if (wt) {
+      checkedOutIn = wt.isRoot ? 'root' : 'worktree'
+      lanePath = wt.path
+    }
+
+    return {
+      id: branch,
+      branch,
+      path: lanePath,
+      isActive: false,
+      checkedOutIn,
+      reviews: [],
+    }
+  })
+
+  // Mark the lane whose worktree contains cwd as active
+  const activePaths = lanes
+    .filter((l) => l.checkedOutIn !== null)
+    .map((l) => l.path)
+    .filter((p) => cwd === p || cwd.startsWith(p + path.sep))
+    .sort((a, b) => b.length - a.length)
+
+  if (activePaths.length > 0) {
+    const activePath = activePaths[0]!
+    const activeLane = lanes.find((l) => l.path === activePath)
+    if (activeLane) activeLane.isActive = true
+  }
+
+  return lanes
+}
+
+// ─── fetchLanes ──────────────────────────────────────────────────────────────
+
+export async function fetchLanes(): Promise<Lane[]> {
+  const [branchResult, worktreeResult] = await Promise.all([
+    execAsync(
+      "git for-each-ref --sort=-committerdate --format='%(refname:short)' refs/heads/"
+    ),
+    execAsync('git worktree list --porcelain'),
+  ])
+  const lanes = parseLanes(
+    branchResult.stdout,
+    worktreeResult.stdout,
+    process.cwd()
+  )
+
+  // Hoist default branch to top
+  let defaultBranch = 'main'
+  try {
+    const { stdout } = await execAsync(
+      'git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null'
+    )
+    defaultBranch = stdout.trim().replace('refs/remotes/origin/', '')
+  } catch {
+    if (!lanes.some((l) => l.branch === 'main')) {
+      defaultBranch = 'master'
+    }
+  }
+
+  const defaultIdx = lanes.findIndex((l) => l.branch === defaultBranch)
+  if (defaultIdx > 0) {
+    const [defaultLane] = lanes.splice(defaultIdx, 1)
+    lanes.unshift(defaultLane!)
+  }
+
+  return lanes
 }
 
 // ─── stateJsonToWorkflowRun ───────────────────────────────────────────────────

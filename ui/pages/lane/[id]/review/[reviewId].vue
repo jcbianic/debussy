@@ -5,7 +5,7 @@
       class="border-line bg-surface-tinted flex items-center gap-3 border-b px-8 py-4"
     >
       <NuxtLink
-        :to="`/lane/${laneId}`"
+        :to="`/lane/${encodeURIComponent(laneId)}`"
         class="flex-shrink-0 text-neutral-400 transition-colors hover:text-neutral-600 dark:hover:text-neutral-200"
       >
         <UIcon

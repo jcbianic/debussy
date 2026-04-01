@@ -17,10 +17,13 @@
       <NuxtLink
         v-for="lane in lanesWithPending"
         :key="lane.id"
-        :to="`/lane/${lane.id}`"
+        :to="laneUrl(lane.id)"
         class="group hover:bg-surface-hover flex items-center gap-2.5 rounded-md px-2 py-2 text-sm transition-colors"
         :class="
-          currentPath.startsWith(`/lane/${lane.id}`) ? 'bg-surface-hover' : ''
+          currentPath === laneUrl(lane.id) ||
+            currentPath.startsWith(laneUrl(lane.id) + '/')
+            ? 'bg-surface-hover'
+            : ''
         "
       >
         <div
@@ -70,6 +73,8 @@ defineProps<{
 defineEmits<{
   create: []
 }>()
+
+const { laneUrl } = useLanes()
 
 function stateDotClass(lane: Lane & { pending: number }): string {
   if (lane.orphaned) return 'bg-red-500'

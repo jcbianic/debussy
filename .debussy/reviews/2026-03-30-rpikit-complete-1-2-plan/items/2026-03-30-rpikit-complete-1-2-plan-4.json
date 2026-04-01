@@ -6,11 +6,7 @@
     {
       "number": 1,
       "proposedAt": "2026-03-30T13:30:00Z",
-      "content": "A lane can belong to at most one release. Duplicate assignment returns 409 Conflict. This simplifies the data model but may limit flexibility if lanes need to be shared across releases.",
-      "feedback": {
-        "decision": "approved",
-        "decidedAt": "2026-03-30T19:19:06.651Z"
-      }
+      "content": "A lane can belong to at most one release. Duplicate assignment returns 409 Conflict. This simplifies the data model but may limit flexibility if lanes need to be shared across releases."
     }
   ]
 }
