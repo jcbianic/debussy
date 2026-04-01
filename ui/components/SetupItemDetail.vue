@@ -670,7 +670,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   select: [item: SetupItem]
   selectByName: [name: string]
-  update: [id: string, payload: Record<string, unknown>]
+  update: [id: string, payload: Record<string, unknown>, onDone: () => void]
   delete: [id: string]
 }>()
 
@@ -724,8 +724,9 @@ async function save() {
       payload.tools = draft.value.tools || undefined
       payload.name = props.item.name
     }
-    emit('update', props.item.id, payload)
-    editing.value = false
+    emit('update', props.item.id, payload, () => {
+      editing.value = false
+    })
   } finally {
     saving.value = false
   }

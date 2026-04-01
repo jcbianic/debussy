@@ -244,8 +244,13 @@ async function handleCreate() {
 }
 
 // ── Update / Delete handlers ──
-async function handleUpdate(id: string, payload: Record<string, unknown>) {
+async function handleUpdate(
+  id: string,
+  payload: Record<string, unknown>,
+  onDone: () => void
+) {
   await updateItem(id, payload as Parameters<typeof updateItem>[1])
+  onDone()
 }
 
 async function handleDelete(id: string) {

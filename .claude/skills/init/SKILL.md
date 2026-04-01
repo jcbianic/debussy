@@ -576,14 +576,14 @@ If the parsed config has `options.statusline` set to `true` (or absent — defau
      || echo '.debussy/usage/' >> .gitignore
    ```
 
-### Configure settings.local.json
+### Configure settings.json
 
-1. **Merge settings**: read `.claude/settings.local.json`
+1. **Merge settings**: read `.claude/settings.json`
    (create if missing). Merge in the `statusLine` and `hooks`
    keys, preserving any existing settings:
 
    ```bash
-   SETTINGS=".claude/settings.local.json"
+   SETTINGS=".claude/settings.json"
    if [ -f "$SETTINGS" ]; then
      EXISTING=$(cat "$SETTINGS")
    else
