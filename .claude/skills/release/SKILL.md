@@ -62,10 +62,7 @@ target milestone. Otherwise, list milestones and ask the user.
 Run this sub-step in all modes that reference a milestone:
 
 ```bash
-gh milestone list \
-  --json number,title,dueOn,description \
-  --state open \
-  --limit 50
+bash .claude/skills/release/scripts/list-milestones.sh
 ```
 
 If `[milestone]` argument was provided:
@@ -95,27 +92,15 @@ Assess milestone health and write scope artifact.
 
 See Step 2.
 
-### Fetch all open issues in milestone
+### Fetch all open issues in milestone + assess health
 
 ```bash
-gh issue list \
-  --milestone "{milestone_title}" \
-  --state open \
-  --json number,title,labels,body \
-  --limit 100
+bash .claude/skills/release/scripts/fetch-issues.sh "{milestone_title}"
 ```
 
-### Assess Health
-
-- Count total issues
-- Group by label (count `ready`, `design`, `blocked`, etc.)
-- For each issue, check body for markers:
-  - Acceptance criteria: look for `## Acceptance Criteria` or
-    `- [ ]` checklist
-  - Description clarity: flag if <50 words or missing clear
-    summary
-  - Labels: flag if no priority/status label
-- Compile flags list: vague issues, unlabeled, no criteria
+The script outputs: issues table, health scorecard, and flagged
+issues list. Use this output directly — do not re-fetch or
+re-analyze.
 
 ### Initialize or read artifact
 
@@ -416,37 +401,13 @@ Read `.debussy/releases/{milestone_slug}.md`. Verify `phase` is
 
 ### Fetch lane status
 
-For each lane in artifact:
-
 ```bash
-gh pr view {lane_pr_number} \
-  --json state,reviewDecision,isDraft,commits
+bash .claude/skills/release/scripts/track-lanes.sh "{milestone_slug}"
 ```
 
-Extract: PR state (OPEN, MERGED, CLOSED), review decision
-(APPROVED, CHANGES_REQUESTED, PENDING), draft status, commit count.
-
-Check git log for last commit timestamp:
-
-```bash
-git log -1 --format=%ai lane/{issue_number}-{slug}
-```
-
-Determine if stale (no commit in >48h).
-
-### Build lane status table
-
-```text
-Lane | Issue | Branch | PR | State | Review | Stale? | Merged?
-{N} | #{issue} | lane/{N} | #{pr} | OPEN | pending | - | no
-```
-
-### Identify blockers
-
-- PRs with `CHANGES_REQUESTED` → flag
-- PRs with `isDraft: true` → flag
-- Stale lanes (no commit >48h) → flag
-- Lanes with `state: created` (no work started) → flag
+The script outputs: per-lane status table, summary counts, and
+action-required items. Use this output directly — do not re-fetch
+individual PR states.
 
 ### Update artifact
 
@@ -509,10 +470,13 @@ Read `.debussy/releases/{milestone_slug}.md`. Verify `phase` is
 
 ### Check lane status
 
-Run Track Mode logic (fetch all lane PR statuses).
+```bash
+bash .claude/skills/release/scripts/close-checks.sh "{milestone_slug}"
+```
 
-If any lane PR is not `MERGED`, ask user:
-"Lane {N} PR #{pr} is not merged ({state}). Skip or wait?"
+Exit 0 = all lanes merged (GO). Exit 1 = unmerged lanes remain
+(NO-GO) — the script lists them. If NO-GO, ask user for each
+unmerged lane: "Skip or wait?"
 
 If "wait", exit. If "skip", mark as skipped.
 
