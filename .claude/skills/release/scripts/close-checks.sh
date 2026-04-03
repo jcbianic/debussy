@@ -54,6 +54,12 @@ echo ""
 echo "--- Verdict ---"
 echo "  Lanes: $MERGED_COUNT/$TOTAL merged"
 
+if [ "$TOTAL" -eq 0 ]; then
+  echo "  STATUS: NO-GO — no lanes found for milestone '$MILESTONE_SLUG'"
+  echo "  Check that lanes were scaffolded and releaseSlug matches"
+  exit 1
+fi
+
 if [ "$UNMERGED_COUNT" -eq 0 ]; then
   echo "  STATUS: GO — all lanes merged, safe to close release"
   exit 0

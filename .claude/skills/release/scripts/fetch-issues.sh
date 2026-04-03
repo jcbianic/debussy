@@ -32,7 +32,7 @@ echo "$ISSUES" | jq -r '.[] | [
   (
     [
       if (.body | length) < 50 then "SHORT_BODY" else empty end,
-      if (.body | test("(?i)## Acceptance Criteria|\\- \\[ \\]") | not) then "NO_CRITERIA" else empty end,
+      if ((.body // "") | test("(?i)## Acceptance Criteria|\\- \\[ \\]") | not) then "NO_CRITERIA" else empty end,
       if (.labels | length) == 0 then "NO_LABELS" else empty end
     ] | if length > 0 then join(", ") else "ok" end
   )
@@ -52,7 +52,7 @@ echo "$ISSUES" | jq -r --argjson total "$TOTAL" '
     flagged: ([
       .[] | select(
         (.body | length) < 50 or
-        (.body | test("(?i)## Acceptance Criteria|\\- \\[ \\]") | not) or
+        ((.body // "") | test("(?i)## Acceptance Criteria|\\- \\[ \\]") | not) or
         (.labels | length) == 0
       )
     ] | length)
@@ -72,7 +72,7 @@ FLAGGED=$(echo "$ISSUES" | jq -r '.[] |
   . as $i |
   [
     if (.body | length) < 50 then "SHORT_BODY" else empty end,
-    if (.body | test("(?i)## Acceptance Criteria|\\- \\[ \\]") | not) then "NO_CRITERIA" else empty end,
+    if ((.body // "") | test("(?i)## Acceptance Criteria|\\- \\[ \\]") | not) then "NO_CRITERIA" else empty end,
     if (.labels | length) == 0 then "NO_LABELS" else empty end
   ] as $flags |
   if ($flags | length) > 0 then
