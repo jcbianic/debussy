@@ -390,7 +390,7 @@ Next: /release --track {milestone_slug}
 
 Show lane progress and identify blockers.
 
-### Resolve Milestone
+### Resolve Milestone (Track)
 
 See Step 2.
 
@@ -459,11 +459,11 @@ Next: /release --close {milestone_slug} (when all PRs merged)
 
 Show lane progress and identify blockers.
 
-### Resolve Milestone (Track)
+### Resolve Milestone (Close)
 
 See Step 2.
 
-### Read Release Artifact (Track)
+### Read Release Artifact (Close)
 
 Read `.debussy/releases/{milestone_slug}.md`. Verify `phase` is
 `tracking` or `scaffolded`. If not, error and exit.
@@ -496,10 +496,13 @@ until `MERGED`).
 Derive release notes from milestone description + issue titles:
 
 ```bash
+NOTES_FILE=$(mktemp /tmp/release-notes-XXXXXX.md)
+printf '%s' "{release_notes}" > "$NOTES_FILE"
 gh release create v{version} \
   --title "v{version}" \
-  --notes "{release_notes}" \
+  --notes-file "$NOTES_FILE" \
   --target main
+rm -f "$NOTES_FILE"
 ```
 
 ### Close milestone

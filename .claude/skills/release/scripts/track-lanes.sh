@@ -37,7 +37,7 @@ for lane_file in "$LANES_DIR"/*/lane.json; do
   [ "$RELEASE_SLUG" = "$MILESTONE_SLUG" ] || continue
 
   ISSUE_NUM=$(jq -r '.issueNumber' "$lane_file")
-  TITLE=$(jq -r '.issueTitle' "$lane_file")
+  TITLE=$(jq -r '.issueTitle // ""' "$lane_file")
   BRANCH=$(jq -r '.branch' "$lane_file")
   PR_NUM=$(jq -r '.prNumber' "$lane_file")
 
