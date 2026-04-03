@@ -1,10 +1,8 @@
 ---
 description: >-
   Design or review Vue 3 / Nuxt components using the Orchestration-Presentation
-  principle. Classifies a component into its correct tier (data / orchestration /
-  presentation), defines its props/emits/composable interface, and flags
-  tier violations and Nuxt convention issues in existing files.
-  Commands: /component-design <description> | /component-design --review <path>
+  principle. Classifies components into tiers, defines their props/emits/composable
+  interface, and flags tier violations and Nuxt convention issues.
 license: MIT
 metadata:
   author: jcbianic

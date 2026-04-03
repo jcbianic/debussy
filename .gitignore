@@ -17,7 +17,6 @@ coverage/
 skills/tessl__*
 __pycache__/
 .strategy-review/
-.debussy/strategy/.reviews/
-.debussy/inbox/
-.debussy/usage/
+.debussy/
+.debussy-backup/
 .workflow-runs/

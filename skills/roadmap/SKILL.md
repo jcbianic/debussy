@@ -2,9 +2,6 @@
 description: >-
   Shape a product roadmap: research the landscape, audience, and feature space,
   then synthesize vision, ecosystem map, product definition, and intents.
-  Writes docs/vision.md, docs/landscape.md, docs/product.md, and specs/intents.md,
-  then syncs each intent to a GitHub Issue.
-  Commands: /roadmap | /roadmap --sync-issues | /roadmap --update-intent <NNN>
 license: MIT
 metadata:
   author: jcbianic

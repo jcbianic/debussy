@@ -1,6 +1,0 @@
-{
-  "lane": "59",
-  "workflow": ".claude/workflows/rpikit-complete.yml",
-  "requestedAt": "2026-03-30T19:38:08.027Z",
-  "status": "pending"
-}

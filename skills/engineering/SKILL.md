@@ -3,7 +3,6 @@ description: >-
   Manage engineering governance: agent policies, architectural principles, and
   decision records. Supports three depth levels (lite, standard, full) as a
   progressive journey.
-  Commands: /engineering | /engineering --refresh {type} | /engineering --review
 license: MIT
 metadata:
   author: jcbianic

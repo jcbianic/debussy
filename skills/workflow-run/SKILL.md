@@ -3,8 +3,7 @@ name: debussy
 description: >-
   Run multi-step AI workflows defined in YAML files with human review gates.
   Use when user says "run workflow", "start workflow", "resume workflow", or
-  references a .claude/workflows/*.yml file. Commands: /workflow-run <file>
-  [--input k=v] | --resume [run_id] | --status | --list
+  references a .claude/workflows/*.yml file.
 compatibility: Requires Python 3, jq, and bash on PATH.
 license: MIT
 metadata:

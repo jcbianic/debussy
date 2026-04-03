@@ -1,10 +1,8 @@
 ---
 description: >-
   Collect structured user feedback via a browser UI. Use when an agent needs
-  human review, approval, or triage of a list of items. Serves a standalone
-  dark-themed review page, waits without consuming tokens (bash filewatch),
-  and returns structured decisions. Commands: /feedback <request.json>
-  | /feedback --check <session-id>
+  human review, approval, or triage of a list of items. Waits without consuming
+  tokens and returns structured decisions.
 ---
 
 # Feedback Skill

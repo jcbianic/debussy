@@ -1,10 +1,8 @@
 ---
 description: >-
   Generate Vitest tests for Vue 3 / Nuxt components and composables.
-  Tier-1 composables get pure unit tests; tier-3 presenters get component tests
-  with @vue/test-utils; tier-2 orchestrators get integration tests with mocked
-  composables. Follows the project's @nuxt/test-utils environment.
-  Commands: /component-test <path> | /component-test --untested
+  Tier-1 composables get pure unit tests; tier-3 presenters get component tests;
+  tier-2 orchestrators get integration tests with mocked composables.
 license: MIT
 metadata:
   author: jcbianic

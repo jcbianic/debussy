@@ -1,9 +1,8 @@
 ---
 description: >-
   Scan all Vue components and composables, build a persistent health inventory
-  at .debussy/component-inventory.json, and automatically review all items
-  recording violations without human intervention.
-  Commands: /component-inventory | /component-inventory --scan | /component-inventory --browse [path] | /component-inventory --status
+  and automatically review all items recording violations without human
+  intervention.
 license: MIT
 metadata:
   author: jcbianic

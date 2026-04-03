@@ -1,10 +1,8 @@
 ---
 description: >-
   Reusable review gate: scan artifacts, send to Debussy UI Inbox, wait for
-  user decisions, and return results. Called by other skills (strategy,
-  engineering, product) to route drafts through the review UI instead of
-  duplicating the inbox flow.
-  Usage: /review-gate --source {id} --title {text} [--icon {icon}] [--sidecars] {glob1} ...
+  user decisions, and return results. Called by other skills to route drafts
+  through the review UI.
 license: MIT
 metadata:
   author: jcbianic

@@ -1,10 +1,8 @@
 ---
 description: >-
-  Define the product and shape the roadmap. Consumes strategy artifacts from
-  .debussy/strategy/, synthesizes product definition and intents under
-  .debussy/product/, syncs each intent to a GitHub Issue, and reviews
-  artifacts in the Debussy UI Inbox.
-  Commands: /product | /product --sync-issues | /product --update-intent <NNN> | /product --review
+  Define the product and shape the roadmap. Consumes strategy artifacts,
+  synthesizes product definition and intents, and syncs each intent to a
+  GitHub Issue.
 license: MIT
 metadata:
   author: jcbianic

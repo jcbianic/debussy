@@ -1,10 +1,7 @@
 ---
 description: >-
   Manage the full lifecycle of a GitHub milestone-based release —
-  from preparation to close. Commands: /release | /release --prepare
-  [milestone] | /release --mature [milestone] | /release --scaffold
-  [milestone] | /release --track [milestone] | /release --close
-  [milestone]
+  from preparation to close.
 license: MIT
 metadata:
   author: jcbianic

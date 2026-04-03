@@ -3,7 +3,6 @@ description: >-
   Product discovery: research the space, produce structured artifacts under
   .debussy/strategy/, and review them in the Debussy UI Inbox. Supports three
   depth levels (pitch, foundation, full) as a progressive journey.
-  Commands: /strategy | /strategy --refresh {type} | /strategy --review
 license: MIT
 metadata:
   author: jcbianic
