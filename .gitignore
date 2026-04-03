@@ -19,4 +19,5 @@ __pycache__/
 .strategy-review/
 .debussy/
 .debussy-backup/
+.feedback/
 .workflow-runs/
