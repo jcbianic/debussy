@@ -1,91 +1,73 @@
 # Debussy
 
-A meta-plugin to help you manage projects as a solo builder, from idea to shippable features. Claude Code is awesome but pushing it to its limits strains your cognitive resources. Debussy is here to bring a disciplined approach to building fast while keeping a grip on what and how you're building it.
+Solo building with Claude Code is fast. It's also easy to lose the
+plot — shipping features nobody asked for, accumulating decisions
+nobody wrote down, never pausing to check if the direction still
+makes sense.
 
-## Skills
+Debussy adds structure around the build loop so you can move fast
+without losing the thread.
 
-### Product Skills
+## Strates
 
-**Init** — Bootstrap a new project with Debussy. Starts a browser-based configuration UI where you pick strategy depth (pitch, foundation, full) and optional engineering strate, then scaffolds the documentation hierarchy.
+Four strates cover the loop from discovery to delivery.
 
-```
-/debussy:init
-```
+**Strategy** — Does the research: vision, audience, landscape,
+competitors. Writes to `.debussy/strategy/` and opens a review UI
+so you can push back before anything gets built.
 
-**Strategy** — Research-first product discovery. Investigates the space — vision, problems, audiences, landscape, competitors, allies, feature space, and positioning — then produces structured artifacts under `.debussy/strategy/` with a browser-based review UI. Supports three progressive depth levels.
-
-```
-/debussy:strategy                          # Full run: research -> synthesize -> validate -> write
-/debussy:strategy --refresh competitors    # Re-research one artifact type
-/debussy:strategy --review                 # Open browser review UI for existing artifacts
-```
-
-**Roadmap** — Consume strategy artifacts, produce implementation intents with cross-references (P{N}, A{N}), and sync to GitHub Issues.
-
-```
-/debussy:roadmap                           # Full run: read strategy -> synthesize intents -> sync
-/debussy:roadmap --sync-issues             # Re-sync specs/intents.md -> GitHub Issues
-/debussy:roadmap --update-intent 001       # Update a single intent
+```text
+/debussy:strategy
 ```
 
-### Engineering Skills
+**Product** — Reads the strategy artifacts and turns them into
+intents: a prioritized list of what to build, each synced to a
+GitHub Issue.
 
-**Component Design** — Design or review Vue 3 / Nuxt components using the Orchestration-Presentation principle. Classifies components into tiers (data / orchestration / presentation) and flags violations.
-
-```
-/debussy:component-design <description>
-/debussy:component-design --review <path>
-```
-
-**Component Inventory** — Scan all Vue components and composables, build a persistent health inventory at `.debussy/component-inventory.json`, and review all items for violations.
-
-```
-/debussy:component-inventory               # Full scan and review
-/debussy:component-inventory --browse      # Browse inventory
-/debussy:component-inventory --status      # Show health summary
+```text
+/debussy:product
 ```
 
-**Component Test** — Generate Vitest tests for Vue 3 / Nuxt components and composables. Tier-aware: pure unit tests for composables, component tests for presenters, integration tests for orchestrators.
+**Engineering** — Writes down how the project should be built:
+agent policies, architectural principles, decision records. Three
+levels: lite, standard, full.
 
+```text
+/debussy:engineering
 ```
-/debussy:component-test <path>
-/debussy:component-test --untested         # Find and test untested components
-```
 
-### Utility Skills
+**Work** — Always on. Runs multi-step workflows and collects
+structured feedback via a browser UI.
 
-**Feedback** — Collect structured user feedback via a browser UI. Show a list of items, let users approve/reject/discuss each one, get back structured responses.
-
-```
+```text
+/debussy:workflow-run workflow.yml
 /debussy:feedback request.json
 ```
 
-**Workflow-Run** — Execute multi-step workflows (`.yaml` files) with interactive review gates. Run steps, collect artifacts, present review UI, block on user decisions.
+## Getting started
 
+Run this first:
+
+```text
+/debussy:init
 ```
-/debussy:workflow-run workflow.yml
-/debussy:workflow-run --resume [run_id]
-/debussy:workflow-run --status
-```
+
+Opens a browser UI to pick your strates and depth levels, then
+scaffolds the documentation stubs.
 
 ## Install
 
-Inside Claude Code, add the marketplace and install the plugin:
-
-```
+```text
 /plugin marketplace add jcbianic/debussy
 /plugin install debussy@jcbianic-debussy
 ```
 
-## Source
+## Structure
 
-```
-.claude/skills/init/                # Init skill
-.claude/skills/strategy/            # Strategy skill
-.claude/skills/roadmap/             # Roadmap skill
-.claude/skills/component-design/    # Component Design skill
-.claude/skills/component-inventory/ # Component Inventory skill
-.claude/skills/component-test/      # Component Test skill
-.claude/skills/feedback/            # Feedback skill
-.claude/skills/workflow-run/        # Workflow-Run skill
+```text
+.claude-plugin/    # Plugin metadata (plugin.json, marketplace.json)
+.claude/skills/    # Installed skills
+README.md
+CLAUDE.md
+AGENTS.md
 ```
