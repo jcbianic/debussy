@@ -20,4 +20,6 @@ __pycache__/
 .debussy/
 .debussy-backup/
 .feedback/
+ui/pnpm-lock.yaml
+package-lock.json
 .workflow-runs/
