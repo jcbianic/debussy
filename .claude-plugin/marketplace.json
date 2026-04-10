@@ -13,7 +13,7 @@
       "author": {
         "name": "jcbianic"
       },
-      "source": "..",
+      "source": "./",
       "homepage": "https://github.com/jcbianic/debussy",
       "category": "development",
       "tags": ["workflow", "iikit", "review", "orchestration"]
