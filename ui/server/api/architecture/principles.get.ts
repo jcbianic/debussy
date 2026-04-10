@@ -4,7 +4,7 @@ import { parsePrinciples } from '../../utils/architecture'
 
 export default defineEventHandler(async () => {
   const filePath = await resolveDebussyPath(
-    'docs',
+    '.debussy',
     'architecture',
     'principles.md'
   )

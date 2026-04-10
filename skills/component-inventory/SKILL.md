@@ -152,7 +152,7 @@ If the work list is empty: output "All items are healthy or skipped." and stop.
 
 ### B2: Read Shared Context Once
 
-Before the loop, read `docs/architecture/orchestration-presentation.md` once.
+Before the loop, read `.debussy/architecture/orchestration-presentation.md` once.
 This document is reused for all files — do not re-read it on each iteration.
 
 ### B3: For Each File — Run Full Review

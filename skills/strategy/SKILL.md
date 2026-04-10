@@ -123,7 +123,7 @@ Read each of the following files if they exist (use Read tool; skip silently if 
 | `CLAUDE.md` | Project instructions, structure, next steps |
 | `.claude-plugin/plugin.json` | Plugin metadata (name, description, keywords) |
 | `package.json` | Package metadata (if exists) |
-| `specs/intents.md` | Existing roadmap intents |
+| `.debussy/product/intents.md` | Existing roadmap intents |
 
 Also run:
 

@@ -59,7 +59,7 @@ Read the file at the given path. Determine:
 - Its tier using the same heuristics as the component-design review (R2)
 - Its public interface: exported composable return values, component props, emits
 
-Also read `docs/architecture/orchestration-presentation.md` for tier definitions.
+Also read `.debussy/architecture/orchestration-presentation.md` for tier definitions.
 
 ### G2: Select Test Strategy by Tier
 

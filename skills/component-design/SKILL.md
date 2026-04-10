@@ -12,7 +12,7 @@ metadata:
 # Component Design Skill
 
 Apply the **Orchestration-Presentation principle** to Vue 3 / Nuxt component work.
-The full principle is in `docs/architecture/orchestration-presentation.md`.
+The full principle is in `.debussy/architecture/orchestration-presentation.md`.
 Read that file before doing any design or review work.
 
 ## When to Activate
@@ -43,7 +43,7 @@ From `$ARGUMENTS`:
 
 ## Step 2: Read the Principle
 
-Before either mode, read `docs/architecture/orchestration-presentation.md`.
+Before either mode, read `.debussy/architecture/orchestration-presentation.md`.
 This is the authoritative source. If it is missing, state that it was not found
 and proceed from memory of the principle (three-tier: composable / orchestrator /
 presenter; the core rule is "orchestrate OR render, not both").

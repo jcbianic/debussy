@@ -640,7 +640,7 @@ const {
   totalPending,
   laneUrl,
 } = useLanes()
-const { nextRelease, nextReleaseName, artifacts } = useDashboard()
+const { releases: roadmapReleases } = useRoadmap()
 const { principles, adrs, proposedCount } = useArchitecture()
 const { topics: policyTopics } = usePolicy()
 const { data: strategyData } = await useFetch<StrategyResponse>('/api/strategy')
@@ -655,6 +655,30 @@ const { data: productData } = await useFetch<{
   progress: { expected: number; present: number; reviewed: number }
 }>('/api/product')
 const productArtifacts = computed(() => productData.value?.artifacts ?? [])
+
+const artifacts = computed(() =>
+  (strategyData.value?.artifacts ?? []).filter((a) => a.presence === 'present')
+)
+
+const currentRelease = computed(() => {
+  const releases = roadmapReleases.value
+  return (
+    releases.find((r) => r.intents.some((i) => i.state === 'in-progress')) ??
+    releases.find((r) => r.intents.some((i) => i.state === 'open')) ??
+    releases[0] ??
+    null
+  )
+})
+
+const nextReleaseName = computed(
+  () => currentRelease.value?.name ?? 'No releases'
+)
+
+const nextRelease = computed(() =>
+  (currentRelease.value?.intents ?? []).filter(
+    (i) => i.state !== 'out-of-scope'
+  )
+)
 
 const featureCategories = categoryDefs.map((c) => ({
   key: c.key,

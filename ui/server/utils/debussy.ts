@@ -21,7 +21,7 @@ export async function resolveDebussyPath(
       .trim()
     return path.join(mainWorktree, ...segments)
   } catch {
-    return path.resolve(process.cwd(), '..', ...segments)
+    return path.resolve(process.cwd(), ...segments)
   }
 }
 

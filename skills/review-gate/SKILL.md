@@ -23,7 +23,7 @@ instead of implementing the inbox flow itself.
 ## Usage
 
 ```
-/review-gate --source engineering --title "Engineering Review" --icon i-heroicons-cog-6-tooth --sidecars .debussy/policies/*.md docs/decisions/*.md
+/review-gate --source engineering --title "Engineering Review" --icon i-heroicons-cog-6-tooth --sidecars .debussy/policies/*.md .debussy/decisions/*.md
 /review-gate --source strategy --title "Strategy Review" --icon i-heroicons-adjustments-horizontal --sidecars .debussy/strategy/*.md
 /review-gate --source product --title "Product Review" .debussy/product/*.md
 ```
@@ -61,7 +61,7 @@ For each file found:
    - Remove file extension
    - Use the meaningful relative path as slug
    - Examples: `.debussy/policies/testing.md` -> `policies/testing`,
-     `docs/decisions/001-initial.md` -> `decisions/001-initial`,
+     `.debussy/decisions/001-initial.md` -> `decisions/001-initial`,
      `.debussy/strategy/vision.md` -> `strategy/vision`,
      `.debussy/strategy/competitors/notion.md` -> `strategy/competitors/notion`
 4. Derive the artifact label:
@@ -99,8 +99,8 @@ convention based on the parent directory:
 | Parent directory pattern | Subtitle format | Example |
 |---|---|---|
 | `.debussy/policies/` | `Policy: {label}` | `Policy: Testing` |
-| `docs/architecture/` | `Architecture: {label}` | `Architecture: Principles` |
-| `docs/decisions/` | `ADR: {label}` | `ADR: 001 Initial Decision` |
+| `.debussy/architecture/` | `Architecture: {label}` | `Architecture: Principles` |
+| `.debussy/decisions/` | `ADR: {label}` | `ADR: 001 Initial Decision` |
 | `.debussy/strategy/` | `Strategy: {label}` | `Strategy: Vision` |
 | `.debussy/strategy/competitors/` | `Competitor: {label}` | `Competitor: Notion` |
 | `.debussy/strategy/allies/` | `Ally: {label}` | `Ally: Claude Code` |

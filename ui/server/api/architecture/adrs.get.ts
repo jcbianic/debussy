@@ -4,7 +4,7 @@ import { resolveDebussyPath } from '../../utils/debussy'
 import { parseAdrs } from '../../utils/architecture'
 
 export default defineEventHandler(async () => {
-  const decisionsDir = await resolveDebussyPath('docs', 'decisions')
+  const decisionsDir = await resolveDebussyPath('.debussy', 'decisions')
   try {
     const entries = await readdir(decisionsDir)
     const mdFiles = entries.filter((f) => f.endsWith('.md'))

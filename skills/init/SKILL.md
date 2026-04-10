@@ -181,10 +181,10 @@ mkdir -p .debussy/product
 mkdir -p .debussy/policies
 
 # Engineering standard or full
-mkdir -p docs/architecture
+mkdir -p .debussy/architecture
 
 # Engineering full
-mkdir -p docs/decisions
+mkdir -p .debussy/decisions
 
 # Intents (if product enabled)
 # (intents live inside .debussy/product/)
@@ -483,7 +483,7 @@ order: 1
 
 Everything from Lite, plus:
 
-**`docs/architecture/principles.md`**
+**`.debussy/architecture/principles.md`**
 
 ```markdown
 ---
@@ -501,7 +501,7 @@ Describe your first architectural principle here.
 
 Everything from Standard, plus:
 
-**`docs/decisions/001-initial-decision.md`**
+**`.debussy/decisions/001-initial-decision.md`**
 
 ```markdown
 # ADR 001 -- Initial Decision

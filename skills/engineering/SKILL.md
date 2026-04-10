@@ -39,8 +39,8 @@ The user progresses through three depth levels -- **Lite**, **Standard**,
 | Level | Documents | Use Case |
 |---|---|---|
 | **Lite** | `.debussy/policies/*.md` | Side-project, guide agent behavior with lightweight rules |
-| **Standard** | `.debussy/policies/*.md` + `docs/architecture/principles.md` | Serious project, explicit architectural principles |
-| **Full** | `.debussy/policies/*.md` + `docs/architecture/principles.md` + `docs/decisions/*.md` | Team project, full traceability of decisions |
+| **Standard** | `.debussy/policies/*.md` + `.debussy/architecture/principles.md` | Serious project, explicit architectural principles |
+| **Full** | `.debussy/policies/*.md` + `.debussy/architecture/principles.md` + `.debussy/decisions/*.md` | Team project, full traceability of decisions |
 
 ---
 
@@ -62,8 +62,8 @@ Also scan existing files to detect actual state:
 
 ```bash
 ls .debussy/policies/*.md 2>/dev/null || echo "NO_POLICIES"
-ls docs/architecture/principles.md 2>/dev/null || echo "NO_PRINCIPLES"
-ls docs/decisions/*.md 2>/dev/null || echo "NO_DECISIONS"
+ls .debussy/architecture/principles.md 2>/dev/null || echo "NO_PRINCIPLES"
+ls .debussy/decisions/*.md 2>/dev/null || echo "NO_DECISIONS"
 ```
 
 | Files present | Detected depth |
@@ -107,8 +107,8 @@ Read each of the following files if they exist (use Read tool; skip silently if 
 | File | Purpose |
 |---|---|
 | `.debussy/policies/*.md` | Existing policy files |
-| `docs/architecture/principles.md` | Existing principles |
-| `docs/decisions/*.md` | Existing ADRs |
+| `.debussy/architecture/principles.md` | Existing principles |
+| `.debussy/decisions/*.md` | Existing ADRs |
 | `.debussy/strategy/**/*.md` | Strategy artifacts (for context) |
 | `.debussy/product/product.md` | Product definition (for context) |
 | `CLAUDE.md` | Project instructions |
@@ -171,7 +171,7 @@ order: {N}
 
 ### Standard: Policies + Principles
 
-Everything from Lite, plus generate or update `docs/architecture/principles.md`:
+Everything from Lite, plus generate or update `.debussy/architecture/principles.md`:
 
 ```markdown
 ---
@@ -202,7 +202,7 @@ Principles should be derived from:
 
 ### Full: Policies + Principles + ADR scaffold
 
-Everything from Standard, plus ensure `docs/decisions/` has a good foundation.
+Everything from Standard, plus ensure `.debussy/decisions/` has a good foundation.
 
 If ADRs already exist, analyze them for consistency and completeness. Suggest
 new ADRs for undocumented decisions detected in the codebase.
@@ -238,7 +238,7 @@ ADR numbers are three-digit, zero-padded. Never renumber existing ADRs.
 Create directories as needed:
 
 ```bash
-mkdir -p .debussy/policies docs/architecture docs/decisions
+mkdir -p .debussy/policies .debussy/architecture .debussy/decisions
 ```
 
 Write all draft artifact files using the Write tool. Set frontmatter
@@ -252,7 +252,7 @@ exist and were not changed.
 Delegate to the review-gate skill to send drafted artifacts for user review:
 
 ```
-/review-gate --source engineering --title "Engineering Review: {depth} level" --icon i-heroicons-cog-6-tooth --sidecars .debussy/policies/*.md docs/architecture/principles.md docs/decisions/*.md
+/review-gate --source engineering --title "Engineering Review: {depth} level" --icon i-heroicons-cog-6-tooth --sidecars .debussy/policies/*.md .debussy/architecture/principles.md .debussy/decisions/*.md
 ```
 
 After the review-gate completes, check its summary output. For items with
@@ -268,7 +268,7 @@ section entirely.
 
 1. Read existing policies
 2. Derive architectural principles from policies + codebase analysis
-3. Draft `docs/architecture/principles.md`
+3. Draft `.debussy/architecture/principles.md`
 4. Update `config.yaml`: set engineering depth to `standard`
 
 ### Standard -> Full
@@ -314,7 +314,7 @@ Delegate to the review-gate skill to open the Debussy UI Inbox for all
 existing engineering artifacts:
 
 ```
-/review-gate --source engineering --title "Engineering Review" --icon i-heroicons-cog-6-tooth --sidecars .debussy/policies/*.md docs/architecture/principles.md docs/decisions/*.md
+/review-gate --source engineering --title "Engineering Review" --icon i-heroicons-cog-6-tooth --sidecars .debussy/policies/*.md .debussy/architecture/principles.md .debussy/decisions/*.md
 ```
 
 After the review-gate completes, for items with `changes-requested`: revise
@@ -327,8 +327,8 @@ or rework entirely.
 
 | ID format | Example | Defined in |
 |---|---|---|
-| Principle `{N}` | 1, 2 | `docs/architecture/principles.md` |
-| ADR `{NNN}` | 001, 002 | `docs/decisions/{NNN}-*.md` |
+| Principle `{N}` | 1, 2 | `.debussy/architecture/principles.md` |
+| ADR `{NNN}` | 001, 002 | `.debussy/decisions/{NNN}-*.md` |
 | Policy slug | `testing`, `security` | `.debussy/policies/{slug}.md` |
 
 Principles reference ADRs via `relatedAdrs` field. ADRs reference principles

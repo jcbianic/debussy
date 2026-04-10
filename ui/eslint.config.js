@@ -96,7 +96,7 @@ export default [
        * much inline rendering. Extract sub-regions into presenter components.
        * Set to warn (not error) so existing violations migrate incrementally.
        *
-       * See: docs/architecture/orchestration-presentation.md — Check 1
+       * See: .debussy/architecture/orchestration-presentation.md — Check 1
        */
       'vue/max-lines-per-block': [
         'warn',
@@ -115,7 +115,7 @@ export default [
   // Correct: just use statusColor — it's auto-imported
   // Correct: import type { MyType } from '~/composables/useMyComposable'
   //
-  // See: docs/architecture/orchestration-presentation.md — Check 9
+  // See: .debussy/architecture/orchestration-presentation.md — Check 9
   {
     name: 'project/no-explicit-auto-imports',
     files: ['**/*.vue', '**/*.ts'],
@@ -152,7 +152,7 @@ export default [
   //
   // Set to warn so existing gaps migrate incrementally.
   //
-  // See: docs/architecture/orchestration-presentation.md — Check 11
+  // See: .debussy/architecture/orchestration-presentation.md — Check 11
   {
     name: 'project/jsdoc-composables',
     files: ['composables/**/*.ts', 'utils/**/*.ts'],

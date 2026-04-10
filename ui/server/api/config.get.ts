@@ -36,7 +36,8 @@ function parseEngineeringValue(raw: unknown): StrateConfig['engineering'] {
 
 export default defineEventHandler(async () => {
   const root = await resolveDebussyPath()
-  let name = 'debussy'
+  let name = path.basename(root)
+  let nameFromConfig = false
   let description = ''
   let repoUrl = ''
   const options = { statusline: true }
@@ -56,7 +57,10 @@ export default defineEventHandler(async () => {
       'utf8'
     )
     const cfg = parseYaml(raw)
-    if (cfg?.project?.name) name = cfg.project.name
+    if (cfg?.project?.name) {
+      name = cfg.project.name
+      nameFromConfig = true
+    }
     if (cfg?.project?.description) description = cfg.project.description
     if (cfg?.strates && typeof cfg.strates === 'object') {
       // Detect legacy 2-strate format (no product/work keys, engineering is boolean)
@@ -106,7 +110,7 @@ export default defineEventHandler(async () => {
     const pkg = JSON.parse(
       await readFile(path.join(root, 'package.json'), 'utf8')
     )
-    if (name === 'debussy' && typeof pkg.name === 'string' && pkg.name)
+    if (!nameFromConfig && typeof pkg.name === 'string' && pkg.name)
       name = pkg.name
     const repo = pkg.repository
     if (typeof repo === 'string') repoUrl = repo
