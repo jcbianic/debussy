@@ -8,8 +8,8 @@
   "plugins": [
     {
       "name": "debussy",
-      "description": "Local-first web UI for orchestrating Claude Code sessions and IIKit workflows. Provides /debussy:workflow-run and /debussy:feedback skills plus a Nitro web server via MCP.",
-      "version": "0.2.0",
+      "description": "Meta-plugin for solo builders — from idea to shippable features via strategy, product, engineering, and work strates.",
+      "version": "0.3.0",
       "author": {
         "name": "jcbianic"
       },

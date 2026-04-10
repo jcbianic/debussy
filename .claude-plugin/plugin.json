@@ -1,7 +1,7 @@
 {
   "name": "debussy",
-  "version": "0.2.0",
-  "description": "Claude Code plugin with feedback, workflow-run, roadmap, and strategy skills for orchestrating workflows, structured reviews, product discovery, and planning",
+  "version": "0.3.0",
+  "description": "Meta-plugin for solo builders — from idea to shippable features via strategy, product, engineering, and work strates",
   "author": {
     "name": "jcbianic",
     "url": "https://github.com/jcbianic/debussy"
@@ -9,5 +9,63 @@
   "homepage": "https://github.com/jcbianic/debussy",
   "repository": "https://github.com/jcbianic/debussy",
   "license": "MIT",
-  "keywords": ["claude-code", "orchestration", "iikit", "local-first", "workflow", "roadmap", "strategy", "planning"]
+  "keywords": ["claude-code", "orchestration", "local-first", "workflow", "strategy", "product", "engineering"],
+  "skills": "./skills/",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Skill",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/check-ui.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Skill",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/track-usage.sh"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/track-usage.sh"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/track-usage.sh"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/track-usage.sh"
+          }
+        ]
+      }
+    ]
+  }
 }
