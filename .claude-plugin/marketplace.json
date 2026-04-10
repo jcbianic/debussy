@@ -9,7 +9,7 @@
     {
       "name": "debussy",
       "description": "Meta-plugin for solo builders — from idea to shippable features via strategy, product, engineering, and work strates.",
-      "version": "0.1.5",
+      "version": "0.1.6",
       "author": {
         "name": "jcbianic"
       },
