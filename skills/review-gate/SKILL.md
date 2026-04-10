@@ -155,11 +155,12 @@ keeps the original value with `/`.
 
 ## Step 6: Wait for User Review
 
-The user reviews in the Debussy UI Inbox at `localhost:4321/inbox`.
+The user reviews in the Debussy UI Inbox. Read `.debussy/.port` to get the
+current port (default 4321 if missing).
 
 Print a message:
 
-> Review items are ready in the Debussy UI Inbox. Open http://localhost:4321/inbox to review.
+> Review items are ready in the Debussy UI Inbox. Open http://localhost:{port}/inbox to review.
 
 Wait for the response file using bash filewatch:
 

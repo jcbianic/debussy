@@ -8,12 +8,15 @@ import type { StrategyManifest } from '~/types/config'
 const execAsync = promisify(exec)
 
 /**
- * Resolves a path under the main worktree root using the given segments.
- * Uses `git worktree list` so all worktrees see the same files.
+ * Resolves a path under the project root using the given segments.
+ * Priority: PROJECT_ROOT env var > git worktree root > cwd.
  */
 export async function resolveDebussyPath(
   ...segments: string[]
 ): Promise<string> {
+  if (process.env.PROJECT_ROOT) {
+    return path.join(process.env.PROJECT_ROOT, ...segments)
+  }
   try {
     const { stdout } = await execAsync('git worktree list --porcelain')
     const mainWorktree = (stdout.split('\n')[0] ?? '')

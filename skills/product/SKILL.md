@@ -260,7 +260,9 @@ When the user asks for review (either via "review" reply in Step 5 or via
 
 3. **Wait for response.** Print:
 
-   > Review items are ready in the Debussy UI Inbox. Open http://localhost:4321/inbox to review.
+   > Review items are ready in the Debussy UI Inbox. Open http://localhost:{port}/inbox to review.
+
+   Where `{port}` is read from `.debussy/.port` (default 4321 if missing).
 
    Wait for `response.json`:
 

@@ -68,18 +68,37 @@ Proceed with Step 2.
 
 ---
 
-## Step 2: Start the UI Server
+## Step 2: Derive Port & Start the UI Server
 
-Find the Debussy UI server entry point:
+### Port derivation
+
+Each project gets a deterministic port so multiple projects can run
+simultaneously. Derive it from the project root path:
+
+```bash
+PROJECT_ROOT=$(git worktree list --porcelain 2>/dev/null | head -1 | sed 's/^worktree //')
+[ -z "$PROJECT_ROOT" ] && PROJECT_ROOT="$(pwd)"
+HASH=$(echo -n "$PROJECT_ROOT" | cksum | awk '{print $1}')
+PORT=$(( (HASH % 679) + 4321 ))
+```
+
+This produces a port in the range **4321–4999**.
+
+### Find the server entry point
 
 1. Check `ui/.output/server/index.mjs` in the current working directory
 2. Check `~/.claude/plugins/debussy/ui/.output/server/index.mjs` (plugin install path)
 3. Search `~/.claude` for `debussy/ui/.output/server/index.mjs` as fallback
 
-Once found, start the server:
+### Start the server
+
+Pass both `PORT` and `PROJECT_ROOT` so the server knows which project to
+serve:
 
 ```bash
-PORT=4321 node <found-path> &
+mkdir -p .debussy
+echo "$PORT" > .debussy/.port
+PORT=$PORT PROJECT_ROOT="$PROJECT_ROOT" node <found-path> &
 sleep 1
 ```
 
@@ -88,7 +107,7 @@ If the server is not found, print instructions and EXIT:
 ```
 Could not locate Debussy UI server. Please start it manually:
 
-  PORT=4321 node <path-to-debussy>/ui/.output/server/index.mjs
+  PORT=<port> PROJECT_ROOT=<project-root> node <path-to-debussy>/ui/.output/server/index.mjs
 
 Then re-run /debussy:init.
 ```
@@ -100,9 +119,9 @@ Then re-run /debussy:init.
 Open the browser to the configuration page:
 
 ```bash
-open "http://localhost:4321/configure" 2>/dev/null || \
-xdg-open "http://localhost:4321/configure" 2>/dev/null || \
-echo "Open in browser: http://localhost:4321/configure"
+open "http://localhost:$PORT/configure" 2>/dev/null || \
+xdg-open "http://localhost:$PORT/configure" 2>/dev/null || \
+echo "Open in browser: http://localhost:$PORT/configure"
 ```
 
 Print status:
@@ -110,7 +129,7 @@ Print status:
 ```
 DEBUSSY INIT
 
-Configuration UI: http://localhost:4321/configure
+Configuration UI: http://localhost:$PORT/configure
 
 Fill in the project name, description, and select which strates to enable.
 Click "Save configuration" when done.
@@ -150,7 +169,7 @@ Use the Bash tool with `timeout: 610000`.
 
 If the output is `__TIMEOUT__`:
 - Print: "Configuration not received within 10 minutes."
-- Print: "The UI is still running at http://localhost:4321/configure. Submit when ready, then re-run `/debussy:init`."
+- Print: "The UI is still running at http://localhost:$PORT/configure. Submit when ready, then re-run `/debussy:init`."
 - EXIT
 
 Otherwise, parse the YAML output to extract project info, product enabled,
@@ -606,10 +625,10 @@ Files created:
 {table of files created, grouped by strate}
 
 Debussy UI is running at:
-  -> http://localhost:4321
+  -> http://localhost:$PORT
 
 Next steps:
-1. Browse http://localhost:4321 to see your project
+1. Browse http://localhost:$PORT to see your project
 2. Edit the strategy artifacts to shape your vision
 3. Run /debussy:strategy to research and enrich your artifacts
 4. Run /debussy:product to define your product and roadmap

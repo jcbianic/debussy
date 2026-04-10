@@ -77,8 +77,9 @@ center_len=$(( ${#model} + 1 + ${#ctx} + 2 + bar_width + 2 ))
 # --- Right: Debussy UI status ---
 green="\e[32m"
 dim="\e[2m"
-if curl -s --max-time 0.3 http://localhost:4321 > /dev/null 2>&1; then
-  link="${green}\e]8;;http://localhost:4321\a♪ Debussy UI\e]8;;\a${reset}"
+DEBUSSY_PORT=$(cat .debussy/.port 2>/dev/null || echo 4321)
+if curl -s --max-time 0.3 http://localhost:$DEBUSSY_PORT > /dev/null 2>&1; then
+  link="${green}\e]8;;http://localhost:$DEBUSSY_PORT\a♪ Debussy UI\e]8;;\a${reset}"
   right_len=14  # "♪ Debussy UI" (icon counts as 2 cols)
 else
   link="${dim}♪ UI offline${reset}"

@@ -16,7 +16,8 @@ metadata:
 Run or resume a multi-step AI workflow defined in a YAML file.
 The maestro (this skill) is a pure coordinator: it dispatches
 a principal agent per step and blocks at review gates. Reviews
-are handled through the Debussy UI Inbox at localhost:4321.
+are handled through the Debussy UI Inbox (port read from `.debussy/.port`,
+default 4321).
 
 ## When to Activate
 
@@ -141,7 +142,7 @@ Before using any prompt, context path, or artifact path, substitute:
 
 ```text
 Starting workflow '{name}' — run {run_id}
-Inbox: http://localhost:4321/inbox
+Inbox: http://localhost:{port}/inbox
 ```
 
 1. **Run the Execution Loop**.
@@ -179,7 +180,7 @@ Steps:
   → 3-tests-red        pending_review  (AWAITING YOUR REVIEW)
   ○ 4-implement        not_started
 
-Inbox: http://localhost:4321/inbox
+Inbox: http://localhost:{port}/inbox
 Artifacts: {workspace}/
 ```
 
@@ -367,7 +368,7 @@ Called after the principal completes a `review: true` step.
 Artifacts produced:
 {for each artifact: - {path}: {description}}
 
-Review ready at: http://localhost:4321/inbox
+Review ready at: http://localhost:{port}/inbox
 ```
 
 ### 2. Collect Cards
