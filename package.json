@@ -1,6 +1,6 @@
 {
   "name": "debussy",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Claude Code plugin with feedback and workflow-run skills",
   "license": "MIT",
   "repository": {
@@ -9,6 +9,6 @@
   },
   "files": [
     ".claude-plugin/",
-    ".claude/skills/"
+    "skills/"
   ]
 }

@@ -14,8 +14,8 @@
         "name": "jcbianic"
       },
       "source": {
-        "source": "url",
-        "url": "https://github.com/jcbianic/debussy.git"
+        "source": "github",
+        "repo": "jcbianic/debussy"
       },
       "homepage": "https://github.com/jcbianic/debussy",
       "category": "development",

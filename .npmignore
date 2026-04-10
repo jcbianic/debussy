@@ -6,6 +6,9 @@
 .workflow-runs/
 *.log
 
+# npm pack output (prevents recursive nesting in plugin cache)
+debussy/
+
 # Documentation (except README)
 *.md
 !README.md
